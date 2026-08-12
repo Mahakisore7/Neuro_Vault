@@ -1,0 +1,44 @@
+name: neurovault
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: neurovault
+      POSTGRES_PASSWORD: neurovault
+      POSTGRES_DB: neurovault
+    ports: ["5432:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U neurovault -d neurovault"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build: { context: ./backend, target: dev }
+    command: uv run alembic upgrade head
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://neurovault:neurovault@db:5432/neurovault
+      DATABASE_URL_SYNC: postgresql://neurovault:neurovault@db:5432/neurovault
+    depends_on:
+      db: { condition: service_healthy }
+
+  backend:
+    build: { context: ./backend, target: dev }
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://neurovault:neurovault@db:5432/neurovault
+      DATABASE_URL_SYNC: postgresql://neurovault:neurovault@db:5432/neurovault
+      ALLOWED_ORIGINS: http://localhost:3000
+    volumes:
+      - ./backend:/app # live reload
+      - /app/.venv # keep the image's venv — see below
+    ports: ["8000:8000"]
+    depends_on:
+      migrate: { condition: service_completed_successfully }
+    restart: unless-stopped
+
+volumes:
+  pgdata:

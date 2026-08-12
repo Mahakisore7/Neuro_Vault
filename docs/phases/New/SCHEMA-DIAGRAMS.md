@@ -15,7 +15,7 @@
 
 ## 0. What this file audits and fixes
 
-Reviewing the full `docs/phases/New/` set against itself (all 11 files) surfaced five
+Reviewing the full `docs/phases/New/` set against itself (all 11 files) surfaced six
 small but real inconsistencies — the kind Rule 1 of this doc set ("one source of truth
 per fact") exists to prevent. They're fixed as part of producing this file:
 
@@ -26,13 +26,17 @@ per fact") exists to prevent. They're fixed as part of producing this file:
 | 3 | `00-ARCHITECTURE.md` §0.7 API contract | `GET /graph/connected?note_id=&depth=` | `GET /notes/{id}/graph?depth=` — the path actually implemented in `04-API.md` §4.8/§4.10 |
 | 4 | `00-ARCHITECTURE.md` §0.7 API contract | `POST /uploads/image` (a backend route) | removed, replaced with a note that uploads go browser → Supabase Storage directly (`07-DEPLOY.md` §7.5), matching what the rest of the doc set already says |
 | 5 | `04-API.md` | `GET /dashboard` was promised by the architecture contract and used by `05-FRONTEND.md` §5.10 and the `08-VIVA.md` demo script, but no route, service, or schema for it existed anywhere in Phase 4 | added §4.8a — `DashboardResponse`, `DashboardRepository`, `DashboardService`, the route, and its row in the §4.10 authorization table |
+| 6 | `04-API.md` §4.6 `NoteService.delete` | called the generic `BaseRepository.delete()` — a real SQL `DELETE`, which CASCADEs to the note's versions, flashcards, resources, and links | sets `note.archived = True` instead, matching what `00-ARCHITECTURE.md` §0.7 already promised ("archive, not hard delete") and reusing the `archived` column + partial index Phase 2/3 already built for exactly this |
 
 None of these were fatal — a careful reader would reconcile them the same way while
-building. But #5 was a real gap: without it, Phase 5's `/dashboard` page and the second
-minute of the demo script had nothing to call. The other four were stale numbers and a
-stale path left over from the doc's own first draft (§0.7 in the old `PHASE_0` file has
-the identical `/graph/connected` and `/uploads/image` lines — they were carried forward
-without being reconciled against the final Phase 4 design).
+building. But #5 and #6 were real gaps, not just stale numbers: without #5, Phase 5's
+`/dashboard` page and the second minute of the demo script had nothing to call; #6 meant
+the documented "delete archives, it doesn't destroy" contract was silently false — the
+code as written would have deleted a user's whole edit history the first time anyone
+clicked delete. Items 1–4 were stale numbers and a stale path left over from the doc's
+own first draft (§0.7 in the old `PHASE_0` file has the identical `/graph/connected` and
+`/uploads/image` lines — they were carried forward without being reconciled against the
+final Phase 4 design).
 
 Everything else in the New set held up under a full line-by-line read: the ADR list is
 internally consistent, the 15-table count, 4-view count, and 3-trigger count agree

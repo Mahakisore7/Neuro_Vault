@@ -100,6 +100,7 @@ Each phase has a single doc. Do them in order.
 | 8 | [`08-VIVA.md`](08-VIVA.md) | CO1–CO5 map, spoken answers, demo script | 2 |
 | — | [`09-ROADMAP.md`](09-ROADMAP.md) | Feature improvements, after the core | — |
 | — | [`SCHEMA-DIAGRAMS.md`](SCHEMA-DIAGRAMS.md) | ER diagram, physical schema diagram, user flow diagrams | — |
+| — | [`FUNCTIONALITIES-AND-UML.md`](FUNCTIONALITIES-AND-UML.md) | UML (use case, class, state) diagrams, plain-language feature list, DBMS-concept map | — |
 
 **~38 hours of focused work, split across two people.**
 
