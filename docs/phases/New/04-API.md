@@ -630,11 +630,21 @@ class NoteService:
         return NoteResponse.model_validate(note)
 
     async def delete(self, note_id: UUID, user: User) -> None:
+        """Archives, not hard-deletes — see 00-ARCHITECTURE.md §0.7.
+
+        A hard delete here would CASCADE to the note's versions, flashcards,
+        resources, and both directions of knowledge_links (Phase 2 §2.4) — the
+        exact history the versioning trigger exists to preserve. Setting
+        `archived` reuses the column and partial index (idx_notes_creator_id_
+        updated_at WHERE archived = FALSE, Phase 3 §3.2) that already exist for
+        this: default note lists already filter it out.
+        """
         note = await self.notes.get(note_id)
         if note is None:
             raise NotFoundError("Note", note_id)
         self._assert_can_write(note, user)
-        await self.notes.delete(note)
+        note.archived = True
+        await self.db.flush()
 ```
 
 **`exclude_unset=True` is the whole reason PATCH works.** Without it,
