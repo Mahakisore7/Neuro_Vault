@@ -6,21 +6,23 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.engine.url import make_url
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
+import app.models  # noqa: F401 — the model registry; see app/models/__init__.py
 from alembic import context
 from app.core.config import settings
-from app.db.base import Base  # noqa: F401 — imports every model; see below
+from app.db.base import Base
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# THE reason app.db.base is imported above: Base.metadata is Alembic's
-# source of truth for "what should the schema look like". A model only
-# registers itself in that metadata when its module has been imported
-# somewhere — db/base.py's import block IS that "somewhere". Skip that
-# import and target_metadata would be empty, and `--autogenerate` would
-# cheerfully generate a migration that DROPS every table it can't see.
+# THE reason `import app.models` is at the top of this file: Base.metadata
+# is Alembic's source of truth for "what should the schema look like". A
+# model only registers itself in that metadata when its module has been
+# imported somewhere — app/models/__init__.py's import block IS that
+# somewhere. Skip that import and target_metadata would be empty, and
+# `--autogenerate` would cheerfully generate a migration that DROPS every
+# table it can't see.
 target_metadata = Base.metadata
 
 

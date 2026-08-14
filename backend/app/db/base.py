@@ -42,18 +42,13 @@ class TimestampMixin:
         nullable=False,
     )
 
-
-# ─── Model registry ─────────────────────────────────────────────────────────
-# Alembic autogenerate compares Base.metadata against the live database. A
-# model only enters that metadata when its module is imported. Miss one and
-# autogenerate produces a migration that DROPS the table it cannot see.
-# These imports ARE the registry — noqa because they're unused by name and
-# essential by side effect.
-from app.models.audit import ActivityLog, Notification  # noqa: E402, F401
-from app.models.collection import Collection, CollectionItem  # noqa: E402, F401
-from app.models.link import KnowledgeLink, RelationshipType  # noqa: E402, F401
-from app.models.note import Note, NoteVersion  # noqa: E402, F401
-from app.models.study import Flashcard, Resource  # noqa: E402, F401
-from app.models.tag import NoteTag, Tag  # noqa: E402, F401
-from app.models.user import User  # noqa: E402, F401
-from app.models.workspace import Notebook, Workspace  # noqa: E402, F401
+# NOTE: no model imports here. This module defines Base; every model module
+# imports Base FROM here. If this file also imported the models (as it
+# briefly did), the first model module Python happens to load would trigger
+# an import of db.base, which would try to import that SAME model module
+# back — while it's still mid-import and doesn't have its class defined
+# yet. That's a circular import, and it only shows up depending on which
+# module gets imported first, which is what made it easy to miss. The
+# model registry (needed for Alembic autogenerate) lives in
+# app/models/__init__.py instead, which only ever gets imported AFTER
+# every individual model module already works on its own.
