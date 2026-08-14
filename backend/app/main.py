@@ -5,8 +5,14 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.core.config import settings
-from app.core.exceptions import (
+# Import the full model registry FIRST, before anything below has a chance
+# to import a single model module on its own. This is what avoids the
+# circular-import trap described in app/db/base.py and app/models/__init__.py:
+# once this line has run, every model class is safely importable from
+# anywhere, in any order, for the rest of the process's life.
+import app.models  # noqa: E402, F401
+from app.core.config import settings  # noqa: E402
+from app.core.exceptions import (  # noqa: E402
     ConflictError,
     DomainError,
     NotFoundError,
@@ -63,6 +69,6 @@ async def health() -> dict[str, str]:
     return {"status": "ok", "version": settings.version}
 
 
-# Stage 3 adds:
-# from app.api.v1.router import api_router
-# app.include_router(api_router, prefix="/api/v1")
+from app.api.v1.router import api_router  # noqa: E402
+
+app.include_router(api_router, prefix="/api/v1")
