@@ -48,4 +48,12 @@ class TimestampMixin:
 # model only enters that metadata when its module is imported. Miss one and
 # autogenerate produces a migration that DROPS the table it cannot see.
 # These imports ARE the registry — noqa because they're unused by name and
-# essential by side effect. Filled in during Stage 2 (Database).
+# essential by side effect.
+from app.models.audit import ActivityLog, Notification  # noqa: E402, F401
+from app.models.collection import Collection, CollectionItem  # noqa: E402, F401
+from app.models.link import KnowledgeLink, RelationshipType  # noqa: E402, F401
+from app.models.note import Note, NoteVersion  # noqa: E402, F401
+from app.models.study import Flashcard, Resource  # noqa: E402, F401
+from app.models.tag import NoteTag, Tag  # noqa: E402, F401
+from app.models.user import User  # noqa: E402, F401
+from app.models.workspace import Notebook, Workspace  # noqa: E402, F401

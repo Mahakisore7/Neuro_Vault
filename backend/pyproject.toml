@@ -40,6 +40,11 @@ ignore = ["E501"]
 
 [tool.ruff.lint.per-file-ignores]
 "app/tests/*" = ["S101"]
+# N811 fires on `from sqlalchemy.dialects.postgresql import UUID as PgUUID` —
+# ruff's naming check treats the ALL-CAPS `UUID` as a "constant" by
+# convention and flags the rename. It's a class, not a constant; the alias
+# only exists to avoid shadowing Python's own uuid.UUID type.
+"app/models/*" = ["N811"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
