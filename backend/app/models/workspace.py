@@ -22,11 +22,11 @@ if TYPE_CHECKING:
 class Workspace(Base, TimestampMixin):
     __tablename__ = "workspaces"
     __table_args__ = (
-        UniqueConstraint("owner_id", "slug", name="owner_id_slug"),
+        UniqueConstraint("owner_id", "slug"),
         # Composite FK TARGET for notebooks below. A plain PK on `id` alone
         # cannot be referenced by a two-column foreign key — the pair itself
         # has to be declared unique first.
-        UniqueConstraint("id", "owner_id", name="id_owner_id"),
+        UniqueConstraint("id", "owner_id"),
         CheckConstraint("slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'", name="slug_format"),
     )
 
@@ -58,8 +58,8 @@ class Notebook(Base, TimestampMixin):
             ondelete="CASCADE",
             name="workspace_id_owner_id",
         ),
-        UniqueConstraint("id", "owner_id", name="id_owner_id"),  # composite FK target for notes
-        UniqueConstraint("workspace_id", "name", name="workspace_id_name"),
+        UniqueConstraint("id", "owner_id"),  # composite FK target for notes
+        UniqueConstraint("workspace_id", "name"),
         CheckConstraint("color ~ '^#[0-9A-Fa-f]{6}$'", name="color_format"),
     )
 

@@ -56,10 +56,7 @@ class KnowledgeLink(Base, TimestampMixin):
             ondelete="CASCADE",
             name="source_note_id_created_by",
         ),
-        UniqueConstraint(
-            "source_note_id", "target_note_id", "rel_type_id",
-            name="source_note_id_target_note_id_rel_type_id",
-        ),
+        UniqueConstraint("source_note_id", "target_note_id", "rel_type_id"),
         CheckConstraint("source_note_id <> target_note_id", name="no_self_link"),
         CheckConstraint("strength BETWEEN 1 AND 10", name="strength_range"),
         CheckConstraint("origin IN ('manual', 'wiki', 'ai')", name="origin"),

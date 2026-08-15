@@ -62,7 +62,7 @@ class Note(Base, TimestampMixin):
             ondelete="SET NULL (notebook_id)",
             name="notebook_id_creator_id",
         ),
-        UniqueConstraint("id", "creator_id", name="id_creator_id"),  # composite FK target
+        UniqueConstraint("id", "creator_id"),  # composite FK target
         CheckConstraint("btrim(title) <> ''", name="title_not_blank"),
     )
 
@@ -106,7 +106,7 @@ class Note(Base, TimestampMixin):
 class NoteVersion(Base):
     __tablename__ = "note_versions"
     __table_args__ = (
-        UniqueConstraint("note_id", "version_num", name="note_id_version_num"),
+        UniqueConstraint("note_id", "version_num"),
         CheckConstraint("version_num > 0", name="version_num_positive"),
     )
 

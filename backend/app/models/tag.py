@@ -10,8 +10,8 @@ from app.db.base import Base
 class Tag(Base):
     __tablename__ = "tags"
     __table_args__ = (
-        UniqueConstraint("user_id", "slug", name="user_id_slug"),
-        UniqueConstraint("id", "user_id", name="id_user_id"),  # composite FK target
+        UniqueConstraint("user_id", "slug"),
+        UniqueConstraint("id", "user_id"),  # composite FK target
         CheckConstraint("slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'", name="slug_format"),
         CheckConstraint("color ~ '^#[0-9A-Fa-f]{6}$'", name="color_format"),
     )
