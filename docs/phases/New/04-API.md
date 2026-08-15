@@ -377,7 +377,7 @@ every failure.
 > API surface I need is one function, so the migration was a three-line change — there
 > was no reason to keep a dependency with known vulnerabilities."
 >
-> See [ADR-006](00-ARCHITECTURE.md#adr-006).
+> See [ADR-006](../../adr/0006-pyjwt-instead-of-python-jose.md).
 
 ### Resolving the token to a user
 
@@ -459,7 +459,7 @@ it identically; the routes stay readable.
 > would break local development entirely, and it would break if Supabase changed that
 > table. Creating the row lazily from a verified JWT claim means our database has no
 > dependency on theirs. The only cost is the race on first login, which one savepoint
-> handles. That is [ADR-013](00-ARCHITECTURE.md#adr-013)."
+> handles. That is [ADR-013](../../adr/0013-users-mirrors-supabase-auth.md)."
 
 ---
 

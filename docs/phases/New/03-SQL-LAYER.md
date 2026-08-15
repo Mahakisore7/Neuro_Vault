@@ -19,7 +19,7 @@ The recursive CTE returns the correct subgraph and terminates on a cyclic graph
 
 ## 3.1 Everything here lives in an Alembic migration
 
-Not in loose `.sql` files you run by hand. This is [ADR-003](00-ARCHITECTURE.md#adr-003),
+Not in loose `.sql` files you run by hand. This is [ADR-003](../../adr/0003-sql-objects-in-migrations.md),
 and it is worth restating because it is the decision most often got wrong.
 
 A view, a trigger, and an index are **schema**, exactly as much as a table is. If they
@@ -504,7 +504,7 @@ plausible-sounding bug is not a bug is exactly what a viva is testing.)*
 
 **`AFTER INSERT`, not `BEFORE`.** The notification should only exist if the link
 actually got stored. A `BEFORE` trigger runs before constraints are checked — including
-the composite FK enforcing [ADR-007](00-ARCHITECTURE.md#adr-007) — so a rejected link
+the composite FK enforcing [ADR-007](../../adr/0007-links-originate-from-owned-notes.md) — so a rejected link
 would still have produced a notification. `AFTER` runs once the row is committed to the
 statement.
 
@@ -1214,7 +1214,7 @@ layer, none of your authorization code.
 
 **RLS is the boundary that still holds when the application is bypassed.** Without it,
 `SELECT * FROM notes` from a browser returns every note belonging to every user. This
-is [ADR-008](00-ARCHITECTURE.md#adr-008), and it is the difference between a project
+is [ADR-008](../../adr/0008-row-level-security.md), and it is the difference between a project
 that demonstrates security and one that only demonstrates intent.
 
 ### `backend/alembic/versions/004_rls.py`
@@ -1332,7 +1332,7 @@ def upgrade() -> None:
 > ID — giving your row away, or worse, moving someone else's row to yourself.
 
 **A local-development caveat.** `auth.uid()` is defined by Supabase, not by stock
-PostgreSQL, so these policies fail on the local container from [ADR-012](00-ARCHITECTURE.md#adr-012).
+PostgreSQL, so these policies fail on the local container from [ADR-012](../../adr/0012-local-postgres-dev-supabase-prod.md).
 Provide a local stand-in at the top of the migration:
 
 ```python

@@ -33,7 +33,7 @@ Three managed services, one Docker image, no servers to patch.
 
 ## 7.2 Promote the schema to Supabase
 
-Development ran against local PostgreSQL ([ADR-012](00-ARCHITECTURE.md#adr-012)). The
+Development ran against local PostgreSQL ([ADR-012](../../adr/0012-local-postgres-dev-supabase-prod.md)). The
 production database has never seen a migration. Apply them **before** the API deploys.
 
 ```bash
@@ -126,7 +126,7 @@ GRAPH_CACHE_TTL      300
 > **`ALLOWED_ORIGINS` is the variable that broke the previous deployment.** It is set
 > here, in production, which is exactly the path the old `list[str]` declaration
 > crashed on — and exactly the path CI never exercised. The `NoDecode` fix (§1.6,
-> [ADR-005](00-ARCHITECTURE.md#adr-005)) is what makes this line safe, and backend CI
+> [ADR-005](../../adr/0005-allowed-origins-parsing.md)) is what makes this line safe, and backend CI
 > now sets it too so the parsing path is tested on every push.
 
 **`ENVIRONMENT=production` is load-bearing.** `_production_safety` in `config.py`
