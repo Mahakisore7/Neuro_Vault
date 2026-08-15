@@ -39,8 +39,20 @@ async def get_current_user(
         return user
 
     # First request from this user. Build the row from VERIFIED claims only.
+    # This is a fallback path: the auth.users trigger (see the
+    # sync_auth_users_via_trigger migration) normally creates the row first,
+    # at signup. This still runs for any row that predates the trigger, or
+    # if it's ever missed - so it reads the same OAuth metadata keys the
+    # trigger does, to build an equivalent row either way.
+    metadata = payload.get("user_metadata", {})
     email = payload.get("email") or f"{user_id}@placeholder.local"
-    display_name = (payload.get("user_metadata", {}).get("full_name") or email.split("@")[0])[:100]
+    display_name = (
+        metadata.get("display_name")
+        or metadata.get("full_name")
+        or metadata.get("name")
+        or email.split("@")[0]
+    )[:100]
+    avatar_url = metadata.get("avatar_url")
 
     try:
         # begin_nested() opens a SAVEPOINT. Two requests from the same brand
@@ -49,7 +61,7 @@ async def get_current_user(
         # the SAVEPOINT discards only the failed INSERT; a bare db.rollback()
         # would abort the whole request's transaction instead.
         async with db.begin_nested():
-            user = User(id=user_id, email=email, display_name=display_name)
+            user = User(id=user_id, email=email, display_name=display_name, avatar_url=avatar_url)
             db.add(user)
     except IntegrityError:
         user = await db.get(User, user_id)

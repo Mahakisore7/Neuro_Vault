@@ -10,6 +10,12 @@ export interface UserResponse {
   created_at: string;
 }
 
+export interface UserUpdate {
+  display_name?: string;
+  bio?: string | null;
+  avatar_url?: string | null;
+}
+
 export interface Workspace {
   id: string;
   owner_id: string;

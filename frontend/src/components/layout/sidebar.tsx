@@ -1,22 +1,28 @@
 "use client";
 
-import { LogOut, Network } from "lucide-react";
+import { LogOut, Network, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useMe } from "@/hooks/use-user";
 import { supabase } from "@/lib/supabase";
 
-export function Sidebar({ userEmail }: { userEmail?: string }) {
+const NAV_ITEMS = [
+  { href: "/workspaces", label: "Workspaces" },
+  { href: "/profile", label: "Profile" },
+];
+
+export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
+  const { data: user } = useMe();
 
   async function handleSignOut() {
     await supabase.auth.signOut();
     router.push("/login");
   }
-
-  const isWorkspaces = pathname === "/workspaces";
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-muted/20">
@@ -28,22 +34,48 @@ export function Sidebar({ userEmail }: { userEmail?: string }) {
       </div>
 
       <nav className="flex-1 space-y-1 p-3">
-        <Link
-          href="/workspaces"
-          className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-            isWorkspaces
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          }`}
-        >
-          Workspaces
-        </Link>
+        {NAV_ITEMS.map((item) => {
+          // Workspaces' subpages (notebooks, notes) should still highlight it.
+          const active =
+            item.href === "/workspaces"
+              ? pathname.startsWith("/workspaces")
+              : pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                active
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="border-t p-3">
-        {userEmail && (
-          <p className="mb-2 truncate px-3 text-xs text-muted-foreground">{userEmail}</p>
-        )}
+        <Link
+          href="/profile"
+          className="mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted"
+        >
+          <Avatar className="size-7">
+            <AvatarImage src={user?.avatar_url ?? undefined} alt={user?.display_name ?? ""} />
+            <AvatarFallback>
+              {user ? user.display_name.slice(0, 2).toUpperCase() : <User className="size-3.5" />}
+            </AvatarFallback>
+          </Avatar>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-medium">
+              {user?.display_name ?? "Loading…"}
+            </span>
+            {user?.email && (
+              <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
+            )}
+          </span>
+        </Link>
         <Button
           variant="ghost"
           size="sm"

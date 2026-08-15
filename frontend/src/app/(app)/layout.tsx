@@ -9,7 +9,6 @@ import { supabase } from "@/lib/supabase";
 export default function AppLayout({ children }: LayoutProps<"/">) {
   const router = useRouter();
   const [checked, setChecked] = useState(false);
-  const [email, setEmail] = useState<string | undefined>();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -17,7 +16,6 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         router.replace("/login");
         return;
       }
-      setEmail(session.user.email ?? undefined);
       setChecked(true);
     });
 
@@ -40,7 +38,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
 
   return (
     <div className="flex h-screen bg-background">
-      <Sidebar userEmail={email} />
+      <Sidebar />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
