@@ -64,7 +64,7 @@ vs. full sidebar) coexist without a conditional in one layout.
 Say this out loud before writing any of it, because it is the thing an examiner will
 probe and the thing that is easiest to get intellectually wrong.
 
-The app is a **static export** ([ADR-010](00-ARCHITECTURE.md#adr-010)). There is no
+The app is a **static export** ([ADR-010](../../adr/0010-static-export-frontend.md)). There is no
 server, so there is no middleware, so there is no server-side redirect. The guard below
 runs in the browser, after the JavaScript has already been downloaded.
 

@@ -28,8 +28,8 @@ class Collection(Base, TimestampMixin):
 
     __tablename__ = "collections"
     __table_args__ = (
-        UniqueConstraint("user_id", "name", name="user_id_name"),
-        UniqueConstraint("id", "user_id", name="id_user_id"),  # composite FK target
+        UniqueConstraint("user_id", "name"),
+        UniqueConstraint("id", "user_id"),  # composite FK target
     )
 
     id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)

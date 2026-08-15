@@ -97,7 +97,7 @@ about the part you chose to mention.
 | Volatility (`IMMUTABLE`/`STABLE`/`VOLATILE`) | §3.5, and generated columns §2.3 |
 | Generated columns | §2.3, §2.4 |
 | **Row Level Security** | §3.8 |
-| Schema versioning / migrations | [ADR-003](00-ARCHITECTURE.md#adr-003) |
+| Schema versioning / migrations | [ADR-003](../../adr/0003-sql-objects-in-migrations.md) |
 | Connection pooling | §1.6, §1.4 pgbouncer modes |
 | Caching and invalidation | [`04-API.md`](04-API.md) §4.7 |
 | **Provenance-scoped set reconciliation** | `origin` column, §4.9 — the wiki-link edge sync |
@@ -227,7 +227,7 @@ Scan`.
 > pgbouncer in transaction mode, which means disabling asyncpg's prepared-statement
 > cache. If graph traversal became *the* workload rather than one feature among fifteen
 > tables, that is the point where a native graph database wins — that trade-off is
-> written up in [ADR-011](00-ARCHITECTURE.md#adr-011)."
+> written up in [ADR-011](../../adr/0011-postgresql-not-graph-database.md)."
 
 **15. What is the weakest part of this project?**
 

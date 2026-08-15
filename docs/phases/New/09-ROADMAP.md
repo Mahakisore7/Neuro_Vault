@@ -159,7 +159,7 @@ destroys that trust permanently.
 This mirrors how every comparable product actually ships the feature, not just how this
 one plays it safe. Mem.ai, Tana, and RemNote all layer AI-suggested connections on top
 of an explicit, user-driven linking model — never as the primary mechanism, and always
-reviewable rather than silent. [ADR-011](00-ARCHITECTURE.md#adr-011) has the wider
+reviewable rather than silent. [ADR-011](../../adr/0011-postgresql-not-graph-database.md) has the wider
 version of this: no product in this category lets an automated process write the graph
 directly, the same way none of them runs a native graph database. `[[wiki-links]]` are
 the core's automatic mechanism precisely because they're deterministic — the user typed
@@ -208,7 +208,7 @@ It is here because it was in the original plan, and because the core was built s
 remains possible — but if time appears, FI-1 or FI-2 is the better investment.
 
 **What makes it possible at all:** the frontend is a static export
-([ADR-010](00-ARCHITECTURE.md#adr-010)). Tauri wraps static files, so there is no Node
+([ADR-010](../../adr/0010-static-export-frontend.md)). Tauri wraps static files, so there is no Node
 server to eliminate first. That was a deliberate consequence of the ADR, not luck.
 
 ### Schema delta
@@ -274,7 +274,7 @@ displacing polish on the three that worked.
 **`projects`.** The original schema had a `projects` table with no foreign keys to
 anything, no API routes, no UI, and no appearance in any query. It was a table because
 someone thought a project management app should have one.
-[ADR-009](00-ARCHITECTURE.md#adr-009) records the removal.
+[ADR-009](../../adr/0009-dropping-projects.md) records the removal.
 
 > **If asked why there is no `projects` table:** "It had no relationships, no queries,
 > and no interface. A table that nothing references and nothing reads is not a feature,

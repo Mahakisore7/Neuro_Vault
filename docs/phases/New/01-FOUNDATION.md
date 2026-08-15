@@ -217,7 +217,7 @@ Three accounts, all free tier, all created before you write code.
 > **The `anon` key is public.** It ships to every browser that loads your site. It is
 > not a secret and treating it like one gives you false confidence. What actually
 > protects your data is Row Level Security, enforced by PostgreSQL, on every table.
-> That is Phase 3, and [ADR-008](00-ARCHITECTURE.md#adr-008) explains why it is not
+> That is Phase 3, and [ADR-008](../../adr/0008-row-level-security.md) explains why it is not
 > optional. The `service_role` key **is** a secret — it bypasses RLS entirely and must
 > never appear in frontend code, a `NEXT_PUBLIC_*` variable, or a commit.
 
@@ -341,7 +341,7 @@ list is used and the JSON path is never taken. CI is green and the documented pr
 deployment — which sets it explicitly — cannot boot. **Your CI is only as good as the
 configuration it exercises.**
 
-The fix is in §1.6 and in [ADR-005](00-ARCHITECTURE.md#adr-005). I verified it against
+The fix is in §1.6 and in [ADR-005](../../adr/0005-allowed-origins-parsing.md). I verified it against
 pydantic-settings 2.14.2 rather than reasoning about it.
 
 ---
@@ -429,7 +429,7 @@ omit = ["app/tests/*", "alembic/*"]
 
 | Change | Reason |
 |---|---|
-| **Removed** `python-jose` | Unmaintained; last release 2021, open CVEs. See [ADR-006](00-ARCHITECTURE.md#adr-006). |
+| **Removed** `python-jose` | Unmaintained; last release 2021, open CVEs. See [ADR-006](../../adr/0006-pyjwt-instead-of-python-jose.md). |
 | **Added** `pyjwt` | Actively maintained, used by Auth0 and Django REST. Same job, 3-line diff. |
 | **Removed** `supabase` (Python) | We verify JWTs ourselves with a shared secret — no network call, no client library. File uploads go **browser → Supabase Storage directly**, so bytes never transit our API. Removing it drops ~15 transitive dependencies. |
 | **Added** `psycopg[binary]` | Alembic's sync driver. `[binary]` means no C compiler needed. |
@@ -559,7 +559,7 @@ settings = get_settings()
 is not a checklist item — it is a startup condition. A production process with
 `DEBUG=true` leaks stack traces containing SQL and connection strings to anyone who
 triggers a 500. Making that state *unrepresentable* is the same instinct as the
-composite foreign keys in [ADR-001](00-ARCHITECTURE.md#adr-001), applied to config
+composite foreign keys in [ADR-001](../../adr/0001-tenancy-composite-foreign-keys.md), applied to config
 instead of data. It is the recurring idea in this project:
 
 > **Do not document a rule you can make the machine enforce.**
@@ -889,7 +889,7 @@ export default nextConfig;
 
 `output: "export"` is what makes the frontend deployable as static files. The
 consequence — no server components, no route handlers, no middleware — is a real
-constraint, and [ADR-010](00-ARCHITECTURE.md#adr-010) states plainly what it costs:
+constraint, and [ADR-010](../../adr/0010-static-export-frontend.md) states plainly what it costs:
 **the client-side auth guard is a UX affordance, not a security boundary.** Every
 protected resource is protected by the backend checking the JWT and by RLS, never by
 a redirect in a `useEffect`.
@@ -1040,7 +1040,7 @@ of you to develop against one shared Supabase instance. That means:
 **Develop against local PostgreSQL; deploy to Supabase.** This works because
 `users.id` is a *mirror* of the Supabase `sub` claim, not a foreign key into Supabase's
 `auth.users` — so Auth stays remote while the data lives wherever you point it. That
-decoupling is recorded as [ADR-013](00-ARCHITECTURE.md#adr-013).
+decoupling is recorded as [ADR-013](../../adr/0013-users-mirrors-supabase-auth.md).
 
 ```yaml
 name: neurovault

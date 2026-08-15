@@ -4,7 +4,7 @@ from logging.config import fileConfig
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.engine.url import make_url
-from sqlalchemy.ext.asyncio import async_engine_from_config
+from sqlalchemy.ext.asyncio import create_async_engine
 
 import app.models  # noqa: F401 — the model registry; see app/models/__init__.py
 from alembic import context
@@ -67,12 +67,20 @@ def do_run_migrations(connection: Connection) -> None:
 
 
 async def run_async_migrations() -> None:
-    config.set_main_option("sqlalchemy.url", _sync_url())
-    connectable = async_engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
+    """Build the engine directly from DATABASE_URL (asyncpg), not via _sync_url().
+
+    Two independent problems ruled out psycopg here. First: config.set_main_option()
+    round-trips the URL through configparser, which treats a bare '%' as the start of
+    "%(name)s" interpolation syntax — a password containing a percent-encoded
+    character (e.g. '%40' for a literal '@') trips it with "invalid interpolation
+    syntax" even though the URL itself is valid. Building the engine straight from a
+    Python string sidesteps configparser entirely. Second, and the reason this uses
+    asyncpg specifically rather than just fixing that: psycopg3's async mode refuses
+    to run on Windows' default ProactorEventLoop ("Psycopg cannot use the
+    'ProactorEventLoop' to run in async mode") — asyncpg has no such restriction, so
+    migrations run on the same driver the application already uses at runtime.
+    """
+    connectable = create_async_engine(settings.database_url, poolclass=pool.NullPool)
     async with connectable.connect() as connection:
         await connection.run_sync(do_run_migrations)
     await connectable.dispose()
