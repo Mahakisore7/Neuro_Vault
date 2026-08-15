@@ -24,3 +24,4 @@ New ADRs get added here as they come up during the build — not written all upf
 | [0014](0014-direct-supabase-dev-solo.md) | Direct Supabase development for a solo project |
 | [0015](0015-alembic-async-engine-direct.md) | Alembic's async engine is built directly, not via `configparser` |
 | [0016](0016-uniqueconstraint-naming.md) | `UniqueConstraint` must never be given an unprefixed literal name |
+| [0017](0017-auth-users-trigger-not-webhook.md) | `public.users` is synced from `auth.users` by a trigger, not a webhook |
