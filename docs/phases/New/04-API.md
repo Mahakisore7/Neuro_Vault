@@ -337,7 +337,8 @@ class UserRepository(BaseRepository[User]):
 ```python
 # app/core/security.py
 import jwt
-from jwt import InvalidTokenError
+from jwt import PyJWKClient
+from jwt.exceptions import InvalidTokenError, PyJWKClientError
 
 from app.core.config import settings
 
@@ -346,23 +347,28 @@ class TokenError(Exception):
     """Raised for any invalid token. Deliberately carries no detail."""
 
 
-def decode_access_token(token: str) -> dict:
-    """Verify a Supabase-issued JWT.
+# Fetches {supabase_url}/auth/v1/.well-known/jwks.json lazily and caches it.
+_jwks_client = PyJWKClient(f"{settings.supabase_url}/auth/v1/.well-known/jwks.json")
 
-    `algorithms=["HS256"]` is not optional and not a default. If the accepted
+
+def decode_access_token(token: str) -> dict:
+    """Verify a Supabase-issued JWT against its published public signing key.
+
+    `algorithms=["ES256"]` is not optional and not a default. If the accepted
     algorithms come from the token's own header, an attacker sets alg to "none"
     and forges any identity they like — the classic JWT algorithm-confusion
     attack. The verifier, not the token, decides what is acceptable.
     """
     try:
+        signing_key = _jwks_client.get_signing_key_from_jwt(token)
         return jwt.decode(
             token,
-            settings.supabase_jwt_secret,
-            algorithms=["HS256"],
+            signing_key.key,
+            algorithms=["ES256"],
             audience="authenticated",
             options={"require": ["exp", "sub"]},
         )
-    except InvalidTokenError as exc:
+    except (InvalidTokenError, PyJWKClientError) as exc:
         raise TokenError("Invalid or expired token") from exc
 ```
 

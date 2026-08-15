@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -31,12 +31,12 @@ class Settings(BaseSettings):
     database_url: str  # async — the application (asyncpg)
     database_url_sync: str  # sync — Alembic and psql (plain, no +asyncpg)
 
-    # ── Auth — verifying a Supabase-issued JWT with a shared secret ───────────
-    # A real Supabase project isn't required for local CRUD work: this secret
-    # just has to match the one used to MINT a token. scripts/make_test_token.py
-    # signs with this same value, so the exact production verification code path
-    # runs against a locally-made token.
-    supabase_jwt_secret: str = Field(min_length=32)
+    # ── Auth — verifying a Supabase-issued JWT against its published signing key ─
+    # Supabase signs session tokens asymmetrically (ES256); core/security.py
+    # fetches the public key from {supabase_url}/auth/v1/.well-known/jwks.json.
+    # No secret to hold here - only the project URL, which isn't sensitive
+    # (it's the same value the frontend exposes as NEXT_PUBLIC_SUPABASE_URL).
+    supabase_url: str
 
     # ── Application-level tuning ───────────────────────────────────────────────
     # ADR-005: NoDecode opts out of pydantic-settings' JSON pre-parsing, which

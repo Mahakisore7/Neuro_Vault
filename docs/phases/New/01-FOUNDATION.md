@@ -285,10 +285,11 @@ DATABASE_URL_SYNC=postgresql://neurovault:neurovault@localhost:5432/neurovault
 # DATABASE_URL_SYNC=postgresql://postgres.PROJECT:PASSWORD@aws-0-REGION.pooler.supabase.com:5432/postgres
 
 # ─── Supabase (Settings → API) ────────────────────────────────────────────────
+# SUPABASE_URL is also what the backend builds its JWKS verification URL from
+# (ADR-018) — no separate secret needed for that.
 SUPABASE_URL=https://yourproject.supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOi...
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOi...
-SUPABASE_JWT_SECRET=your-jwt-secret-at-least-32-characters-long
 
 # ─── Optional integrations (the app runs without these) ───────────────────────
 REDIS_URL=
