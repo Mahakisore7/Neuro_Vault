@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/error-state";
 import { useNotebook } from "@/hooks/use-notebooks";
 import { useCreateNote, useDeleteNote, useNotes } from "@/hooks/use-notes";
 
@@ -41,7 +42,7 @@ export default function NotesPage() {
   const { workspaceId, notebookId } = useParams<{ workspaceId: string; notebookId: string }>();
   const router = useRouter();
   const { data: notebook } = useNotebook(notebookId);
-  const { data: notes, isLoading } = useNotes({ notebook_id: notebookId });
+  const { data: notes, isLoading, isError, refetch } = useNotes({ notebook_id: notebookId });
   const createNote = useCreateNote();
   const deleteNote = useDeleteNote();
   const [open, setOpen] = useState(false);
@@ -129,7 +130,9 @@ export default function NotesPage() {
         </div>
       )}
 
-      {!isLoading && notes?.length === 0 && (
+      {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
+
+      {!isLoading && !isError && notes?.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
           <FileText className="mb-3 size-8 text-muted-foreground" />
           <p className="font-medium">No notes yet</p>

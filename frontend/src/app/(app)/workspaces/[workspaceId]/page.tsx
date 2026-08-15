@@ -28,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/error-state";
 import { useCreateNotebook, useDeleteNotebook, useNotebooks } from "@/hooks/use-notebooks";
 import { useWorkspace } from "@/hooks/use-workspaces";
 
@@ -44,7 +45,7 @@ const COLORS = ["#4CAF50", "#2196F3", "#FF9800", "#E91E63", "#9C27B0", "#607D8B"
 export default function NotebooksPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { data: workspace } = useWorkspace(workspaceId);
-  const { data: notebooks, isLoading } = useNotebooks(workspaceId);
+  const { data: notebooks, isLoading, isError, refetch } = useNotebooks(workspaceId);
   const createNotebook = useCreateNotebook(workspaceId);
   const deleteNotebook = useDeleteNotebook(workspaceId);
   const [open, setOpen] = useState(false);
@@ -159,7 +160,9 @@ export default function NotebooksPage() {
         </div>
       )}
 
-      {!isLoading && notebooks?.length === 0 && (
+      {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
+
+      {!isLoading && !isError && notebooks?.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
           <BookOpen className="mb-3 size-8 text-muted-foreground" />
           <p className="font-medium">No notebooks yet</p>

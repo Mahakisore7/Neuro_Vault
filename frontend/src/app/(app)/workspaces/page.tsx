@@ -27,6 +27,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ErrorState } from "@/components/error-state";
 import { useCreateWorkspace, useDeleteWorkspace, useWorkspaces } from "@/hooks/use-workspaces";
 
 const schema = z.object({
@@ -50,7 +51,7 @@ function slugify(value: string) {
 }
 
 export default function WorkspacesPage() {
-  const { data: workspaces, isLoading } = useWorkspaces();
+  const { data: workspaces, isLoading, isError, refetch } = useWorkspaces();
   const createWorkspace = useCreateWorkspace();
   const deleteWorkspace = useDeleteWorkspace();
   const [open, setOpen] = useState(false);
@@ -143,7 +144,9 @@ export default function WorkspacesPage() {
         </div>
       )}
 
-      {!isLoading && workspaces?.length === 0 && (
+      {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
+
+      {!isLoading && !isError && workspaces?.length === 0 && (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
           <FolderKanban className="mb-3 size-8 text-muted-foreground" />
           <p className="font-medium">No workspaces yet</p>
