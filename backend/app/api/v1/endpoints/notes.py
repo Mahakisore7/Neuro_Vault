@@ -3,7 +3,13 @@ from uuid import UUID
 from fastapi import APIRouter, Query, status
 
 from app.core.dependencies import CurrentUser, DbSession
-from app.schemas.note import NoteCreate, NoteResponse, NoteSummary, NoteUpdate
+from app.schemas.note import (
+    NoteCreate,
+    NoteResponse,
+    NoteSummary,
+    NoteUpdate,
+    NoteVersionSummary,
+)
 from app.schemas.tag import TagResponse
 from app.services.note import NoteService
 from app.services.tag import TagService
@@ -56,6 +62,20 @@ async def delete_note(note_id: UUID, user: CurrentUser, db: DbSession) -> None:
     # detail behind it. The client doesn't need to know whether the row
     # still physically exists; NoteService.delete is where that's decided.
     await NoteService(db).delete(note_id, user)
+
+
+@router.get("/{note_id}/versions", response_model=list[NoteVersionSummary])
+async def list_note_versions(
+    note_id: UUID, user: CurrentUser, db: DbSession
+) -> list[NoteVersionSummary]:
+    return await NoteService(db).list_versions(note_id, user)
+
+
+@router.post("/{note_id}/versions/{version_num}/rollback", response_model=NoteResponse)
+async def rollback_note_version(
+    note_id: UUID, version_num: int, user: CurrentUser, db: DbSession
+) -> NoteResponse:
+    return await NoteService(db).rollback_version(note_id, version_num, user)
 
 
 @router.get("/{note_id}/tags", response_model=list[TagResponse])
