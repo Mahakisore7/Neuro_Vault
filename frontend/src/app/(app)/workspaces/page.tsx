@@ -2,14 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { FolderKanban, MoreVertical, Plus, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +51,7 @@ function slugify(value: string) {
 }
 
 export default function WorkspacesPage() {
+  const router = useRouter();
   const { data: workspaces, isLoading, isError, refetch } = useWorkspaces();
   const createWorkspace = useCreateWorkspace();
   const deleteWorkspace = useDeleteWorkspace();
@@ -157,29 +158,47 @@ export default function WorkspacesPage() {
       {!isLoading && workspaces && workspaces.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {workspaces.map((ws) => (
-            <Card key={ws.id} className="group relative transition-shadow hover:shadow-md">
-              <CardHeader className="flex-row items-start justify-between space-y-0">
-                <CardTitle className="text-base">
-                  <Link href={`/workspaces/${ws.id}`} className="hover:underline">
-                    {ws.name}
-                  </Link>
-                </CardTitle>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-7">
-                      <MoreVertical className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => handleDelete(ws.id, ws.name)}
-                    >
-                      <Trash2 />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+            <Card
+              key={ws.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => router.push(`/workspaces/${ws.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  router.push(`/workspaces/${ws.id}`);
+                }
+              }}
+              className="cursor-pointer transition-all hover:shadow-md hover:ring-primary/25"
+            >
+              <CardHeader>
+                <div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <FolderKanban className="size-4.5" />
+                </div>
+                <CardTitle className="text-base">{ws.name}</CardTitle>
+                <CardAction>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-7"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => handleDelete(ws.id, ws.name)}
+                      >
+                        <Trash2 />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </CardAction>
               </CardHeader>
               <CardContent>
                 <p className="text-xs text-muted-foreground">/{ws.slug}</p>

@@ -118,3 +118,10 @@ export interface TagUpdate {
   name?: string;
   color?: string;
 }
+
+export interface NoteVersionSummary {
+  version_num: number;
+  title: string;
+  edited_by: string | null;
+  created_at: string;
+}

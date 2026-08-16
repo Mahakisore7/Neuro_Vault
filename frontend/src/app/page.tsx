@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 
@@ -57,6 +58,7 @@ export default function LandingPage() {
           <span className="font-semibold tracking-tight">NeuroVault</span>
         </div>
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <Button variant="ghost" asChild>
             <Link href="/login">Sign in</Link>
           </Button>

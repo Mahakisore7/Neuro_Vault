@@ -143,22 +143,39 @@ export default function NotesPage() {
       {!isLoading && notes && notes.length > 0 && (
         <div className="space-y-2">
           {notes.map((note) => (
-            <Card key={note.id} className="transition-shadow hover:shadow-sm">
-              <CardHeader className="flex-row items-center justify-between space-y-0 py-3">
-                <Link href={`/notes/${note.id}`} className="flex min-w-0 flex-1 items-center gap-2">
+            <Card
+              key={note.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => router.push(`/notes/${note.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  router.push(`/notes/${note.id}`);
+                }
+              }}
+              className="cursor-pointer transition-all hover:shadow-sm hover:ring-primary/25"
+            >
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
                   {note.pinned && <Pin className="size-3.5 shrink-0 text-primary" />}
                   <CardTitle className="truncate text-base font-normal">{note.title}</CardTitle>
                   <span className="shrink-0 text-xs text-muted-foreground">
                     {note.word_count} words
                   </span>
-                </Link>
+                </div>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-7">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-7"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <MoreVertical className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenuItem
                       variant="destructive"
                       onClick={() => handleDelete(note.id, note.title)}

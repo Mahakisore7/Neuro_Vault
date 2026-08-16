@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
-import type { Note, NoteCreate, NoteSummary, NoteUpdate } from "@/types/api";
+import type { Note, NoteCreate, NoteSummary, NoteUpdate, NoteVersionSummary } from "@/types/api";
 
 export const noteKeys = {
   all: ["notes"] as const,
@@ -63,5 +63,26 @@ export function useDeleteNote() {
       await api.delete(`/notes/${id}`);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: noteKeys.all }),
+  });
+}
+
+export function useNoteVersions(noteId: string | undefined) {
+  return useQuery({
+    queryKey: [...noteKeys.detail(noteId ?? ""), "versions"],
+    queryFn: async () =>
+      (await api.get<NoteVersionSummary[]>(`/notes/${noteId}/versions`)).data,
+    enabled: Boolean(noteId),
+  });
+}
+
+export function useRollbackVersion(noteId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (versionNum: number) =>
+      (await api.post<Note>(`/notes/${noteId}/versions/${versionNum}/rollback`)).data,
+    onSuccess: (updated) => {
+      qc.setQueryData(noteKeys.detail(noteId), updated);
+      qc.invalidateQueries({ queryKey: [...noteKeys.detail(noteId), "versions"] });
+    },
   });
 }
