@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera } from "lucide-react";
+import { Camera, LogOut } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { type ChangeEvent, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -26,6 +27,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export default function ProfilePage() {
+  const router = useRouter();
   const { data: user, isLoading, isError, refetch } = useMe();
   const updateMe = useUpdateMe();
   const [uploading, setUploading] = useState(false);
@@ -41,6 +43,11 @@ export default function ProfilePage() {
   useEffect(() => {
     if (user) reset({ display_name: user.display_name, bio: user.bio ?? "" });
   }, [user, reset]);
+
+  async function handleSignOut() {
+    await supabase.auth.signOut();
+    router.push("/login");
+  }
 
   async function onSubmit(values: FormValues) {
     try {
@@ -178,6 +185,19 @@ export default function ProfilePage() {
               {isSubmitting ? "Saving…" : "Save changes"}
             </Button>
           </form>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle className="text-base">Account</CardTitle>
+          <CardDescription>Sign out of NeuroVault on this device.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={handleSignOut}>
+            <LogOut />
+            Sign out
+          </Button>
         </CardContent>
       </Card>
     </div>

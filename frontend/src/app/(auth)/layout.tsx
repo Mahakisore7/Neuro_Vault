@@ -1,8 +1,13 @@
 import { Network } from "lucide-react";
 
+import { ThemeToggle } from "@/components/theme-toggle";
+
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
+    <div className="relative flex min-h-screen w-full items-center justify-center bg-muted/40 p-4">
+      <div className="absolute right-4 top-4">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-sm space-y-6">
         <div className="flex flex-col items-center gap-2 text-center">
           <div className="flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">
