@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { VersionHistoryDialog } from "@/components/editor/version-history-dialog";
 import { NoteEditor } from "@/components/editor/note-editor";
 import { TagPicker } from "@/components/notes/tag-picker";
 import { useNote, useUpdateNote } from "@/hooks/use-notes";
@@ -35,7 +36,7 @@ export default function NoteDetailPage() {
 
   if (isLoading || !note) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 px-6 py-10">
+      <div className="mx-auto max-w-4xl space-y-4 px-6 py-10">
         <Skeleton className="h-8 w-24" />
         <Skeleton className="h-10 w-2/3" />
         <Skeleton className="h-64 w-full" />
@@ -44,7 +45,7 @@ export default function NoteDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-4xl px-6 py-10">
       <button
         onClick={() => router.back()}
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -61,6 +62,7 @@ export default function NoteDetailPage() {
           className="w-full flex-1 border-none bg-transparent text-3xl font-semibold tracking-tight outline-none"
         />
         <div className="flex shrink-0 items-center gap-1 pt-2">
+          <VersionHistoryDialog noteId={note.id} />
           <Button
             variant="ghost"
             size="icon"
