@@ -17,6 +17,18 @@ export function useNotes(filters: { notebook_id?: string; archived?: boolean } =
   });
 }
 
+// Notes left behind when their notebook was deleted (notebook_id set to
+// NULL, not removed - see docs/adr, the notebook delete confirm dialog).
+// unfiled is its own query flag: omitting notebook_id already means "every
+// note", so it can't also mean "no notebook" without the two colliding.
+export function useUnfiledNotes() {
+  const filters = { unfiled: true };
+  return useQuery({
+    queryKey: noteKeys.list(filters),
+    queryFn: async () => (await api.get<NoteSummary[]>("/notes", { params: filters })).data,
+  });
+}
+
 export function useNote(id: string | undefined) {
   return useQuery({
     queryKey: noteKeys.detail(id ?? ""),
