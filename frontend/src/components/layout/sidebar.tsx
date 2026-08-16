@@ -1,6 +1,6 @@
 "use client";
 
-import { LogOut, Network, User } from "lucide-react";
+import { FolderKanban, Inbox, LogOut, Network, Tags, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -10,9 +10,10 @@ import { useMe } from "@/hooks/use-user";
 import { supabase } from "@/lib/supabase";
 
 const NAV_ITEMS = [
-  { href: "/workspaces", label: "Workspaces" },
-  { href: "/tags", label: "Tags" },
-  { href: "/profile", label: "Profile" },
+  { href: "/workspaces", label: "Workspaces", icon: FolderKanban },
+  { href: "/unfiled", label: "Unfiled", icon: Inbox },
+  { href: "/tags", label: "Tags", icon: Tags },
+  { href: "/profile", label: "Profile", icon: User },
 ];
 
 export function Sidebar() {
@@ -45,12 +46,13 @@ export function Sidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`block rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                 active
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               }`}
             >
+              <item.icon className="size-4" />
               {item.label}
             </Link>
           );

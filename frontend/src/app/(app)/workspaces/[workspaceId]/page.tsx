@@ -3,14 +3,14 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, BookOpen, MoreVertical, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -44,6 +44,7 @@ const COLORS = ["#4CAF50", "#2196F3", "#FF9800", "#E91E63", "#9C27B0", "#607D8B"
 
 export default function NotebooksPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
+  const router = useRouter();
   const { data: workspace } = useWorkspace(workspaceId);
   const { data: notebooks, isLoading, isError, refetch } = useNotebooks(workspaceId);
   const createNotebook = useCreateNotebook(workspaceId);
@@ -173,33 +174,50 @@ export default function NotebooksPage() {
       {!isLoading && notebooks && notebooks.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {notebooks.map((nb) => (
-            <Card key={nb.id} className="group relative transition-shadow hover:shadow-md">
-              <CardHeader className="flex-row items-start justify-between space-y-0">
-                <CardTitle className="flex items-center gap-2 text-base">
-                  <span
-                    className="size-2.5 shrink-0 rounded-full"
-                    style={{ backgroundColor: nb.color }}
-                  />
-                  <Link href={`/workspaces/${workspaceId}/notebooks/${nb.id}`} className="hover:underline">
-                    {nb.name}
-                  </Link>
-                </CardTitle>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="size-7">
-                      <MoreVertical className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => handleDelete(nb.id, nb.name)}
-                    >
-                      <Trash2 />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+            <Card
+              key={nb.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => router.push(`/workspaces/${workspaceId}/notebooks/${nb.id}`)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  router.push(`/workspaces/${workspaceId}/notebooks/${nb.id}`);
+                }
+              }}
+              className="cursor-pointer transition-all hover:shadow-md hover:ring-primary/25"
+            >
+              <CardHeader>
+                <div
+                  className="mb-1 flex size-9 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: `${nb.color}1A`, color: nb.color }}
+                >
+                  <BookOpen className="size-4.5" />
+                </div>
+                <CardTitle className="text-base">{nb.name}</CardTitle>
+                <CardAction>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-7"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="size-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                      <DropdownMenuItem
+                        variant="destructive"
+                        onClick={() => handleDelete(nb.id, nb.name)}
+                      >
+                        <Trash2 />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </CardAction>
               </CardHeader>
               <CardContent>
                 {nb.description && (
