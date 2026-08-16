@@ -34,7 +34,7 @@ export default function NoteDetailPage() {
 
   if (isLoading || !note) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 px-6 py-10">
+      <div className="mx-auto max-w-4xl space-y-4 px-6 py-10">
         <Skeleton className="h-8 w-24" />
         <Skeleton className="h-10 w-2/3" />
         <Skeleton className="h-64 w-full" />
@@ -43,7 +43,7 @@ export default function NoteDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-4xl px-6 py-10">
       <button
         onClick={() => router.back()}
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
