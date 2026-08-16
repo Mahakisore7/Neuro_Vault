@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NoteEditor } from "@/components/editor/note-editor";
+import { VersionHistoryDialog } from "@/components/editor/version-history-dialog";
 import { useNote, useUpdateNote } from "@/hooks/use-notes";
 
 export default function NoteDetailPage() {
@@ -60,6 +61,7 @@ export default function NoteDetailPage() {
           className="w-full flex-1 border-none bg-transparent text-3xl font-semibold tracking-tight outline-none"
         />
         <div className="flex shrink-0 items-center gap-1 pt-2">
+          <VersionHistoryDialog noteId={note.id} />
           <Button
             variant="ghost"
             size="icon"

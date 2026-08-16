@@ -100,3 +100,10 @@ export interface NoteUpdate {
   pinned?: boolean;
   archived?: boolean;
 }
+
+export interface NoteVersionSummary {
+  version_num: number;
+  title: string;
+  edited_by: string | null;
+  created_at: string;
+}

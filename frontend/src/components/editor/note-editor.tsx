@@ -76,6 +76,19 @@ export function NoteEditor({ note }: { note: Note }) {
     };
   }, []);
 
+  // Tiptap's `content` option only seeds the editor at creation - it does
+  // not react to prop changes. Typing already keeps editor and note.content
+  // in sync via the debounced save above, so this only actually does
+  // anything for a change that came from outside the editor's own typing
+  // (a version rollback): compare before writing, or every render after an
+  // ordinary autosave would needlessly reset the selection/undo stack.
+  useEffect(() => {
+    if (!editor) return;
+    if (note.content !== editor.getHTML()) {
+      editor.commands.setContent(note.content ?? "", { emitUpdate: false });
+    }
+  }, [note.content, editor]);
+
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm text-muted-foreground">
