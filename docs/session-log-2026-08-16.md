@@ -8,7 +8,9 @@ was found, and how it was fixed.
 
 Branches referenced below: `docs/adr-018-jwt-jwks`, `feature/ui-overhaul`,
 `feature/rich-text-editor`, `feature/unfiled-notes` (merged via PR #12),
-`feature/tags`.
+`feature/tags` (merged via PR #14). §11 covers a same-day continuation:
+the first three of those sat unmerged long enough to cause a real bug
+report, and were consolidated onto `fix/merge-ui-overhaul`.
 
 ---
 
@@ -126,7 +128,7 @@ the same key can never detect that the key itself is wrong for the job.*
 
 ---
 
-## 4. UI/UX pass (`feature/ui-overhaul`, still unmerged)
+## 4. UI/UX pass (`feature/ui-overhaul` — see §11 for merge status)
 
 Four distinct fixes bundled under one "make it industry-grade" request:
 
@@ -141,16 +143,20 @@ deleted five unused `create-next-app` boilerplate SVGs still sitting in
 
 **b. Cards: dropdown menu on its own line, and dead-zone clicking.**
 Reported as two symptoms ("the three dots aren't top-right" and "I can't
-click into the workspace") that turned out to share one root cause.
-`CardHeader` (shadcn) is a CSS grid that only becomes two-column
+click into the workspace") — these are **two independent defects**, not one
+shared root cause (an earlier draft of this log said otherwise; corrected
+here). `CardHeader` (shadcn) is a CSS grid that only becomes two-column
 (title-left, action-right) when the action button is wrapped in the
 library's own `CardAction` slot — the code had the dropdown as a plain
 sibling instead, so with no second grid column defined it fell onto its
-own row. Fixed by switching to `CardAction` (workspaces, notebooks, the
-notebook note list) and, separately, making the whole card clickable via
-`onClick`/`onKeyDown` instead of only the title text, with the dropdown
-trigger calling `stopPropagation()` so delete/archive still works
-independently.
+own row. Separately, only the title text was wrapped in a `Link`, so the
+rest of the card's surface had no click handler at all. Fixed by switching
+to `CardAction` (workspaces, notebooks, the notebook note list) and, quite
+separately, making the whole card clickable via `onClick`/`onKeyDown`
+instead of only the title text, with the dropdown trigger calling
+`stopPropagation()` so delete/archive still works independently. Full
+write-up: [ADR-019](adr/0019-card-action-slot-and-full-row-click.md) —
+written later than the fix itself, once the same bug reappeared (§11).
 
 **c. Dark/light theme.** `next-themes` was already an installed dependency,
 just never wired up. Added a toggle (top-right of the landing page, the
@@ -165,7 +171,7 @@ nav items that were previously bare text.
 
 ---
 
-## 5. Rich-text editor toolbar (`feature/rich-text-editor`, still unmerged)
+## 5. Rich-text editor toolbar (`feature/rich-text-editor` — see §11 for merge status)
 
 Tiptap was already integrated but had no UI on top of it — it rendered as
 an unstyled `contenteditable` div, indistinguishable from a plain textarea.
@@ -355,7 +361,7 @@ stray Node process) — same diagnosis and fix both times.
 
 ## 10. Git / branch state as of end of session
 
-Four branches were cut over the course of this session, three of which are
+Four branches were cut over the course of this session, three of which were
 **still local-only and unmerged**:
 
 | Branch | Status | Contents |
@@ -378,7 +384,76 @@ correspond to exactly one branch in the history.
 
 **Worth doing soon:** merging the three still-local branches. The longer
 they sit, the more any *next* feature risks the same fragmentation this
-one hit.
+one hit. (This warning turned out to be right — see §11.)
+
+---
+
+## 11. The bug that exposed the orphaned branches — and consolidating them
+
+`feature/tags` and this log's own branch were merged shortly after §10 was
+written (PRs #13, #14). `feature/ui-overhaul`, `feature/rich-text-editor`,
+and `docs/adr-018-jwt-jwks` were not — and the warning at the end of §10
+("worth doing soon") sat unactioned long enough for the consequence to show
+up as a live bug report instead of a checklist item.
+
+**What happened.** The user tested the deployed app against `main` and hit
+exactly the two symptoms described in §4b — three-dot menu on its own line,
+cards not clickable outside the title. Both had already been fixed, once,
+weeks earlier. But the fix lived on `feature/ui-overhaul`, which `main`
+had never merged. `main`'s actual running code still had the pre-fix
+version of every file that branch touched. Fixing a bug on a branch does
+not fix the bug anywhere it isn't merged — see the new
+[ADR-019](adr/0019-card-action-slot-and-full-row-click.md) for the full
+diagnosis of the CSS bug itself, now written up properly since it had to
+be re-diagnosed from scratch against `main`.
+
+**Checking whether `feature/ui-overhaul` was alone in this.** Since one
+approved, already-built feature had been sitting unmerged, the obvious next
+question was whether others were too. It was: `feature/rich-text-editor`
+(the formatting toolbar, tooltips, and note version history's frontend from
+§5 and §7) was in the exact same state — built, approved, never merged.
+Its absence wasn't yet reported as a bug only because nobody had gone
+looking for the toolbar specifically; it would have surfaced the moment
+someone tried to bold a word.
+
+**The fix: a consolidation branch, not three separate PRs.** Cut
+`fix/merge-ui-overhaul` off current `main`, then merged all three orphaned
+branches into it in sequence, each as its own merge commit so the history
+stays legible about what came from where:
+
+1. `feature/ui-overhaul` — one real conflict, in `sidebar.tsx`: `main` had
+   since added a "Tags" nav item on the same line this branch was adding
+   icons and an "Unfiled" item to. Resolved by keeping all four items
+   (Workspaces, Unfiled, Tags, Profile), all with icons.
+2. `feature/rich-text-editor` — two conflicts, both cosmetic import-ordering
+   clashes (`types/api.ts` and the note detail page) between this branch's
+   version-history types/imports and `main`'s tags work. No actual logic
+   overlapped in either file; both additions were kept.
+3. `docs/adr-018-jwt-jwks` — no conflicts at all; it only ever touched two
+   files that nothing else had since touched.
+
+**Why merge commits instead of rebasing each branch onto `main` first.**
+Rebasing would rewrite each branch's commit hashes and require force-pushing
+anything already pushed — unnecessary risk for branches that were only
+ever local. A straight three-way merge preserves each branch's original
+commits exactly as they were, with the merge commit itself as the only new
+history, and this repo's own convention (visible throughout §§1–8) is
+already "PRs merge with a merge commit," not squash-and-rebase.
+
+**Verification, before handing this off for the user to push and merge:**
+`pnpm install` (the rich-text-editor branch's
+`@tiptap/*` toolbar dependencies were in `package.json` but not yet in
+`node_modules`, since a merge doesn't run install hooks), then
+`tsc --noEmit`, `next build`, and `eslint src --max-warnings=0` — all three
+clean, and `next build`'s route table confirmed every page (`/tags`,
+`/unfiled`, `/notes/[noteId]`, etc.) still compiled.
+
+**State at the end of this: `fix/merge-ui-overhaul` exists locally, three
+commits ahead of `main`, not yet pushed** — same handoff pattern as every
+other branch this session: built and verified here, pushed and merged by
+the user when ready. Once it lands, `feature/ui-overhaul`,
+`feature/rich-text-editor`, and `docs/adr-018-jwt-jwks` are fully absorbed
+and safe to delete.
 
 ---
 
@@ -397,3 +472,9 @@ one hit.
 - Tag creation's duplicate-slug 500 (§8), matching the same known gap on
   workspaces/notebooks.
 - The `NoteTag` FK-naming style inconsistency (§8) — cosmetic, not urgent.
+- **`fix/merge-ui-overhaul` (§11) is built, verified, and local-only** —
+  push it and merge it. Until that happens, `main` still has the two bugs
+  this branch fixes, and is still missing the editor toolbar entirely.
+- No shared `ListItemCard` component yet (ADR-019's trade-off) — the
+  `CardAction` + full-row-click pattern is copied by hand into four files.
+  Worth extracting if a fifth list gains a card with a trailing action.
