@@ -7,6 +7,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NoteEditor } from "@/components/editor/note-editor";
+import { TagPicker } from "@/components/notes/tag-picker";
 import { useNote, useUpdateNote } from "@/hooks/use-notes";
 
 export default function NoteDetailPage() {
@@ -77,6 +78,10 @@ export default function NoteDetailPage() {
             {note.is_public ? <Globe className="size-4" /> : <Lock className="size-4" />}
           </Button>
         </div>
+      </div>
+
+      <div className="mb-4">
+        <TagPicker noteId={note.id} />
       </div>
 
       <NoteEditor note={note} />

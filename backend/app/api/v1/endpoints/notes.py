@@ -4,7 +4,9 @@ from fastapi import APIRouter, Query, status
 
 from app.core.dependencies import CurrentUser, DbSession
 from app.schemas.note import NoteCreate, NoteResponse, NoteSummary, NoteUpdate
+from app.schemas.tag import TagResponse
 from app.services.note import NoteService
+from app.services.tag import TagService
 
 router = APIRouter(prefix="/notes", tags=["notes"])
 
@@ -54,3 +56,18 @@ async def delete_note(note_id: UUID, user: CurrentUser, db: DbSession) -> None:
     # detail behind it. The client doesn't need to know whether the row
     # still physically exists; NoteService.delete is where that's decided.
     await NoteService(db).delete(note_id, user)
+
+
+@router.get("/{note_id}/tags", response_model=list[TagResponse])
+async def list_note_tags(note_id: UUID, user: CurrentUser, db: DbSession) -> list[TagResponse]:
+    return await TagService(db).list_for_note(note_id, user)
+
+
+@router.post("/{note_id}/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def attach_note_tag(note_id: UUID, tag_id: int, user: CurrentUser, db: DbSession) -> None:
+    await TagService(db).attach_to_note(note_id, tag_id, user)
+
+
+@router.delete("/{note_id}/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def detach_note_tag(note_id: UUID, tag_id: int, user: CurrentUser, db: DbSession) -> None:
+    await TagService(db).detach_from_note(note_id, tag_id, user)
