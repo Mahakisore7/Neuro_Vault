@@ -455,6 +455,70 @@ the user when ready. Once it lands, `feature/ui-overhaul`,
 `feature/rich-text-editor`, and `docs/adr-018-jwt-jwks` are fully absorbed
 and safe to delete.
 
+*(This claim was wrong in one respect — see §12. `feature/rich-text-editor`
+carried the version-history **frontend**, but its **backend** had been
+committed separately, after `feature/unfiled-notes` was already merged, and
+that trailing commit was still missing. Correcting it here rather than
+rewriting this section, since the mistake — and catching it — is itself
+part of the record.)*
+
+---
+
+## 12. One more orphan, one layer deeper: a commit stranded on an already-merged branch
+
+Minutes after §11 was written and handed off, the user opened a note's
+version history and got a blank dialog plus a global "That wasn't found —
+it may have been deleted" toast — the app-wide 404 handler in
+`app/providers.tsx`, firing for a query the dialog itself doesn't check
+`isError` for, so a failed fetch renders as nothing rather than an error
+message.
+
+**Why:** `GET /notes/{id}/versions` didn't exist on `fix/merge-ui-overhaul`
+at all. `feature/rich-text-editor` — merged in §11 — only ever held the
+version-history **frontend** (`VersionHistoryDialog`, the hooks, the types);
+its own commit message said so explicitly: *"the version-history dialog UI
+lives on feature/rich-text-editor... [the backend] Landing it here would
+fork those files across two branches."* The backend half
+(`NoteVersionRepository`, the `list_versions`/`rollback_version` service
+methods, the trigger + rollback-procedure migration, the two API routes)
+was committed to `feature/unfiled-notes` — but *after* that branch had
+already been merged as PR #12. A commit added to a branch post-merge isn't
+part of that PR; it just sits there, unpushed, unmerged, easy to miss
+because the branch as a whole shows up as "already merged." `git branch -vv`
+doesn't distinguish "fully merged" from "merged except for one trailing
+commit" — both just look like a branch with nothing new to do.
+
+**Caught by re-running the same check §11 should have run in the first
+place:** comparing every session-cut branch against its own `origin/`
+counterpart with `git branch -vv`, not just checking whether *a* PR existed
+for it. `feature/unfiled-notes` showed `ahead 1` — one local commit
+(`a8f1a9e`) its own already-merged remote didn't have.
+
+**Fix:** `git cherry-pick -n a8f1a9e` onto `fix/merge-ui-overhaul` (not a
+full-branch merge — everything below that commit was already in `main`).
+Two more trivial conflicts, both against this branch's own tags work
+(`notes.py`'s route list, `types/api.ts`'s interfaces) — additive on both
+sides, nothing overlapped in meaning. The migration itself needed no
+changes: its `down_revision` already chained onto the current head, and
+`alembic current` against the live database showed the migration was
+**already applied** — this backend work had been fully built and tested
+against real Postgres before; only the application code around it had
+gone missing.
+
+**Verification:** `alembic current` (already at head, confirming no
+migration to run), a direct Python import of the notes router listing all
+ten registered routes including both `/versions` endpoints, `ruff check`
+on every touched backend file, and a repeat of the frontend's `tsc --noEmit`
+since `types/api.ts` changed again.
+
+**The actual lesson, on top of §11's:** merging "the branch" isn't the same
+as merging "everything that branch's author considered part of the
+feature." A feature can span a trailing commit on a *different*, already-
+merged branch, invisible to any check that stops at "is this branch merged
+— yes/no." The only check that would have caught this the first time is
+the one that caught it the second time: diff every session branch against
+its own remote, not just against `main`.
+
 ---
 
 ## What's still open
@@ -472,9 +536,13 @@ and safe to delete.
 - Tag creation's duplicate-slug 500 (§8), matching the same known gap on
   workspaces/notebooks.
 - The `NoteTag` FK-naming style inconsistency (§8) — cosmetic, not urgent.
-- **`fix/merge-ui-overhaul` (§11) is built, verified, and local-only** —
-  push it and merge it. Until that happens, `main` still has the two bugs
-  this branch fixes, and is still missing the editor toolbar entirely.
+- **`fix/merge-ui-overhaul` (§11, §12) is built, verified, and pushed but
+  not yet merged** — merge it. Until that happens, `main` still has both
+  card bugs, is still missing the editor toolbar, and version history still
+  404s.
+- The `fix/merge-ui-overhaul` push itself is one commit behind local as of
+  §12's fix — the cherry-picked version-history backend hasn't been pushed
+  yet.
 - No shared `ListItemCard` component yet (ADR-019's trade-off) — the
   `CardAction` + full-row-click pattern is copied by hand into four files.
   Worth extracting if a fifth list gains a card with a trailing action.
