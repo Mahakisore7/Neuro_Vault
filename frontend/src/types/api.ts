@@ -100,3 +100,21 @@ export interface NoteUpdate {
   pinned?: boolean;
   archived?: boolean;
 }
+
+export interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+  color: string;
+}
+
+export interface TagCreate {
+  name: string;
+  slug: string;
+  color?: string;
+}
+
+export interface TagUpdate {
+  name?: string;
+  color?: string;
+}

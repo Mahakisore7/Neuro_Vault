@@ -11,6 +11,7 @@ import { supabase } from "@/lib/supabase";
 
 const NAV_ITEMS = [
   { href: "/workspaces", label: "Workspaces" },
+  { href: "/tags", label: "Tags" },
   { href: "/profile", label: "Profile" },
 ];
 
