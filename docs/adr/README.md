@@ -26,3 +26,4 @@ New ADRs get added here as they come up during the build — not written all upf
 | [0016](0016-uniqueconstraint-naming.md) | `UniqueConstraint` must never be given an unprefixed literal name |
 | [0017](0017-auth-users-trigger-not-webhook.md) | `public.users` is synced from `auth.users` by a trigger, not a webhook |
 | [0018](0018-jwt-verification-via-jwks.md) | Verify Supabase JWTs via JWKS (ES256), not a shared secret |
+| [0019](0019-card-action-slot-and-full-row-click.md) | List-item cards use the `CardAction` slot and a full-row click handler |

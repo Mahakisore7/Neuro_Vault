@@ -1,13 +1,21 @@
 from uuid import UUID
 
+from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError
 from app.models.note import Note
 from app.models.user import User
 from app.repositories.note import NoteRepository
+from app.repositories.note_version import NoteVersionRepository
 from app.repositories.notebook import NotebookRepository
-from app.schemas.note import NoteCreate, NoteResponse, NoteSummary, NoteUpdate
+from app.schemas.note import (
+    NoteCreate,
+    NoteResponse,
+    NoteSummary,
+    NoteUpdate,
+    NoteVersionSummary,
+)
 
 
 class NoteService:
@@ -15,6 +23,7 @@ class NoteService:
         self.db = db
         self.notes = NoteRepository(db)
         self.notebooks = NotebookRepository(db)
+        self.versions = NoteVersionRepository(db)
 
     # ── Authorization — the only place these two rules are written ────────
 
@@ -44,6 +53,49 @@ class NoteService:
         if note is None:
             raise NotFoundError("Note", note_id)
         self._assert_can_read(note, user)
+        return NoteResponse.model_validate(note)
+
+    # These two live here, above list(), on purpose: a method named `list`
+    # shadows the builtin `list` for every annotation written after it in
+    # this class body (Python resolves `-> list[...]` against the class
+    # namespace being built, not the builtin, once that name exists in it).
+    # `-> list[NoteVersionSummary]` below would otherwise fail at import
+    # time with "'function' object is not subscriptable".
+    async def list_versions(self, note_id: UUID, user: User) -> list[NoteVersionSummary]:
+        note = await self.notes.get(note_id)
+        if note is None:
+            raise NotFoundError("Note", note_id)
+        # Write permission, not read: is_public only governs the CURRENT
+        # content of a note, not its editing history. Version history can
+        # expose drafts and phrasing nobody chose to publish, so it stays
+        # visible to the owner only, even for a note that is itself public.
+        self._assert_can_write(note, user)
+        versions = await self.versions.list_for_note(note_id)
+        return [NoteVersionSummary.model_validate(v) for v in versions]
+
+    async def rollback_version(self, note_id: UUID, version_num: int, user: User) -> NoteResponse:
+        note = await self.notes.get(note_id)
+        if note is None:
+            raise NotFoundError("Note", note_id)
+        self._assert_can_write(note, user)
+
+        version = await self.versions.get_by_version_num(note_id, version_num)
+        if version is None:
+            raise NotFoundError("Version", version_num)
+
+        # CALL, not a Python-side UPDATE: sp_rollback_note_version re-checks
+        # ownership itself (defence in depth - see the migration) and its
+        # UPDATE fires trg_notes_create_version, so the state being replaced
+        # is versioned too. A rollback is never destructive; you can always
+        # roll back a rollback.
+        await self.db.execute(
+            text("CALL sp_rollback_note_version(:note_id, :version_num, :actor_id)"),
+            {"note_id": str(note_id), "version_num": version_num, "actor_id": str(user.id)},
+        )
+        await self.db.flush()
+        # The procedure's UPDATE didn't go through this ORM object, so its
+        # in-memory attributes are now stale relative to what's in Postgres.
+        await self.db.refresh(note)
         return NoteResponse.model_validate(note)
 
     async def list(

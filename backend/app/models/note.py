@@ -110,7 +110,15 @@ class NoteVersion(Base):
         CheckConstraint("version_num > 0", name="version_num_positive"),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)
+    # Both defaults, deliberately: default=uuid4 covers ORM-issued inserts
+    # (NoteService, if it ever inserts a version directly); server_default
+    # covers fn_create_note_version(), which INSERTs from inside a trigger
+    # and never goes through SQLAlchemy - a plain INSERT that omits `id`
+    # would otherwise violate NOT NULL, since a Python-side default only
+    # applies to inserts the ORM itself builds.
+    id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), primary_key=True, default=uuid4, server_default=func.gen_random_uuid()
+    )
     note_id: Mapped[UUID] = mapped_column(
         PgUUID(as_uuid=True), ForeignKey("notes.id", ondelete="CASCADE"), nullable=False
     )

@@ -63,3 +63,18 @@ class NoteSummary(BaseModel):
     archived: bool
     word_count: int
     updated_at: datetime
+
+
+class NoteVersionSummary(BaseModel):
+    """No `content` here either, same reasoning as NoteSummary - a history
+    list shows what changed and when; the content itself is only needed at
+    the moment of an actual rollback, which the DB performs server-side
+    (sp_rollback_note_version) without ever sending it back to the client.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    version_num: int
+    title: str
+    edited_by: UUID | None
+    created_at: datetime
