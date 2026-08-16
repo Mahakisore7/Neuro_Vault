@@ -51,12 +51,18 @@ class NoteService:
         user: User,
         *,
         notebook_id: UUID | None = None,
+        unfiled: bool = False,
         archived: bool = False,
         limit: int = 50,
         offset: int = 0,
     ) -> list[NoteSummary]:
         notes = await self.notes.list_for_user(
-            user.id, notebook_id=notebook_id, archived=archived, limit=limit, offset=offset
+            user.id,
+            notebook_id=notebook_id,
+            unfiled=unfiled,
+            archived=archived,
+            limit=limit,
+            offset=offset,
         )
         return [NoteSummary.model_validate(n) for n in notes]
 

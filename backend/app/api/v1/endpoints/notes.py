@@ -14,12 +14,18 @@ async def list_notes(
     user: CurrentUser,
     db: DbSession,
     notebook_id: UUID | None = None,
+    unfiled: bool = False,
     archived: bool = False,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> list[NoteSummary]:
     return await NoteService(db).list(
-        user, notebook_id=notebook_id, archived=archived, limit=limit, offset=offset
+        user,
+        notebook_id=notebook_id,
+        unfiled=unfiled,
+        archived=archived,
+        limit=limit,
+        offset=offset,
     )
 
 
