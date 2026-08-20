@@ -27,6 +27,18 @@ ORDER BY table_name;
 `relationship_types`, `knowledge_links`, `tags`, `note_tags`, `collections`,
 `collection_items`, `flashcards`, `resources`, `activity_logs`, `notifications`.
 
+**Do not type `SHOW TABLES;` or `SHOW DATABASES;`** — that's MySQL, not Postgres, and it
+fails with `unrecognized configuration parameter "tables"`. Postgres's `SHOW` command
+only reads *configuration* (`SHOW search_path;`), never schema objects — Postgres
+exposes the catalog as ordinary queryable tables instead, which is what the query above
+is doing. Worth saying out loud if it comes up: it's a real, quotable difference between
+the two engines, not a mistake to cover up.
+
+```sql
+SELECT current_database();                                  -- 'postgres'
+SELECT datname FROM pg_database WHERE datistemplate = false; -- every DB on this server
+```
+
 ---
 
 ## 1. Insert a user
