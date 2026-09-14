@@ -18,3 +18,5 @@ class UserService:
         await self.db.flush()
         await self.db.refresh(user)
         return UserResponse.model_validate(user)
+
+
