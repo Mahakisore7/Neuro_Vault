@@ -1,0 +1,289 @@
+<title>Why PostgreSQL, Not Neo4j</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+
+<style>
+:root {
+  --paper: #fbfaff; --surface: #ffffff; --surface-2: #f3f1fa;
+  --ink: #14121f; --ink-soft: #3b3850; --muted: #615d78;
+  --line: #e2def0; --line-firm: #cdc7e2;
+  --violet: #6d3ce0; --violet-dim: #efeaff;
+  --teal: #0f766e; --teal-dim: #dcf3f0;
+  --amber: #b45309; --amber-dim: #fbeedb;
+  --rose: #b02555; --rose-dim: #fbe4ec;
+  --plate: #fdfdff; --plate-line: #d9d4ea;
+  --shadow: 0 1px 2px rgba(20,18,31,.05), 0 8px 24px -12px rgba(20,18,31,.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0d0b14; --surface: #171422; --surface-2: #1e1a2c;
+    --ink: #f2f0fa; --ink-soft: #cbc6dd; --muted: #9a94b2;
+    --line: #2a2540; --line-firm: #3b3457;
+    --violet: #a98bff; --violet-dim: #251d3d;
+    --teal: #5ed6c6; --teal-dim: #10302d;
+    --amber: #f0b060; --amber-dim: #33230e;
+    --rose: #ff8fb0; --rose-dim: #34121f;
+    --plate: #f4f2fb; --plate-line: #b9b2d4;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 28px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0d0b14; --surface: #171422; --surface-2: #1e1a2c;
+  --ink: #f2f0fa; --ink-soft: #cbc6dd; --muted: #9a94b2;
+  --line: #2a2540; --line-firm: #3b3457;
+  --violet: #a98bff; --violet-dim: #251d3d;
+  --teal: #5ed6c6; --teal-dim: #10302d;
+  --amber: #f0b060; --amber-dim: #33230e;
+  --rose: #ff8fb0; --rose-dim: #34121f;
+  --plate: #f4f2fb; --plate-line: #b9b2d4;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 28px -14px rgba(0,0,0,.7);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px; line-height: 1.65; -webkit-font-smoothing: antialiased;
+}
+.page { max-width: 760px; margin: 0 auto; padding: 56px 24px 90px; }
+@media print { .page { padding: 20px; max-width: none; } }
+
+.kicker {
+  font-family: "IBM Plex Mono", monospace; font-size: 11px; letter-spacing: .16em;
+  text-transform: uppercase; color: var(--violet); font-weight: 600; margin: 0 0 12px;
+  display: flex; align-items: center; gap: 8px;
+}
+.kicker::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--violet); }
+h1 {
+  font-family: Spectral, Georgia, serif; font-weight: 700;
+  font-size: clamp(1.9rem, 5vw, 2.7rem); line-height: 1.12; letter-spacing: -.02em;
+  margin: 0 0 16px; text-wrap: balance;
+}
+.verdict {
+  font-size: 1.1rem; color: var(--ink-soft); max-width: 62ch; margin: 0 0 30px;
+  padding: 16px 20px; background: var(--teal-dim); border-left: 3px solid var(--teal);
+  border-radius: 0 10px 10px 0;
+}
+.verdict strong { color: var(--ink); }
+
+h2 {
+  font-family: Spectral, Georgia, serif; font-weight: 600;
+  font-size: 1.4rem; letter-spacing: -.01em; margin: 40px 0 12px; text-wrap: balance;
+}
+h2 .n { color: var(--muted); font-family: "IBM Plex Mono", monospace; font-size: .7em; margin-right: 10px; }
+p { max-width: 68ch; margin: 0 0 14px; }
+strong { font-weight: 600; color: var(--ink); }
+code { font-family: "IBM Plex Mono", monospace; font-size: .88em; background: var(--surface-2);
+  border: 1px solid var(--line); padding: .08em .38em; border-radius: 4px; color: var(--ink-soft); }
+
+ul, ol { margin: 0 0 14px; padding-left: 1.2em; max-width: 68ch; }
+li { margin-bottom: 7px; }
+li::marker { color: var(--violet); }
+
+.tw { overflow-x: auto; margin: 14px 0 20px; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: .89rem; }
+th { text-align: left; font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .09em;
+  text-transform: uppercase; color: var(--muted); font-weight: 600; padding: 10px 14px;
+  border-bottom: 1px solid var(--line-firm); background: var(--surface-2); }
+td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-soft); }
+tbody tr:last-child td { border-bottom: 0; }
+td strong { color: var(--ink); }
+td a { color: var(--violet); }
+
+.sql {
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 16px 18px; overflow-x: auto; margin: 14px 0;
+  font-family: "IBM Plex Mono", monospace; font-size: .82rem; line-height: 1.65;
+  color: var(--ink-soft); white-space: pre;
+}
+.sql .kw { color: var(--violet); font-weight: 600; }
+.sql .cm { color: var(--muted); font-style: italic; }
+.caption { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); margin: -10px 0 20px; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+@media (max-width: 640px) { .grid2 { grid-template-columns: 1fr; } }
+.card {
+  border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; background: var(--surface);
+}
+.card h3 { font-family: "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: .06em;
+  text-transform: uppercase; margin: 0 0 8px; }
+.card--flip h3 { color: var(--amber); }
+.card--stay h3 { color: var(--teal); }
+.card p { margin: 0; font-size: .92rem; }
+
+.note {
+  border-left: 3px solid var(--violet); background: var(--violet-dim);
+  padding: 14px 18px; border-radius: 0 10px 10px 0; margin: 18px 0;
+  font-size: .93rem; color: var(--ink-soft);
+}
+.note--amber { border-left-color: var(--amber); background: var(--amber-dim); }
+.note b { color: var(--ink); }
+
+.closer {
+  margin-top: 46px; padding-top: 24px; border-top: 1px solid var(--line);
+  font-family: Spectral, Georgia, serif; font-style: italic; font-size: 1.15rem;
+  color: var(--ink-soft); max-width: 62ch;
+}
+.closer b { font-style: normal; color: var(--ink); }
+
+a { color: var(--violet); }
+:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+.tag { display: inline-block; font-family: "IBM Plex Mono", monospace; font-size: 10.5px;
+  color: var(--muted); border: 1px solid var(--line-firm); border-radius: 100px; padding: 2px 9px; }
+</style>
+
+<div class="page">
+
+  <p class="kicker">NeuroVault &middot; a note for the next mentor conversation</p>
+  <h1>Why PostgreSQL, not Neo4j</h1>
+
+  <p class="verdict">
+    <strong>Short answer:</strong> stay on PostgreSQL and finish the graph feature with a
+    recursive CTE, as originally designed. Switching to a native graph database would cost
+    more than it buys — not because Neo4j is a bad tool, but because this project's actual
+    access pattern doesn't need what Neo4j is good at.
+  </p>
+
+  <h2><span class="n">01</span>The one question that actually decides this</h2>
+  <p>
+    Not <em>"does the app have a graph in it?"</em> — almost every app does, somewhere.
+    The question a real engineering team asks is:
+  </p>
+  <div class="note">
+    <b>Is multi-hop traversal the primary, high-volume access pattern, at a scale where
+    an index-free-adjacency engine's advantage actually shows up?</b>
+    That's the test. Social graphs, fraud-ring detection, and recommendation over
+    hundreds of millions of edges pass it decisively. A personal notes app with a graph
+    of a few thousand edges, bounded to five hops, does not.
+  </div>
+  <p>
+    NeuroVault's own knowledge graph — <code>knowledge_links</code>, a self-referencing
+    many-to-many table on <code>notes</code> — is exactly the second case. One relationship
+    among fifteen tables, not the whole storage model.
+  </p>
+
+  <h2><span class="n">02</span>Nobody in this exact product category uses a graph database</h2>
+  <p>This isn't a hunch — it's checkable, and every comparable product lands the same way:</p>
+  <div class="tw"><table>
+    <thead><tr><th>Product</th><th>What it actually runs on</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Notion</strong></td><td>Sharded PostgreSQL — by far the largest product here, publicly documented on their own engineering blog.</td></tr>
+      <tr><td><strong>Obsidian</strong>, <strong>LogSeq</strong></td><td>No server database at all — local-first; the graph view is recomputed from Markdown files on open.</td></tr>
+      <tr><td><strong>Roam Research</strong></td><td>Datomic — a Datalog store, not a property-graph engine like Neo4j.</td></tr>
+    </tbody>
+  </table></div>
+  <p>
+    Every one of them treats "notes connect to notes" as one relationship inside a
+    conventional product, not as a reason to adopt graph-native storage. That's the exact
+    shape of this project.
+  </p>
+
+  <h2><span class="n">03</span>The traversal query already exists — it isn't hand-waved</h2>
+  <p>
+    This is the point worth making concretely: the "hard part" people assume needs a graph
+    database is already fully designed as ordinary SQL, in
+    <code>docs/phases/New/03-SQL-LAYER.md</code> — not invented for this conversation.
+  </p>
+  <div class="sql"><span class="kw">WITH RECURSIVE</span> connected_graph <span class="kw">AS</span> (
+  <span class="cm">-- anchor: the starting note, depth 0</span>
+  <span class="kw">SELECT</span> n.id, n.title, <span class="kw">0</span> <span class="kw">AS</span> depth, <span class="kw">ARRAY</span>[n.id] <span class="kw">AS</span> visited_path
+  <span class="kw">FROM</span> notes n <span class="kw">WHERE</span> n.id = :root_id
+
+  <span class="kw">UNION ALL</span>
+
+  <span class="cm">-- recursive term: everything one hop from what we already have</span>
+  <span class="kw">SELECT</span> nxt.id, nxt.title, g.depth + <span class="kw">1</span>, g.visited_path || nxt.id
+  <span class="kw">FROM</span> connected_graph g
+  <span class="kw">JOIN</span> knowledge_links kl <span class="kw">ON</span> kl.source_note_id = g.id <span class="kw">OR</span> kl.target_note_id = g.id
+  <span class="kw">JOIN</span> notes nxt <span class="kw">ON</span> nxt.id = <span class="kw">CASE WHEN</span> kl.source_note_id = g.id
+                         <span class="kw">THEN</span> kl.target_note_id <span class="kw">ELSE</span> kl.source_note_id <span class="kw">END</span>
+  <span class="kw">WHERE</span> g.depth < :max_depth              <span class="cm">-- bound the work</span>
+    <span class="kw">AND</span> nxt.id <> <span class="kw">ALL</span>(g.visited_path)     <span class="cm">-- never revisit: prevents cycles</span>
+)
+<span class="kw">SELECT DISTINCT ON</span> (id) id, title, depth <span class="kw">FROM</span> connected_graph <span class="kw">ORDER BY</span> id, depth;</div>
+  <p class="caption">The exact query from the design doc, condensed. It's iterative, not recursive-call-stack recursion — Postgres runs the anchor once, then re-runs the recursive term only against the newest rows each pass, until nothing new appears.</p>
+  <p>
+    Two lines are doing the safety work an engineer would ask about first:
+    <code>depth &lt; :max_depth</code> bounds the traversal, and
+    <code>nxt.id &lt;&gt; ALL(visited_path)</code> stops it from looping forever around a cycle.
+    That's the entire cycle-safety story — no different in kind from what a graph database
+    gives you for free, just written out instead of hidden in the engine.
+  </p>
+
+  <h2><span class="n">04</span>What a full migration would actually delete</h2>
+  <p>
+    This is the part worth being explicit about, because it's easy to lose sight of while
+    focused on the graph feature alone: Neo4j has no equivalent for most of what's currently
+    <em>working and defensible</em> in this project.
+  </p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Composite-FK tenancy</h3>
+      <p>Every ownership rule (ADR-001) is enforced by a two-column foreign key. Neo4j has no
+      foreign keys, composite or otherwise — ownership goes back to being an
+      application-level <code>if</code> statement, the exact failure mode this design
+      exists to remove.</p>
+    </div>
+    <div class="card">
+      <h3>Generated columns</h3>
+      <p><code>word_count</code> and <code>search_vector</code> are computed and stored by
+      Postgres on every write. No equivalent in a schemaless graph store — that logic moves
+      back into application code, where it can drift out of sync.</p>
+    </div>
+    <div class="card">
+      <h3>CHECK constraints &amp; RLS</h3>
+      <p>Slug formats, color hex codes, SM-2 bounds, row-level security — all enforced by the
+      database itself, regardless of what wrote the row. None of it transfers.</p>
+    </div>
+    <div class="card">
+      <h3>Trigger-driven history</h3>
+      <p>Version history and rollback exist because a <code>BEFORE UPDATE</code> trigger and
+      a stored procedure guarantee it, in the same transaction as the edit. Cypher has no
+      comparable trigger mechanism — this logic would move to the application too.</p>
+    </div>
+  </div>
+  <p>
+    None of that is a reason graph databases are bad — it's a reason <strong>this
+    particular project's strongest, most gradeable material is relational, not graph
+    work</strong>, and a migration would trade it away for a feature that's one table out
+    of fifteen.
+  </p>
+
+  <h2><span class="n">05</span>The actual industry-standard answer, stated honestly</h2>
+  <p>
+    The real pattern used in industry isn't "pick one database forever" — it's
+    <strong>polyglot persistence</strong>: keep the system of record wherever integrity
+    guarantees matter most, and add a specialized store only once a specific, <em>measured</em>
+    need justifies the operational cost of running two databases in sync.
+  </p>
+  <div class="grid2">
+    <div class="card card--stay">
+      <h3>True today <span class="tag">recommended</span></h3>
+      <p>PostgreSQL is the system of record for everything, including the graph. One
+      database, one transaction boundary, one thing to back up and operate. Correct for
+      thousands of edges at bounded depth.</p>
+    </div>
+    <div class="card card--flip">
+      <h3>Would become true if...</h3>
+      <p>...the graph grew into millions of edges with unpredictable-depth queries as the
+      <em>primary</em> feature, or needed graph-native algorithms (PageRank-style ranking,
+      community detection) that recursive SQL genuinely struggles with. Then: add Neo4j as
+      a <em>derived</em> read-store, synced from Postgres — never replace Postgres outright.</p>
+    </div>
+  </div>
+  <div class="note note--amber">
+    <b>Why not build the hybrid now, just to be safe?</b> A second database means a sync
+    pipeline, eventual-consistency risk, and twice the operational surface — real, ongoing
+    cost — to serve a graph that doesn't yet exist in the product at all. Paying that cost
+    before the simpler version has even shipped once is the mistake, not the caution.
+  </div>
+
+  <div class="closer">
+    "I looked at Neo4j, and here's the specific access-pattern reasoning for why I stayed on
+    PostgreSQL" is a <b>stronger</b> answer in a database-systems review than switching on
+    request without that analysis — it's the same judgment a real engineering team is
+    expected to show before adopting a new datastore.
+  </div>
+
+</div>

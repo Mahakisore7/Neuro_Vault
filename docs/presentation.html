@@ -1,0 +1,1233 @@
+<title>NeuroVault Project Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+
+<style>
+:root {
+  --paper:      #fbfaff;
+  --surface:    #ffffff;
+  --surface-2:  #f3f1fa;
+  --ink:        #14121f;
+  --ink-soft:   #3b3850;
+  --muted:      #615d78;
+  --line:       #e2def0;
+  --line-firm:  #cdc7e2;
+  --violet:     #6d3ce0;
+  --violet-dim: #efeaff;
+  --teal:       #0f766e;
+  --teal-dim:   #dcf3f0;
+  --amber:      #b45309;
+  --amber-dim:  #fbeedb;
+  --rose:       #b02555;
+  --rose-dim:   #fbe4ec;
+  --plate:      #fdfdff;
+  --plate-line: #d9d4ea;
+  --shadow:     0 1px 2px rgba(20,18,31,.05), 0 8px 24px -12px rgba(20,18,31,.14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #0d0b14;
+    --surface:    #17142211;
+    --surface-2:  #1e1a2c;
+    --ink:        #f2f0fa;
+    --ink-soft:   #cbc6dd;
+    --muted:      #9a94b2;
+    --line:       #2a2540;
+    --line-firm:  #3b3457;
+    --violet:     #a98bff;
+    --violet-dim: #251d3d;
+    --teal:       #5ed6c6;
+    --teal-dim:   #10302d;
+    --amber:      #f0b060;
+    --amber-dim:  #33230e;
+    --rose:       #ff8fb0;
+    --rose-dim:   #34121f;
+    --plate:      #f4f2fb;
+    --plate-line: #b9b2d4;
+    --shadow:     0 1px 2px rgba(0,0,0,.4), 0 8px 28px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"] {
+  --paper:      #0d0b14;
+  --surface:    #171422;
+  --surface-2:  #1e1a2c;
+  --ink:        #f2f0fa;
+  --ink-soft:   #cbc6dd;
+  --muted:      #9a94b2;
+  --line:       #2a2540;
+  --line-firm:  #3b3457;
+  --violet:     #a98bff;
+  --violet-dim: #251d3d;
+  --teal:       #5ed6c6;
+  --teal-dim:   #10302d;
+  --amber:      #f0b060;
+  --amber-dim:  #33230e;
+  --rose:       #ff8fb0;
+  --rose-dim:   #34121f;
+  --plate:      #f4f2fb;
+  --plate-line: #b9b2d4;
+  --shadow:     0 1px 2px rgba(0,0,0,.4), 0 8px 28px -14px rgba(0,0,0,.7);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --surface: #171422; }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.rail {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 18px;
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 12px;
+}
+.rail__mark { display: flex; align-items: center; gap: 8px; font-weight: 600; letter-spacing: .04em; }
+.rail__dot { width: 9px; height: 9px; border-radius: 50%; background: var(--violet); flex: none; }
+.rail__spacer { flex: 1; }
+.rail__count { color: var(--muted); font-variant-numeric: tabular-nums; }
+.rail__hint { color: var(--muted); }
+@media (max-width: 720px) { .rail__hint { display: none; } }
+
+.deck { max-width: 1120px; margin: 0 auto; padding: 74px 20px 120px; display: flex; flex-direction: column; gap: 26px; }
+
+.slide {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: var(--shadow);
+  padding: 40px 44px 44px;
+  scroll-margin-top: 66px;
+  position: relative;
+  overflow: hidden;
+}
+@media (max-width: 640px) { .slide { padding: 28px 22px 32px; } }
+
+.slide__no {
+  position: absolute; top: 18px; right: 22px;
+  font-family: "IBM Plex Mono", monospace; font-size: 11px;
+  color: var(--muted); letter-spacing: .1em; font-variant-numeric: tabular-nums;
+}
+.eyebrow {
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 11px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--violet); font-weight: 600; margin: 0 0 10px;
+}
+h1 {
+  font-family: Spectral, Georgia, serif;
+  font-size: clamp(2.1rem, 5vw, 3.4rem); font-weight: 700; line-height: 1.08;
+  letter-spacing: -.02em; margin: 0 0 18px; text-wrap: balance;
+}
+h2 {
+  font-family: Spectral, Georgia, serif;
+  font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 600; line-height: 1.16;
+  letter-spacing: -.015em; margin: 0 0 8px; text-wrap: balance;
+}
+h3 {
+  font-size: .82rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); margin: 26px 0 10px;
+  font-family: "IBM Plex Mono", monospace;
+}
+.lede { font-size: 1.06rem; color: var(--ink-soft); max-width: 68ch; margin: 0 0 6px; }
+p { max-width: 74ch; margin: 0 0 12px; }
+.slide > p:last-child, .slide > ul:last-child { margin-bottom: 0; }
+strong { font-weight: 600; }
+code, .mono { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: .88em; }
+:not(pre) > code {
+  background: var(--surface-2); border: 1px solid var(--line);
+  padding: .08em .38em; border-radius: 4px; color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+ul, ol { margin: 0 0 14px; padding-left: 1.15em; max-width: 74ch; }
+li { margin-bottom: 7px; }
+li::marker { color: var(--violet); }
+
+/* ── status chips ─────────────────────────────────── */
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: "IBM Plex Mono", monospace; font-size: 10.5px; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  padding: 3px 9px; border-radius: 100px; border: 1px solid;
+  white-space: nowrap; vertical-align: middle;
+}
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex: none; }
+.chip--live  { color: var(--teal);  background: var(--teal-dim);  border-color: color-mix(in srgb, var(--teal) 32%, transparent); }
+.chip--model { color: var(--amber); background: var(--amber-dim); border-color: color-mix(in srgb, var(--amber) 32%, transparent); }
+.chip--fix   { color: var(--rose);  background: var(--rose-dim);  border-color: color-mix(in srgb, var(--rose) 32%, transparent); }
+.chip--key   { color: var(--violet);background: var(--violet-dim);border-color: color-mix(in srgb, var(--violet) 32%, transparent); }
+
+/* ── tables ───────────────────────────────────────── */
+.tw { overflow-x: auto; margin: 4px 0 16px; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; }
+th {
+  text-align: left; font-family: "IBM Plex Mono", monospace;
+  font-size: 10.5px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--muted); font-weight: 600;
+  padding: 10px 14px; border-bottom: 1px solid var(--line-firm);
+  background: var(--surface-2); white-space: nowrap;
+}
+td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--ink-soft); }
+tbody tr:last-child td { border-bottom: 0; }
+td strong { color: var(--ink); }
+.num { font-variant-numeric: tabular-nums; text-align: right; font-family: "IBM Plex Mono", monospace; }
+
+/* ── stat strip ───────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 12px; margin: 18px 0; }
+.stat { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+.stat__n {
+  font-family: Spectral, Georgia, serif; font-size: 1.85rem; font-weight: 700;
+  line-height: 1; color: var(--violet); font-variant-numeric: tabular-nums;
+}
+.stat__l { font-family: "IBM Plex Mono", monospace; font-size: 10.5px; letter-spacing: .07em;
+  text-transform: uppercase; color: var(--muted); margin-top: 7px; }
+
+/* ── figure plate: diagrams always on light ground ── */
+.plate {
+  background: var(--plate);
+  border: 1px solid var(--plate-line);
+  border-radius: 12px;
+  padding: 20px 16px;
+  margin: 16px 0;
+  overflow-x: auto;
+}
+.plate .mermaid { background: transparent; text-align: center; }
+.plate figcaption {
+  font-family: "IBM Plex Mono", monospace; font-size: 11px; color: #55506b;
+  padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--plate-line); text-align: left;
+}
+
+/* ── callout ──────────────────────────────────────── */
+.note {
+  border-left: 3px solid var(--violet);
+  background: var(--violet-dim);
+  padding: 13px 16px; border-radius: 0 8px 8px 0; margin: 16px 0;
+  font-size: .93rem; color: var(--ink-soft); max-width: 76ch;
+}
+.note--amber { border-left-color: var(--amber); background: var(--amber-dim); }
+.note--teal  { border-left-color: var(--teal);  background: var(--teal-dim); }
+.note b { color: var(--ink); }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; }
+@media (max-width: 780px) { .cols { grid-template-columns: 1fr; gap: 12px; } }
+
+.sql {
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 16px; overflow-x: auto; margin: 12px 0;
+  font-family: "IBM Plex Mono", monospace; font-size: .84rem; line-height: 1.62;
+  color: var(--ink-soft); white-space: pre;
+}
+.sql .kw { color: var(--violet); font-weight: 600; }
+.sql .cm { color: var(--muted); font-style: italic; }
+
+.qa { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+.qa:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.qa__q { font-weight: 600; color: var(--ink); margin-bottom: 5px; }
+.qa__a { color: var(--ink-soft); font-size: .95rem; margin: 0; }
+
+.title-slide { text-align: left; padding-top: 60px; padding-bottom: 56px; }
+.title-slide .meta {
+  display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 26px;
+  font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted);
+  padding-top: 20px; border-top: 1px solid var(--line);
+}
+.title-slide .meta b { color: var(--ink-soft); font-weight: 500; }
+
+.toc { columns: 2; column-gap: 34px; font-size: .93rem; }
+@media (max-width: 640px) { .toc { columns: 1; } }
+.toc a { display: block; color: var(--ink-soft); text-decoration: none; padding: 4px 0;
+  border-bottom: 1px solid transparent; break-inside: avoid; }
+.toc a:hover, .toc a:focus-visible { color: var(--violet); border-bottom-color: var(--line-firm); }
+.toc a span { font-family: "IBM Plex Mono", monospace; font-size: 11px; color: var(--muted); margin-right: 9px; }
+
+a { color: var(--violet); }
+:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; border-radius: 3px; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; animation: none !important; } }
+html { scroll-behavior: smooth; }
+
+@media print {
+  .rail { display: none; }
+  body { background: #fff; color: #000; }
+  .deck { padding: 0; gap: 0; max-width: none; }
+  .slide { break-after: page; box-shadow: none; border: 0; border-radius: 0; padding: 26px 20px; }
+  .plate { break-inside: avoid; }
+}
+</style>
+
+<div class="rail">
+  <span class="rail__mark"><span class="rail__dot"></span>NEUROVAULT</span>
+  <span class="rail__hint">DBMS project review</span>
+  <span class="rail__spacer"></span>
+  <span class="rail__hint">← → to navigate</span>
+  <span class="rail__count" id="counter">01 / 22</span>
+</div>
+
+<div class="deck">
+
+<!-- 1 ───────────────────────────────────────────── -->
+<section class="slide title-slide" id="s1">
+  <p class="eyebrow">Semester 5 · Database Management Systems</p>
+  <h1>NeuroVault</h1>
+  <p class="lede">A personal knowledge base built on one idea: <strong>notes form a graph</strong>, not just a folder tree. Folders give you a hierarchy, tags give you a set — NeuroVault's schema also models the third structure, an explicit typed edge between any two notes, stored so PostgreSQL can traverse it recursively.</p>
+  <div class="meta">
+    <span><b>Stack</b> &nbsp;PostgreSQL · FastAPI · Next.js</span>
+    <span><b>Schema</b> &nbsp;15 tables, live</span>
+    <span><b>Decisions</b> &nbsp;19 ADRs</span>
+    <span><b>Repo</b> &nbsp;Mahakisore7/Neuro_Vault</span>
+  </div>
+</section>
+
+<!-- 2 ───────────────────────────────────────────── -->
+<section class="slide" id="s2">
+  <p class="eyebrow">Contents</p>
+  <h2>What this review covers</h2>
+  <p class="lede">Twenty-two slides, in four movements: what it is, what the database does, what the software does, and what I got wrong along the way.</p>
+  <nav class="toc">
+    <a href="#s3"><span>03</span>The problem &amp; the thesis</a>
+    <a href="#s4"><span>04</span>Build status — honest split</a>
+    <a href="#s5"><span>05</span>System architecture</a>
+    <a href="#s6"><span>06</span>Technology choices</a>
+    <a href="#s7"><span>07</span>ER diagram — all 15 tables</a>
+    <a href="#s8"><span>08</span>Composite-FK tenancy</a>
+    <a href="#s9"><span>09</span>The graph relationship</a>
+    <a href="#s10"><span>10</span>Generated columns</a>
+    <a href="#s11"><span>11</span>Trigger: version history</a>
+    <a href="#s12"><span>12</span>Procedure: rollback</a>
+    <a href="#s13"><span>13</span>Referential-action design</a>
+    <a href="#s14"><span>14</span>Live database inventory</a>
+    <a href="#s15"><span>15</span>UML — domain model</a>
+    <a href="#s16"><span>16</span>UML — layered architecture</a>
+    <a href="#s17"><span>17</span>UML — use cases</a>
+    <a href="#s18"><span>18</span>UML — note lifecycle</a>
+    <a href="#s19"><span>19</span>User flow &amp; API surface</a>
+    <a href="#s20"><span>20</span>Authentication</a>
+    <a href="#s21"><span>21</span>Bugs found &amp; fixed</a>
+    <a href="#s22"><span>22</span>Roadmap &amp; defence notes</a>
+  </nav>
+</section>
+
+<!-- 3 ───────────────────────────────────────────── -->
+<section class="slide" id="s3">
+  <p class="eyebrow">01 — Premise</p>
+  <h2>Why a graph, and why that makes it a DBMS project</h2>
+  <p class="lede">Most note apps give you two structures. NeuroVault's schema models a third — and that one choice is what pulls real database machinery into the design.</p>
+  <div class="cols">
+    <div>
+      <h3>The two everyone has</h3>
+      <ul>
+        <li><strong>A hierarchy</strong> — workspace → notebook → note. A tree.</li>
+        <li><strong>A set</strong> — tags. Unordered labels.</li>
+      </ul>
+      <h3>The third one</h3>
+      <ul>
+        <li><strong>A graph</strong> — "Linear Algebra is a <em>prerequisite of</em> Machine Learning, strength 9." A typed, directed, weighted edge between any two notes.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>What that forces into the schema</h3>
+      <ul>
+        <li>A <strong>self-referencing many-to-many</strong> junction — two foreign keys on one table, both pointing back at <code>notes</code>.</li>
+        <li><strong>Recursive traversal</strong> — "everything within N hops" is one query, not a loop in application code.</li>
+        <li>An <strong>asymmetric security model</strong> expressed as two different foreign-key shapes rather than an <code>if</code> statement.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="note">
+    <b>The claim I want to defend:</b> the interesting work here is in the schema, not the screens. Ownership rules, history, and integrity are enforced by PostgreSQL itself — so they hold even if every line of application code were bypassed.
+  </div>
+</section>
+
+<!-- 4 ───────────────────────────────────────────── -->
+<section class="slide" id="s4">
+  <p class="eyebrow">02 — Scope</p>
+  <h2>What is built, and what is only modelled</h2>
+  <p class="lede">Stating this up front, because the ER diagram two slides from now shows 15 tables and only some of them have an application behind them. Every table listed here is <strong>migrated and live</strong> — the difference is whether code calls it yet.</p>
+
+  <h3>Working end to end <span class="chip chip--live">Live</span></h3>
+  <div class="tw"><table>
+    <thead><tr><th>Area</th><th>What works today</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Accounts</strong></td><td>Email/password and Google &amp; GitHub sign-in; new accounts mirrored into <code>users</code> by a database trigger</td></tr>
+      <tr><td><strong>Hierarchy</strong></td><td>Workspaces and notebooks — create, rename, colour, delete, with ownership enforced by composite FKs</td></tr>
+      <tr><td><strong>Notes</strong></td><td>Rich-text editor, autosave, pin, archive, public/private</td></tr>
+      <tr><td><strong>Version history</strong></td><td>Trigger-written on every real edit; restore any version, and the restore is itself versioned</td></tr>
+      <tr><td><strong>Unfiled notes</strong></td><td>The view that catches notes orphaned by a notebook delete</td></tr>
+      <tr><td><strong>Tags</strong></td><td>Create, colour, attach to and detach from notes via the junction table</td></tr>
+      <tr><td><strong>Profile</strong></td><td>Avatar upload to object storage, display name, bio</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Schema live, no application yet <span class="chip chip--model">Modelled</span></h3>
+  <div class="tw"><table>
+    <thead><tr><th>Area</th><th>What exists in the database</th><th>Missing</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Knowledge graph</strong></td><td><code>knowledge_links</code> + <code>relationship_types</code>, with the asymmetric FK security model</td><td>API routes, recursive query, graph canvas</td></tr>
+      <tr><td><strong>Full-text search</strong></td><td><code>notes.search_vector</code> — a generated <code>tsvector</code>, recomputed on every write</td><td>GIN index and a query</td></tr>
+      <tr><td><strong>Collections</strong></td><td>Ordered note groupings with a <code>position</code> column</td><td>API + UI</td></tr>
+      <tr><td><strong>Flashcards</strong></td><td>SM-2 spaced-repetition fields with the algorithm's bounds as <code>CHECK</code> constraints</td><td>Scheduling logic + review screen</td></tr>
+      <tr><td><strong>Audit &amp; notifications</strong></td><td><code>activity_logs</code>, <code>notifications</code></td><td>The triggers that would write to them</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note note--amber">
+    <b>Why I'm not hiding this:</b> the schema was designed whole, then built outward from the centre. The tables above aren't aspirational sketches — their constraints, keys and referential actions are real and enforced right now. What they're waiting on is application code, which is the cheap half.
+  </div>
+</section>
+
+<!-- 5 ───────────────────────────────────────────── -->
+<section class="slide" id="s5">
+  <p class="eyebrow">03 — Architecture</p>
+  <h2>How the pieces fit</h2>
+  <figure class="plate">
+    <pre class="mermaid">
+flowchart TB
+    subgraph B["Browser — Next.js 16, React 19"]
+        UI["TanStack Query · Tiptap editor<br/>shadcn/ui · Tailwind"]
+    end
+    subgraph S["Supabase (managed)"]
+        Auth["Auth — issues ES256 JWTs<br/>email/password + OAuth"]
+        Store["Storage — avatars bucket"]
+    end
+    subgraph F["FastAPI — Python 3.12"]
+        R["Routes — validate, map errors"]
+        SV["Services — authorization, rules"]
+        RP["Repositories — SQLAlchemy only"]
+        R --> SV --> RP
+    end
+    PG[("PostgreSQL<br/>15 tables · generated columns<br/>trigger · stored procedure")]
+
+    UI -- "sign in, refresh, upload" --> Auth
+    UI -- "upload" --> Store
+    UI -- "HTTPS /api/v1/*<br/>Bearer JWT" --> R
+    SV -. "verify signature<br/>via JWKS" .-> Auth
+    RP -- "asyncpg" --> PG
+    </pre>
+    <figcaption>Figure 1 — Request paths. The browser holds two connections: identity to Supabase, everything else to FastAPI.</figcaption>
+  </figure>
+  <div class="cols">
+    <div>
+      <h3>Why identity is split out</h3>
+      <p>Supabase Auth owns password hashing, OAuth redirects and token refresh — all easy to get subtly wrong by hand. FastAPI owns the domain: authorization rules and the graph queries. <strong>The JWT is the handoff.</strong> FastAPI never sees a password; Supabase never sees a note.</p>
+    </div>
+    <div>
+      <h3>The layering rule</h3>
+      <p>Routes never touch SQLAlchemy; services never import FastAPI. Every arrow points down exactly one layer. That's what makes each layer testable in isolation — and it's checkable mechanically, by grepping for <code>sqlalchemy</code> under the routes directory and expecting zero hits.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 ───────────────────────────────────────────── -->
+<section class="slide" id="s6">
+  <p class="eyebrow">04 — Stack</p>
+  <h2>Technology choices, and the reason for each</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Layer</th><th>Choice</th><th>Why this one</th></tr></thead>
+    <tbody>
+      <tr><td>Database</td><td><strong>PostgreSQL 16</strong></td><td>Generated columns, recursive CTEs, partial &amp; GIN indexes, row-level security, column-list <code>SET NULL</code> — the features the design actually leans on. A graph database was considered and rejected (ADR-011): the graph is one table among fifteen, and everything else is relational.</td></tr>
+      <tr><td>Migrations</td><td><strong>Alembic</strong></td><td>Every table, index, trigger and procedure is a versioned, ordered, replayable script. Nothing is created by hand — ADR-003.</td></tr>
+      <tr><td>ORM</td><td><strong>SQLAlchemy 2.0 async</strong></td><td>Typed models, but raw SQL wherever the database should do the work (triggers, procedures, the planned recursive CTE).</td></tr>
+      <tr><td>API</td><td><strong>FastAPI + Pydantic v2</strong></td><td>Request/response schemas are declared once and validated automatically; OpenAPI docs come free.</td></tr>
+      <tr><td>Auth</td><td><strong>Supabase Auth</strong></td><td>Rolling my own password storage would be a liability, not a feature. Verified backend-side via JWKS — ADR-018.</td></tr>
+      <tr><td>Frontend</td><td><strong>Next.js 16, React 19, TypeScript</strong></td><td>File-based routing, one language across the UI, types shared against the API's schemas.</td></tr>
+      <tr><td>Editor</td><td><strong>Tiptap v3</strong></td><td>Structured rich text that serialises to HTML — so <code>word_count</code> and <code>search_vector</code> can be computed from it in SQL.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note">
+    <b>The recurring principle:</b> when a rule can be enforced by the database or by application code, it goes in the database. Application code can be bypassed — by a script, by <code>psql</code>, by a bug. A constraint cannot.
+  </div>
+</section>
+
+<!-- 7 ───────────────────────────────────────────── -->
+<section class="slide" id="s7">
+  <p class="eyebrow">05 — Schema</p>
+  <h2>Entity–relationship diagram</h2>
+  <p class="lede">All 15 tables as migrated. Attributes trimmed to keys and the columns that carry design decisions.</p>
+  <figure class="plate">
+    <pre class="mermaid">
+erDiagram
+    USERS ||--o{ WORKSPACES : owns
+    USERS ||--o{ NOTES : creates
+    USERS ||--o{ TAGS : owns
+    USERS ||--o{ COLLECTIONS : owns
+    USERS ||--o{ NOTIFICATIONS : receives
+    USERS |o--o{ ACTIVITY_LOGS : "acted · SET NULL"
+    USERS |o--o{ NOTE_VERSIONS : "edited · SET NULL"
+    WORKSPACES ||--o{ NOTEBOOKS : "contains · composite FK"
+    NOTEBOOKS |o--o{ NOTES : "files · SET NULL (notebook_id)"
+    NOTES ||--o{ NOTE_VERSIONS : "history · CASCADE"
+    NOTES ||--o{ FLASHCARDS : generates
+    NOTES ||--o{ RESOURCES : attaches
+    NOTES ||--o{ KNOWLEDGE_LINKS : "source · ownership-checked"
+    NOTES ||--o{ KNOWLEDGE_LINKS : "target · any readable note"
+    RELATIONSHIP_TYPES ||--o{ KNOWLEDGE_LINKS : "classifies · RESTRICT"
+    NOTES ||--o{ NOTE_TAGS : "tagged via"
+    TAGS ||--o{ NOTE_TAGS : "labels via"
+    NOTES ||--o{ COLLECTION_ITEMS : "grouped via"
+    COLLECTIONS ||--o{ COLLECTION_ITEMS : contains
+
+    USERS {
+        uuid id PK "= JWT sub claim"
+        citext email UK
+        varchar display_name
+        text avatar_url
+    }
+    WORKSPACES {
+        uuid id PK
+        uuid owner_id FK
+        varchar slug UK "unique per owner"
+    }
+    NOTEBOOKS {
+        uuid id PK
+        uuid workspace_id FK "composite"
+        uuid owner_id FK "denormalised"
+        varchar color
+    }
+    NOTES {
+        uuid id PK
+        uuid creator_id FK
+        uuid notebook_id FK "nullable"
+        varchar title
+        text content
+        boolean is_public
+        boolean archived
+        integer word_count "GENERATED"
+        tsvector search_vector "GENERATED"
+    }
+    NOTE_VERSIONS {
+        uuid id PK
+        uuid note_id FK
+        integer version_num "UK with note_id"
+        text content
+        uuid edited_by FK
+    }
+    KNOWLEDGE_LINKS {
+        uuid id PK
+        uuid source_note_id FK "composite"
+        uuid target_note_id FK "plain"
+        smallint rel_type_id FK
+        uuid created_by FK
+        smallint strength "CHECK 1-10"
+        varchar origin "manual/wiki/ai"
+    }
+    RELATIONSHIP_TYPES {
+        smallint id PK
+        varchar name UK
+        boolean is_symmetric
+    }
+    TAGS {
+        integer id PK "IDENTITY"
+        uuid user_id FK
+        varchar slug UK "unique per user"
+    }
+    NOTE_TAGS {
+        uuid note_id PK
+        integer tag_id PK
+        uuid owner_id FK "in both FKs"
+    }
+    COLLECTIONS {
+        uuid id PK
+        uuid user_id FK
+        varchar name UK
+    }
+    COLLECTION_ITEMS {
+        uuid collection_id PK
+        uuid note_id PK
+        integer position "ordering is data"
+    }
+    FLASHCARDS {
+        uuid id PK
+        uuid note_id FK
+        numeric ease_factor "CHECK 1.30-2.50"
+        timestamptz due_at
+    }
+    RESOURCES {
+        uuid id PK
+        uuid note_id FK
+        varchar resource_type
+        text url
+    }
+    ACTIVITY_LOGS {
+        bigint id PK
+        uuid user_id FK
+        jsonb metadata
+    }
+    NOTIFICATIONS {
+        bigint id PK
+        uuid user_id FK
+        boolean is_read
+    }
+    </pre>
+    <figcaption>Figure 2 — Full ER model. Two relationships run from NOTES to KNOWLEDGE_LINKS; that pair is the graph, and slide 09 explains why they differ.</figcaption>
+  </figure>
+</section>
+
+<!-- 8 ───────────────────────────────────────────── -->
+<section class="slide" id="s8">
+  <p class="eyebrow">06 — Schema · key decision</p>
+  <h2>Tenancy enforced by composite foreign keys</h2>
+  <p class="lede">The single design idea I'd most want to be asked about. Every child table that belongs to a user carries the owner's id <em>and</em> puts it inside the foreign key.</p>
+
+  <div class="cols">
+    <div>
+      <h3>The usual way</h3>
+      <div class="sql"><span class="cm">-- FK asks only: does the parent exist?</span>
+<span class="kw">FOREIGN KEY</span> (workspace_id)
+  <span class="kw">REFERENCES</span> workspaces(id)</div>
+      <p>Then application code must remember, on every single write path, to also check that the workspace belongs to the caller. Miss it once and you have a cross-tenant write.</p>
+    </div>
+    <div>
+      <h3>What NeuroVault does</h3>
+      <div class="sql"><span class="cm">-- FK asks: does the parent exist</span>
+<span class="cm">-- AND belong to this exact user?</span>
+<span class="kw">FOREIGN KEY</span> (workspace_id, owner_id)
+  <span class="kw">REFERENCES</span> workspaces(id, owner_id)
+  <span class="kw">ON DELETE CASCADE</span></div>
+      <p>Filing a notebook under someone else's workspace isn't a bug to be caught — it is <strong>a row PostgreSQL physically cannot store</strong>, from the app, a script, or <code>psql</code>.</p>
+    </div>
+  </div>
+
+  <h3>The cost, stated plainly</h3>
+  <p><code>notebooks.owner_id</code> is derivable through <code>workspace_id → workspaces.owner_id</code>, so storing it again is a deliberate <strong>3NF violation</strong>. The redundancy is safe precisely because the composite FK is what enforces it: the two copies cannot disagree, because a row where they disagree cannot exist. A denormalisation whose consistency is guaranteed by the same constraint that motivates it.</p>
+  <div class="note">
+    <b>Prerequisite that's easy to miss:</b> a two-column foreign key needs a two-column unique constraint to point at. Every parent table carries an extra <code>UNIQUE (id, owner_id)</code> that exists only to be a composite-FK target — visible as <code>uq_workspaces_id_owner_id</code> and friends in the live schema.
+  </div>
+</section>
+
+<!-- 9 ───────────────────────────────────────────── -->
+<section class="slide" id="s9">
+  <p class="eyebrow">07 — Schema · the graph</p>
+  <h2>One table, two foreign keys, deliberately different</h2>
+  <p class="lede"><code>knowledge_links</code> is a self-referencing many-to-many junction on <code>notes</code>. The asymmetry between its two sides <em>is</em> the security model.</p>
+  <figure class="plate">
+    <pre class="mermaid">
+flowchart LR
+    A["Note A<br/>(you own it)"]
+    L{{"knowledge_links row<br/>rel_type · strength · origin"}}
+    B["Note B<br/>(anyone's readable note)"]
+    A -- "source_note_id + created_by<br/>COMPOSITE FK — ownership checked" --> L
+    L -- "target_note_id<br/>PLAIN FK — existence only" --> B
+    </pre>
+    <figcaption>Figure 3 — An edge may only originate from a note you own, but may point at any note you can read.</figcaption>
+  </figure>
+  <div class="cols">
+    <div>
+      <h3>Read it as a sentence</h3>
+      <p>"You may draw a connection <strong>from</strong> a note you own <strong>to</strong> any note you can read — including someone else's public one — and never the reverse."</p>
+      <p>That whole paragraph of policy is two lines of DDL. No service-layer check can be forgotten, because there is no service-layer check.</p>
+    </div>
+    <div>
+      <h3>Supporting constraints</h3>
+      <ul>
+        <li><code>CHECK (source_note_id &lt;&gt; target_note_id)</code> — no self-links.</li>
+        <li><code>UNIQUE (source, target, rel_type_id)</code> — the same relationship can't be recorded twice.</li>
+        <li><code>rel_type_id</code> uses <code>ON DELETE RESTRICT</code> — a relationship type in use cannot be deleted out from under its edges.</li>
+        <li><code>origin</code> records whether a row came from a manual action or auto-linking, so automatic reconciliation can only ever touch rows it created.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 10 ──────────────────────────────────────────── -->
+<section class="slide" id="s10">
+  <p class="eyebrow">08 — SQL layer</p>
+  <h2>Generated columns — data that maintains itself <span class="chip chip--live">Live</span></h2>
+  <p class="lede">Two columns on <code>notes</code> that no application code ever writes. PostgreSQL computes and stores them on every insert and update.</p>
+  <div class="sql"><span class="kw">word_count</span>   integer   <span class="kw">GENERATED ALWAYS AS</span> (
+    <span class="cm">-- strip HTML tags, split on whitespace, count</span>
+    array_length(regexp_split_to_array(btrim(regexp_replace(
+      COALESCE(content,''), '&lt;[^&gt;]+&gt;', ' ', 'g')), '\s+'), 1)
+  ) <span class="kw">STORED</span>
+
+<span class="kw">search_vector</span> tsvector <span class="kw">GENERATED ALWAYS AS</span> (
+    setweight(to_tsvector('english', COALESCE(title,'')),   'A') ||
+    setweight(to_tsvector('english', COALESCE(body_text,'')),'B')
+  ) <span class="kw">STORED</span></div>
+  <div class="cols">
+    <div>
+      <h3>Why this beats application code</h3>
+      <ul>
+        <li>They <strong>cannot go stale</strong> — there is no write path that updates content without recomputing them, because it's the same statement.</li>
+        <li>They <strong>cannot be wrong</strong> — PostgreSQL rejects any direct write to a generated column.</li>
+        <li>Title matches outrank body matches by construction: <code>setweight</code> 'A' vs 'B'.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>One subtlety worth knowing</h3>
+      <p>The two-argument <code>to_tsvector('english', …)</code> form is mandatory. The one-argument form reads a session setting, which makes it <code>STABLE</code> rather than <code>IMMUTABLE</code> — and PostgreSQL only permits <code>IMMUTABLE</code> expressions in a generated column. The single-argument version fails at migration time with an error that doesn't obviously say why.</p>
+    </div>
+  </div>
+  <div class="note note--amber">
+    <b>Honest status:</b> <code>search_vector</code> is computed and stored on every write today, but the GIN index over it hasn't been created and nothing queries it yet. Search is the nearest unbuilt feature — the expensive half is already done.
+  </div>
+</section>
+
+<!-- 11 ──────────────────────────────────────────── -->
+<section class="slide" id="s11">
+  <p class="eyebrow">09 — SQL layer</p>
+  <h2>Trigger-driven version history <span class="chip chip--live">Live</span></h2>
+  <p class="lede">No application code inserts into <code>note_versions</code>. Ever. History exists because of what PostgreSQL does inside the same <code>UPDATE</code> statement that changes the note.</p>
+  <figure class="plate">
+    <pre class="mermaid">
+sequenceDiagram
+    actor U as User
+    participant FE as Editor
+    participant API as FastAPI
+    participant DB as PostgreSQL
+    participant TG as Trigger
+
+    U->>FE: types
+    FE->>FE: debounce 1.5s
+    FE->>API: PATCH /notes/{id} {content}
+    API->>API: verify JWT, assert creator_id = user.id
+    API->>DB: UPDATE notes SET content = ...
+    activate DB
+    DB->>TG: BEFORE UPDATE fires
+    TG->>TG: OLD.content IS DISTINCT FROM NEW.content ?
+    TG->>DB: INSERT note_versions (OLD title/content, MAX(version_num)+1)
+    Note over TG,DB: the UPDATE already holds a row lock,<br/>so the MAX() read cannot race
+    DB->>DB: word_count and search_vector recompute
+    deactivate DB
+    DB-->>API: commit
+    API-->>FE: 200 — "Saved"
+    </pre>
+    <figcaption>Figure 4 — One transaction. If the trigger raised, the user's edit would roll back with it.</figcaption>
+  </figure>
+  <div class="cols">
+    <div>
+      <h3>Design points</h3>
+      <ul>
+        <li><strong><code>BEFORE UPDATE</code>, snapshotting <code>OLD</code></strong> — the point is to preserve the state <em>before</em> this edit. Using <code>NEW</code> would make version 1 permanently unreachable.</li>
+        <li><strong><code>IS DISTINCT FROM</code></strong>, not <code>&lt;&gt;</code> — NULL-safe, so a note that has never had content doesn't produce spurious versions.</li>
+        <li>Pinning a note or toggling <code>is_public</code> writes no version — only title and content changes count as edits.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Why the version number can't race</h3>
+      <p>The trigger computes <code>MAX(version_num) + 1</code>, which looks like a classic read-modify-write race. It isn't: the <code>UPDATE</code> that fired the trigger already holds a row-level exclusive lock on that note, so two concurrent edits to the <em>same</em> note serialise. Edits to <em>different</em> notes don't contend at all.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 12 ──────────────────────────────────────────── -->
+<section class="slide" id="s12">
+  <p class="eyebrow">10 — SQL layer</p>
+  <h2>Rollback as a stored procedure <span class="chip chip--live">Live</span></h2>
+  <div class="cols">
+    <div>
+      <h3>Why a procedure, not application code</h3>
+      <ul>
+        <li>It performs a <strong>self-contained unit of work with no return value</strong> — the textbook case for <code>PROCEDURE</code> over <code>FUNCTION</code>.</li>
+        <li>It <strong>re-checks ownership itself</strong>, raising with a specific <code>ERRCODE</code> if the caller doesn't own the note. Defence in depth: it can be <code>CALL</code>ed directly from <code>psql</code>, bypassing the API entirely.</li>
+        <li>It keeps the restore in one round trip instead of read-then-write from Python.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>The elegant part</h3>
+      <p>The procedure restores content with an <strong>ordinary <code>UPDATE</code></strong> — which fires the versioning trigger from the previous slide. So the state being replaced is itself versioned on the way out.</p>
+      <div class="note note--teal" style="margin-top:14px">
+        <b>A rollback is never destructive.</b> Restoring v1 over v3 creates v4 containing what v3 said. You can always roll back a rollback — the history is append-only by construction, not by policy.
+      </div>
+    </div>
+  </div>
+  <div class="sql"><span class="kw">CALL</span> sp_rollback_note_version(p_note_id, p_version_num, p_actor_id);
+
+<span class="cm">-- inside: ownership re-check, then</span>
+<span class="kw">UPDATE</span> notes <span class="kw">SET</span> title = v.title, content = v.content <span class="kw">WHERE</span> id = p_note_id;
+<span class="cm">-- ^ this line re-fires trg_notes_create_version</span></div>
+  <p><strong>Verified end to end:</strong> create a note, edit it twice, list versions (returns <code>[2, 1]</code>, newest first), roll back to v1, confirm the content restored, confirm the rollback produced v3, then confirm a rollback to a nonexistent version and a rollback by a different user are both rejected.</p>
+</section>
+
+<!-- 13 ──────────────────────────────────────────── -->
+<section class="slide" id="s13">
+  <p class="eyebrow">11 — Schema · integrity</p>
+  <h2>Referential actions chosen per relationship</h2>
+  <p class="lede">Not one blanket policy. Each foreign key answers its own question: does the child exist <em>because of</em> the parent, or does it merely <em>mention</em> it?</p>
+  <div class="tw"><table>
+    <thead><tr><th>Relationship</th><th>Action</th><th>Reasoning</th></tr></thead>
+    <tbody>
+      <tr><td><code>workspaces.owner_id</code> → users</td><td><strong>CASCADE</strong></td><td>A workspace exists only because its owner does. Delete the account, the workspace goes.</td></tr>
+      <tr><td><code>note_versions.note_id</code> → notes</td><td><strong>CASCADE</strong></td><td>History of a note that no longer exists is meaningless.</td></tr>
+      <tr><td><code>note_versions.edited_by</code> → users</td><td><strong>SET NULL</strong></td><td>Deleting a user must not erase the edit history of notes they touched. The version survives; it loses its author.</td></tr>
+      <tr><td><code>activity_logs.user_id</code> → users</td><td><strong>SET NULL</strong></td><td>An audit trail that disappears when the actor is deleted is not an audit trail.</td></tr>
+      <tr><td><code>knowledge_links.rel_type_id</code></td><td><strong>RESTRICT</strong></td><td>A relationship type still in use cannot be deleted — the edges would lose their meaning.</td></tr>
+      <tr><td><code>notes.(notebook_id, creator_id)</code></td><td><strong>SET NULL (notebook_id)</strong></td><td>The interesting one — see below.</td></tr>
+    </tbody>
+  </table></div>
+  <h3>The column-list <code>SET NULL</code></h3>
+  <p>Deleting a notebook should un-file its notes, not destroy them. But the foreign key is <em>composite</em> — <code>(notebook_id, creator_id)</code> — and a plain <code>ON DELETE SET NULL</code> nulls <strong>every column the key covers</strong>, including <code>creator_id</code>, which is <code>NOT NULL</code>. That delete would fail the first time anyone tried it.</p>
+  <div class="sql"><span class="kw">ON DELETE SET NULL</span> (notebook_id)   <span class="cm">-- PostgreSQL 15+: name the column</span></div>
+  <div class="note">
+    <b>Where this leaked into the product:</b> the database handled it correctly from day one — notes survived a notebook delete, unfiled. But nothing in the interface could <em>find</em> them again afterwards. Safe in the database, invisible to the user. That gap is why the "Unfiled" screen exists; it was built specifically to close it.
+  </div>
+</section>
+
+<!-- 14 ──────────────────────────────────────────── -->
+<section class="slide" id="s14">
+  <p class="eyebrow">12 — Evidence</p>
+  <h2>What is actually in the database right now</h2>
+  <p class="lede">Queried live from the running PostgreSQL instance for this review, not copied from the design documents.</p>
+  <div class="stats">
+    <div class="stat"><div class="stat__n">15</div><div class="stat__l">Tables</div></div>
+    <div class="stat"><div class="stat__n">18</div><div class="stat__l">Foreign keys</div></div>
+    <div class="stat"><div class="stat__n">22</div><div class="stat__l">Check constraints</div></div>
+    <div class="stat"><div class="stat__n">13</div><div class="stat__l">Unique constraints</div></div>
+    <div class="stat"><div class="stat__n">2</div><div class="stat__l">Generated columns</div></div>
+    <div class="stat"><div class="stat__n">4</div><div class="stat__l">Migrations</div></div>
+  </div>
+  <div class="cols">
+    <div>
+      <h3>Routines and triggers</h3>
+      <div class="tw"><table>
+        <thead><tr><th>Object</th><th>Kind</th></tr></thead>
+        <tbody>
+          <tr><td><code>fn_create_note_version</code></td><td>Trigger function</td></tr>
+          <tr><td><code>trg_notes_create_version</code></td><td>Trigger, <code>BEFORE UPDATE</code></td></tr>
+          <tr><td><code>sp_rollback_note_version</code></td><td>Procedure</td></tr>
+          <tr><td><code>handle_new_auth_user</code></td><td>Trigger fn on <code>auth.users</code></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div>
+      <h3>Proof the trigger works</h3>
+      <p><code>note_versions</code> currently holds <strong>8 rows</strong> across 3 notes — every one of them written by the trigger during ordinary use. Not one was inserted by application code, because no application code can insert there.</p>
+      <div class="note note--amber" style="margin-top:12px">
+        <b>Gaps I'd flag myself:</b> the four analytical <strong>views</strong> in the design aren't created yet, and the only non-key index built so far is <code>idx_note_versions_note_id_version_num</code> on <code>(note_id, version_num DESC)</code>. The GIN, partial and trigram indexes are designed and specified, not yet migrated.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 15 ──────────────────────────────────────────── -->
+<section class="slide" id="s15">
+  <p class="eyebrow">13 — UML</p>
+  <h2>Class diagram — the domain model</h2>
+  <p class="lede">The same 15 entities as UML classes. The arrowheads carry meaning: they're chosen from the referential actions on slide 11, not picked for looks.</p>
+  <div class="note">
+    <b>Filled diamond = composition</b> → <code>ON DELETE CASCADE</code>, the child cannot outlive the parent. &nbsp;·&nbsp;
+    <b>Hollow diamond = aggregation</b> → <code>ON DELETE SET NULL</code>, the child survives and loses the reference. &nbsp;·&nbsp;
+    <b>Plain arrow = association</b> → <code>RESTRICT</code>, or a junction row jointly owned by two parents.
+  </div>
+  <figure class="plate">
+    <pre class="mermaid">
+classDiagram
+    class User { +UUID id
+      +citext email
+      +string display_name }
+    class Workspace { +UUID id
+      +UUID owner_id
+      +string slug }
+    class Notebook { +UUID id
+      +UUID workspace_id
+      +UUID owner_id }
+    class Note { +UUID id
+      +UUID creator_id
+      +UUID notebook_id
+      +string title
+      +text content
+      +bool archived
+      +int word_count
+      +tsvector search_vector }
+    class NoteVersion { +UUID id
+      +int version_num
+      +text content
+      +UUID edited_by }
+    class KnowledgeLink { +UUID id
+      +UUID source_note_id
+      +UUID target_note_id
+      +int strength
+      +string origin }
+    class RelationshipType { +int id
+      +string name
+      +bool is_symmetric }
+    class Tag { +int id
+      +UUID user_id
+      +string slug }
+    class NoteTag { +UUID note_id
+      +int tag_id
+      +UUID owner_id }
+    class Collection { +UUID id
+      +UUID user_id }
+    class CollectionItem { +int position }
+    class Flashcard { +numeric ease_factor
+      +datetime due_at }
+    class Resource { +string resource_type
+      +text url }
+    class ActivityLog { +jsonb metadata }
+    class Notification { +bool is_read }
+
+    User *-- Workspace
+    User *-- Note : creates
+    User *-- Tag
+    User *-- Collection
+    User *-- Notification
+    User o-- ActivityLog : actor may be null
+    User o-- NoteVersion : editor may be null
+    Workspace *-- Notebook
+    Notebook o-- Note : filed in, nullable
+    Note *-- NoteVersion
+    Note *-- Flashcard
+    Note *-- Resource
+    Note --> KnowledgeLink : source
+    Note --> KnowledgeLink : target
+    RelationshipType --> KnowledgeLink : classifies
+    Note --> NoteTag
+    Tag --> NoteTag
+    Note --> CollectionItem
+    Collection --> CollectionItem
+    </pre>
+    <figcaption>Figure 5 — Domain model. KnowledgeLink is the one class attached to Note twice.</figcaption>
+  </figure>
+  <p><strong>Why <code>KnowledgeLink</code> uses plain associations and not composition:</strong> a link row is deleted if <em>either</em> endpoint note is deleted — both FKs cascade — so it has no single owner. UML composition means exclusive ownership, and this relationship genuinely isn't that, so it isn't drawn that way.</p>
+</section>
+
+<!-- 16 ──────────────────────────────────────────── -->
+<section class="slide" id="s16">
+  <p class="eyebrow">14 — UML</p>
+  <h2>Class diagram — the application layers</h2>
+  <p class="lede">A second class diagram, deliberately a different shape from the first. That one models <em>data</em>; this one models <em>code</em> — the standard UML pairing of a domain model with an architecture model.</p>
+  <figure class="plate">
+    <pre class="mermaid">
+classDiagram
+    class NotesRouter {
+      +list_notes(user, filters)
+      +create_note(payload, user)
+      +update_note(id, payload, user)
+      +list_note_versions(id, user)
+      +rollback_note_version(id, n, user)
+    }
+    class NoteService {
+      -NoteRepository notes
+      -NoteVersionRepository versions
+      +get(id, user)
+      +update(id, payload, user)
+      +list_versions(id, user)
+      +rollback_version(id, n, user)
+      -_assert_can_read(note, user)
+      -_assert_can_write(note, user)
+    }
+    class TagService {
+      +list_for_note(id, user)
+      +attach_to_note(id, tag, user)
+    }
+    class BaseRepository~T~ {
+      +get(id) T
+      +create(values) T
+    }
+    class NoteRepository {
+      +list_for_user(user_id, filters)
+    }
+    class NoteVersionRepository {
+      +list_for_note(note_id)
+      +get_by_version_num(note_id, n)
+    }
+    class DomainError
+    class NotFoundError
+    class PermissionDeniedError
+    class ConflictError
+    class ValidationError
+
+    NotesRouter ..> NoteService : delegates
+    NotesRouter ..> TagService : delegates
+    NoteService --> NoteRepository : uses
+    NoteService --> NoteVersionRepository : uses
+    NoteRepository --|> BaseRepository~T~
+    NoteVersionRepository --|> BaseRepository~T~
+    NotFoundError --|> DomainError
+    PermissionDeniedError --|> DomainError
+    ConflictError --|> DomainError
+    ValidationError --|> DomainError
+    </pre>
+    <figcaption>Figure 6 — Routes delegate down; services never import the web framework.</figcaption>
+  </figure>
+  <div class="cols">
+    <div>
+      <h3>Authorization lives in exactly one place</h3>
+      <p><code>_assert_can_read</code> and <code>_assert_can_write</code> are private to the service. Every route that touches a note goes through them — there is no second copy of the ownership rule to drift out of sync.</p>
+      <p><strong>Read vs write is a real distinction:</strong> a public note is readable by others but its <em>version history</em> requires write permission, because history can expose drafts nobody chose to publish.</p>
+    </div>
+    <div>
+      <h3>The exception hierarchy is genuine inheritance</h3>
+      <p>Four error types extend <code>DomainError</code>. The application catches <code>DomainError</code> <strong>once</strong> and maps each subtype to a status code — 404, 403, 409, 422. One handler, four outcomes. That's the reason to use inheritance here rather than four separate handlers.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 17 ──────────────────────────────────────────── -->
+<section class="slide" id="s17">
+  <p class="eyebrow">15 — UML</p>
+  <h2>Use case diagram</h2>
+  <p class="lede">One actor. Every screen sits behind authentication — even a "public" note needs a valid session to fetch. "Visitor" appears only for the two cases that happen before a session exists.</p>
+  <figure class="plate">
+    <pre class="mermaid">
+flowchart LR
+    V(["Visitor"])
+    U(["Registered user"])
+    subgraph SYS["NeuroVault"]
+      direction TB
+      A(["Sign up"])
+      B(["Log in — password or OAuth"])
+      C(["Manage workspaces and notebooks"])
+      D(["Write and edit a note"])
+      E(["View version history"])
+      F(["Roll back to a version"])
+      G(["Tag a note"])
+      H(["Find unfiled notes"])
+      I(["Manage profile and avatar"])
+      J(["Link two notes"])
+      K(["Explore the graph"])
+      L(["Search notes"])
+      M(["Study with flashcards"])
+    end
+    V --> A
+    V --> B
+    B -.-> U
+    U --> C
+    U --> D
+    D -. includes .-> E
+    U --> F
+    U --> G
+    U --> H
+    U --> I
+    U -.-> J
+    U -.-> K
+    U -.-> L
+    U -.-> M
+    </pre>
+    <figcaption>Figure 7 — Solid arrows are built and usable today; dotted arrows are modelled in the schema but have no interface yet.</figcaption>
+  </figure>
+</section>
+
+<!-- 18 ──────────────────────────────────────────── -->
+<section class="slide" id="s18">
+  <p class="eyebrow">16 — UML</p>
+  <h2>State diagram — a note's lifecycle</h2>
+  <p class="lede">Most tables are just records. <code>notes</code> is the one that visibly moves between named states, so it's the one worth drawing this way.</p>
+  <figure class="plate">
+    <pre class="mermaid">
+stateDiagram-v2
+    [*] --> Active : POST /notes
+    Active --> Active : PATCH title or content<br/>fires the versioning trigger
+    Active --> Archived : DELETE /notes/id<br/>sets archived = true
+    Archived --> Active : PATCH archived = false
+    note right of Active
+      is_public and pinned are
+      independent flags, not states.
+      A note can be Active, public
+      and pinned at once, so they
+      do not belong on this diagram.
+    end note
+    </pre>
+    <figcaption>Figure 8 — There is no transition out of this diagram. No hard-delete path exists.</figcaption>
+  </figure>
+  <div class="note note--teal">
+    <b>Why <code>DELETE</code> doesn't delete.</b> The route returns <code>204 No Content</code> — the correct client-visible contract, "this is gone from your view" — while setting <code>archived = true</code>. The status code describes the contract; the storage decision sits in the service. A real SQL <code>DELETE</code> would cascade to the note's entire version history, destroying exactly the thing the trigger works to preserve.
+  </div>
+</section>
+
+<!-- 19 ──────────────────────────────────────────── -->
+<section class="slide" id="s19">
+  <p class="eyebrow">17 — Application</p>
+  <h2>User flow and API surface</h2>
+  <div class="cols">
+    <div>
+      <figure class="plate">
+        <pre class="mermaid">
+flowchart TD
+    S(["Sign in"]) --> W["/workspaces"]
+    W --> N["notebooks"]
+    N --> E["note editor"]
+    E --> AS["autosave 1.5s"]
+    AS --> TR["trigger writes version"]
+    E --> H["version history → restore"]
+    H --> TR
+    E --> TG["attach tags"]
+    W -.-> UF["/unfiled"]
+    W -.-> TP["/tags"]
+    W -.-> PR["/profile"]
+        </pre>
+        <figcaption>Figure 9 — The path a user actually walks.</figcaption>
+      </figure>
+    </div>
+    <div>
+      <h3>25 live endpoints under <code>/api/v1</code></h3>
+      <div class="tw"><table>
+        <thead><tr><th>Resource</th><th class="num">Routes</th><th>Notable</th></tr></thead>
+        <tbody>
+          <tr><td><code>/users</code></td><td class="num">2</td><td><code>/me</code> get + patch</td></tr>
+          <tr><td><code>/workspaces</code></td><td class="num">5</td><td>full CRUD</td></tr>
+          <tr><td><code>/notebooks</code></td><td class="num">5</td><td>scoped by <code>workspace_id</code></td></tr>
+          <tr><td><code>/notes</code></td><td class="num">5</td><td><code>?unfiled=</code> filter is separate from <code>?notebook_id=</code></td></tr>
+          <tr><td><code>/notes/{id}/versions</code></td><td class="num">2</td><td>list + rollback</td></tr>
+          <tr><td><code>/notes/{id}/tags</code></td><td class="num">3</td><td>attach is idempotent</td></tr>
+          <tr><td><code>/tags</code></td><td class="num">4</td><td>full CRUD</td></tr>
+        </tbody>
+      </table></div>
+      <div class="note">
+        <b>A small API-design decision:</b> <code>notebook_id=null</code> already means "don't filter by notebook" — it can't <em>also</em> mean "only notes with no notebook" without the two meanings colliding. Hence a separate <code>unfiled</code> flag rather than overloading one parameter.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 20 ──────────────────────────────────────────── -->
+<section class="slide" id="s20">
+  <p class="eyebrow">18 — Security</p>
+  <h2>Authentication, and a bug worth the whole slide</h2>
+  <div class="cols">
+    <div>
+      <h3>How it works</h3>
+      <ol>
+        <li>The browser signs in through Supabase directly — password or OAuth.</li>
+        <li>Supabase returns a JWT. Its <code>sub</code> claim <strong>is</strong> our <code>users.id</code> — the same UUID, not a mapping.</li>
+        <li>Every API call carries <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+        <li>FastAPI fetches Supabase's <strong>public signing key</strong> from its JWKS endpoint, caches it, and verifies the <code>ES256</code> signature and the <code>authenticated</code> audience.</li>
+        <li>A trigger on <code>auth.users</code> mirrors new accounts into <code>public.users</code>.</li>
+      </ol>
+    </div>
+    <div>
+      <h3>The bug, and why it matters <span class="chip chip--fix">Fixed</span></h3>
+      <p>Every real login returned <code>401</code>, while a self-signed test token verified fine. The obvious diagnosis was "the shared secret is wrong." It was checked against the dashboard — <strong>it matched byte for byte.</strong></p>
+      <p>The real cause: Supabase had moved to <strong>asymmetric ES256 signing</strong>. The shared secret was still correct and still valid — it just wasn't what signs session tokens any more. Confirmed by fetching the JWKS endpoint and finding a published public key.</p>
+    </div>
+  </div>
+  <div class="note note--teal">
+    <b>The lesson I'd offer from this:</b> the test script signed tokens with the same secret the backend verified with. A test that signs and verifies with the same key can prove the verification <em>logic</em> is correct — but it can never detect that the key itself is the wrong key for the job. Only a token from the real issuer can prove that. Written up as ADR-018.
+  </div>
+</section>
+
+<!-- 21 ──────────────────────────────────────────── -->
+<section class="slide" id="s21">
+  <p class="eyebrow">19 — Engineering process</p>
+  <h2>Bugs found, and what each one taught</h2>
+  <p class="lede">Kept as a written record — every one was diagnosed by running the system, not by reading it.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Symptom</th><th>Actual cause</th><th>Generalisable lesson</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Migration failed: <code>relation "id_user_id" already exists</code></td>
+        <td>Two tables were given the same literal name for a <code>UNIQUE</code> constraint, bypassing the naming convention.</td>
+        <td>PostgreSQL scopes the index behind a unique constraint <strong>schema-wide</strong>, not per table. Never hardcode a constraint name once a convention exists. <em>(ADR-016)</em></td>
+      </tr>
+      <tr>
+        <td>Versioning trigger crashed: <code>null value in column "id"</code></td>
+        <td><code>note_versions.id</code> had only a <em>Python-side</em> default, which SQLAlchemy applies when it builds the <code>INSERT</code>.</td>
+        <td>A trigger's <code>INSERT</code> never passes through the ORM. Anything the database itself writes needs a <strong><code>server_default</code></strong>, not just a Python one.</td>
+      </tr>
+      <tr>
+        <td><code>TypeError: 'function' object is not subscriptable</code> — hit twice, in two unrelated services</td>
+        <td>Both classes have a method named <code>list</code>. Any annotation <code>-&gt; list[...]</code> written <em>after</em> it in the same class body resolves <code>list</code> to the method, not the builtin.</td>
+        <td>Fixed by ordering the methods rather than renaming a public API. The same latent trap exists in any class with a method named after a builtin.</td>
+      </tr>
+      <tr>
+        <td>Notes survived a notebook delete but were unreachable</td>
+        <td>The database did the right thing; the interface had no screen that could list notes with a null <code>notebook_id</code>.</td>
+        <td>Correct data model, incomplete product. A referential action is only finished when the state it produces is reachable by a user.</td>
+      </tr>
+      <tr>
+        <td>Two bugs reported that had already been fixed weeks earlier</td>
+        <td>The fix was committed on a branch that was never merged. The running code never had it.</td>
+        <td>Fixing a bug on a branch does not fix the bug. Four branches had drifted; they were consolidated and the workflow gap was documented.</td>
+      </tr>
+    </tbody>
+  </table></div>
+  <div class="note">
+    <b>19 Architecture Decision Records</b> sit in <code>docs/adr/</code>. Each states a problem, the alternatives weighed, what was chosen, and what it costs — including the ones where the honest answer was "this is a known gap, deliberately not fixed yet, and here's why."
+  </div>
+</section>
+
+<!-- 22 ──────────────────────────────────────────── -->
+<section class="slide" id="s22">
+  <p class="eyebrow">20 — Closing</p>
+  <h2>Where this goes next</h2>
+  <div class="cols">
+    <div>
+      <h3>Immediate — highest value per effort</h3>
+      <ol>
+        <li><strong>Full-text search.</strong> The generated <code>tsvector</code> already exists and is maintained. Needs a GIN index and a ranked query using <code>ts_rank_cd</code>, plus a search screen. Smallest remaining gap between schema and product.</li>
+        <li><strong>The knowledge graph.</strong> The table, the constraints and the security model are live. Needs the recursive CTE with a cycle guard, an endpoint, and a canvas. This is the project's namesake feature and its strongest DBMS content.</li>
+      </ol>
+      <h3>After that</h3>
+      <ul>
+        <li>The four analytical views, including a dashboard view using <code>FILTER</code> aggregation.</li>
+        <li>The remaining designed indexes — partial, composite and trigram.</li>
+        <li>Collections and flashcards, both schema-complete.</li>
+        <li>Activity-log and notification triggers.</li>
+      </ul>
+    </div>
+    <div>
+      <h3>Questions I'd expect, with short answers</h3>
+      <div class="qa">
+        <p class="qa__q">Why not a graph database?</p>
+        <p class="qa__a">The graph is one table of fifteen. Everything else — ownership, history, tags, scheduling — is relational, and PostgreSQL traverses recursively via <code>WITH RECURSIVE</code>. Two databases for one feature isn't a trade worth making. <em>(ADR-011)</em></p>
+      </div>
+      <div class="qa">
+        <p class="qa__q">Isn't the denormalised <code>owner_id</code> a 3NF violation?</p>
+        <p class="qa__a">Yes, deliberately, in two places. It's safe because the composite FK that motivates it is also what guarantees the copies can never disagree.</p>
+      </div>
+      <div class="qa">
+        <p class="qa__q">Why put logic in triggers instead of the application?</p>
+        <p class="qa__a">Because history must hold even when the application is bypassed. The trigger runs inside the same transaction as the edit — there's no state where a note changed but its history didn't.</p>
+      </div>
+      <div class="qa">
+        <p class="qa__q">How do you know it works?</p>
+        <p class="qa__a">Every claim on slide 12 was queried live from the running database. The trigger has written 8 version rows during ordinary use.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var counter = document.getElementById('counter');
+  var total = slides.length;
+
+  slides.forEach(function (s, i) {
+    var n = document.createElement('span');
+    n.className = 'slide__no';
+    n.textContent = String(i + 1).padStart(2, '0') + ' / ' + total;
+    s.appendChild(n);
+  });
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  var current = 0;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) {
+        current = slides.indexOf(e.target);
+        counter.textContent = pad(current + 1) + ' / ' + pad(total);
+      }
+    });
+  }, { rootMargin: '-45% 0px -45% 0px' });
+  slides.forEach(function (s) { io.observe(s); });
+
+  document.addEventListener('keydown', function (e) {
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    var next = null;
+    if (e.key === 'ArrowRight' || e.key === 'PageDown') next = Math.min(current + 1, total - 1);
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') next = Math.max(current - 1, 0);
+    else if (e.key === 'Home') next = 0;
+    else if (e.key === 'End') next = total - 1;
+    if (next !== null) {
+      e.preventDefault();
+      slides[next].scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  });
+})();
+</script>
