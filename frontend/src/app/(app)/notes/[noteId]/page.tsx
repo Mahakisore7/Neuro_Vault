@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VersionHistoryDialog } from "@/components/editor/version-history-dialog";
 import { NoteEditor } from "@/components/editor/note-editor";
+import { LinkPanel } from "@/components/notes/link-panel";
 import { TagPicker } from "@/components/notes/tag-picker";
 import { useNote, useUpdateNote } from "@/hooks/use-notes";
 
@@ -82,8 +83,12 @@ export default function NoteDetailPage() {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-2">
         <TagPicker noteId={note.id} />
+      </div>
+
+      <div className="mb-4">
+        <LinkPanel noteId={note.id} />
       </div>
 
       <NoteEditor note={note} />

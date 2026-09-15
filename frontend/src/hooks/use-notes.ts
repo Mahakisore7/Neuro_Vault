@@ -29,6 +29,18 @@ export function useUnfiledNotes() {
   });
 }
 
+// Every note the caller owns, across every notebook and workspace — for
+// pickers (e.g. choosing a target note to link to) that need the whole set
+// rather than one notebook's worth. useNotes() above only fires with a
+// notebook_id because "list everything" was never a UI need until this one.
+export function useAllNotes(options: { enabled?: boolean } = {}) {
+  return useQuery({
+    queryKey: noteKeys.list({}),
+    queryFn: async () => (await api.get<NoteSummary[]>("/notes", { params: { limit: 100 } })).data,
+    enabled: options.enabled ?? true,
+  });
+}
+
 export function useNote(id: string | undefined) {
   return useQuery({
     queryKey: noteKeys.detail(id ?? ""),
