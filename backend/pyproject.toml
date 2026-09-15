@@ -57,5 +57,12 @@ exclude = ["**/__pycache__", ".venv"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+# One event loop for the whole run, not one per test: app.db.session.engine
+# is a module-level singleton created at import time, and asyncpg connections
+# are bound to the loop that opened them. Function-scoped loops (pytest-
+# asyncio's default) would hand a test a connection opened on a now-closed
+# loop from a previous test and fail with "Event loop is closed".
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
 testpaths = ["app/tests"]
 addopts = "-q --strict-markers"
