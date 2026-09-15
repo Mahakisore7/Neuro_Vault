@@ -125,3 +125,50 @@ export interface NoteVersionSummary {
   edited_by: string | null;
   created_at: string;
 }
+
+export interface RelationshipType {
+  id: number;
+  name: string;
+  description: string | null;
+  color: string;
+  is_symmetric: boolean;
+}
+
+export interface KnowledgeLink {
+  id: string;
+  source_note_id: string;
+  target_note_id: string;
+  rel_type_id: number;
+  strength: number;
+  description: string | null;
+  origin: string;
+  created_at: string;
+}
+
+export interface KnowledgeLinkCreate {
+  target_note_id: string;
+  rel_type_id: number;
+  strength?: number;
+  description?: string | null;
+}
+
+export interface NoteGraphNode {
+  id: string;
+  title: string;
+  is_public: boolean;
+  depth: number;
+}
+
+export interface NoteGraphEdge {
+  id: string;
+  source_note_id: string;
+  target_note_id: string;
+  rel_type_id: number;
+  rel_type_name: string;
+  strength: number;
+}
+
+export interface NoteGraph {
+  nodes: NoteGraphNode[];
+  edges: NoteGraphEdge[];
+}
