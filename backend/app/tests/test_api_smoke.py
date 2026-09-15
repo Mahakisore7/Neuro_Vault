@@ -69,6 +69,30 @@ async def test_delete_note_returns_it_as_archived_not_gone(client: AsyncClient):
     assert get_response.json()["archived"] is True
 
 
+async def test_note_graph_round_trip_over_http(client: AsyncClient):
+    a = (await client.post("/api/v1/notes", json={"title": "A"})).json()
+    b = (await client.post("/api/v1/notes", json={"title": "B"})).json()
+
+    link_response = await client.post(
+        f"/api/v1/notes/{a['id']}/links",
+        json={"target_note_id": b["id"], "rel_type_id": 1},
+    )
+    assert link_response.status_code == 201
+
+    graph_response = await client.get(f"/api/v1/notes/{a['id']}/graph")
+    assert graph_response.status_code == 200
+    graph = graph_response.json()
+    assert {node["id"] for node in graph["nodes"]} == {a["id"], b["id"]}
+    assert len(graph["edges"]) == 1
+
+
+async def test_note_graph_rejects_max_depth_over_the_configured_ceiling(client: AsyncClient):
+    a = (await client.post("/api/v1/notes", json={"title": "A"})).json()
+
+    response = await client.get(f"/api/v1/notes/{a['id']}/graph", params={"max_depth": 999})
+    assert response.status_code == 422
+
+
 async def test_cross_tenant_notebook_create_is_a_clean_404(client: AsyncClient, make_user, db):
     """workspace belongs to a different user - see test_tenancy_constraint.py
     for the same rule proven at the database layer.
