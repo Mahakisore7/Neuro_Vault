@@ -1,7 +1,7 @@
 from functools import lru_cache
 from typing import Annotated, Literal
 
-from pydantic import field_validator, model_validator
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
@@ -43,6 +43,12 @@ class Settings(BaseSettings):
     # otherwise runs BEFORE validators and crashes on a plain comma-separated
     # string like "http://localhost:3000" (it isn't valid JSON).
     allowed_origins: Annotated[list[str], NoDecode] = ["http://localhost:3000"]
+
+    # Hard ceiling on GET /notes/{id}/graph's max_depth, not the default a
+    # request gets — a densely-linked graph's traversal cost grows with the
+    # branching factor raised to this power, so an unbounded client-supplied
+    # value is a self-inflicted denial of service, not just a slow request.
+    graph_max_depth: int = Field(default=6, ge=1, le=10)
 
     @field_validator("allowed_origins", mode="before")
     @classmethod

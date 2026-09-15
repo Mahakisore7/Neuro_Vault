@@ -2,7 +2,9 @@ from uuid import UUID
 
 from fastapi import APIRouter, Query, status
 
+from app.core.config import settings
 from app.core.dependencies import CurrentUser, DbSession
+from app.schemas.link import KnowledgeLinkCreate, KnowledgeLinkResponse, NoteGraphResponse
 from app.schemas.note import (
     NoteCreate,
     NoteResponse,
@@ -11,6 +13,7 @@ from app.schemas.note import (
     NoteVersionSummary,
 )
 from app.schemas.tag import TagResponse
+from app.services.link import LinkService
 from app.services.note import NoteService
 from app.services.tag import TagService
 
@@ -91,3 +94,32 @@ async def attach_note_tag(note_id: UUID, tag_id: int, user: CurrentUser, db: DbS
 @router.delete("/{note_id}/tags/{tag_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def detach_note_tag(note_id: UUID, tag_id: int, user: CurrentUser, db: DbSession) -> None:
     await TagService(db).detach_from_note(note_id, tag_id, user)
+
+
+@router.get("/{note_id}/links", response_model=list[KnowledgeLinkResponse])
+async def list_note_links(note_id: UUID, user: CurrentUser, db: DbSession) -> list[KnowledgeLinkResponse]:
+    return await LinkService(db).list_for_note(note_id, user)
+
+
+@router.post(
+    "/{note_id}/links", response_model=KnowledgeLinkResponse, status_code=status.HTTP_201_CREATED
+)
+async def create_note_link(
+    note_id: UUID, payload: KnowledgeLinkCreate, user: CurrentUser, db: DbSession
+) -> KnowledgeLinkResponse:
+    return await LinkService(db).create(note_id, payload, user)
+
+
+@router.delete("/{note_id}/links/{link_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_note_link(note_id: UUID, link_id: UUID, user: CurrentUser, db: DbSession) -> None:
+    await LinkService(db).delete(note_id, link_id, user)
+
+
+@router.get("/{note_id}/graph", response_model=NoteGraphResponse)
+async def get_note_graph(
+    note_id: UUID,
+    user: CurrentUser,
+    db: DbSession,
+    max_depth: int = Query(default=3, ge=1, le=settings.graph_max_depth),
+) -> NoteGraphResponse:
+    return await LinkService(db).get_graph(note_id, user, max_depth)
