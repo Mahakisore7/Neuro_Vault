@@ -21,6 +21,11 @@ export function LinkPanel({ noteId }: { noteId: string }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [targetId, setTargetId] = useState<string | null>(null);
+  // null means "no explicit choice yet", not "none" — effectiveRelTypeId
+  // below is what actually gets submitted and shown as selected. Without a
+  // derived default, a target-only selection left the "Add link" button
+  // silently disabled with nothing in the UI explaining why: the fix is a
+  // sensible default, not a clearer disabled state.
   const [relTypeId, setRelTypeId] = useState<number | null>(null);
 
   const candidates = (allNotes ?? [])
@@ -30,6 +35,10 @@ export function LinkPanel({ noteId }: { noteId: string }) {
   const titleById = new Map((allNotes ?? []).map((n) => [n.id, n.title]));
   const relTypeById = new Map((relationshipTypes ?? []).map((t) => [t.id, t]));
 
+  const defaultRelType =
+    (relationshipTypes ?? []).find((t) => t.name === "relates_to") ?? relationshipTypes?.[0];
+  const effectiveRelTypeId = relTypeId ?? defaultRelType?.id ?? null;
+
   function resetForm() {
     setQuery("");
     setTargetId(null);
@@ -37,9 +46,9 @@ export function LinkPanel({ noteId }: { noteId: string }) {
   }
 
   async function handleCreate() {
-    if (!targetId || !relTypeId) return;
+    if (!targetId || !effectiveRelTypeId) return;
     try {
-      await createLink.mutateAsync({ target_note_id: targetId, rel_type_id: relTypeId });
+      await createLink.mutateAsync({ target_note_id: targetId, rel_type_id: effectiveRelTypeId });
       setOpen(false);
       resetForm();
     } catch {
@@ -141,9 +150,9 @@ export function LinkPanel({ noteId }: { noteId: string }) {
                 type="button"
                 onClick={() => setRelTypeId(t.id)}
                 className={`rounded-full border px-2 py-0.5 text-xs ${
-                  relTypeId === t.id ? "border-transparent text-white" : "border-border"
+                  effectiveRelTypeId === t.id ? "border-transparent text-white" : "border-border"
                 }`}
-                style={relTypeId === t.id ? { backgroundColor: t.color } : undefined}
+                style={effectiveRelTypeId === t.id ? { backgroundColor: t.color } : undefined}
               >
                 {t.name}
               </button>
@@ -153,7 +162,7 @@ export function LinkPanel({ noteId }: { noteId: string }) {
           <Button
             size="sm"
             className="w-full"
-            disabled={!targetId || !relTypeId || createLink.isPending}
+            disabled={!targetId || !effectiveRelTypeId || createLink.isPending}
             onClick={handleCreate}
           >
             <ArrowRight className="size-3.5" />
