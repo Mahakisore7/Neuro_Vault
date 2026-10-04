@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError, PermissionDeniedError
+from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
 from app.models.note import Note
 from app.models.user import User
 from app.repositories.note import NoteRepository
@@ -176,3 +176,22 @@ class NoteService:
         self._assert_can_write(note, user)
         note.archived = True
         await self.db.flush()
+
+    async def purge(self, note_id: UUID, user: User) -> None:
+        """The real SQL DELETE that delete() deliberately isn't.
+
+        Only allowed on a note that's already archived: permanent deletion
+        is a two-step action (archive, then purge from Trash), so no single
+        request — a stray click, a retried call — can destroy a live note
+        and its whole history at once. Every FK into notes is ON DELETE
+        CASCADE, so this removes the note's versions, links in both
+        directions, tag assignments, flashcards, resources and collection
+        memberships with it.
+        """
+        note = await self.notes.get(note_id)
+        if note is None:
+            raise NotFoundError("Note", note_id)
+        self._assert_can_write(note, user)
+        if not note.archived:
+            raise ValidationError("Move this note to Trash before deleting it permanently")
+        await self.notes.delete(note)

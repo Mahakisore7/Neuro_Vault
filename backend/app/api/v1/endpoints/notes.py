@@ -67,6 +67,14 @@ async def delete_note(note_id: UUID, user: CurrentUser, db: DbSession) -> None:
     await NoteService(db).delete(note_id, user)
 
 
+@router.delete("/{note_id}/permanent", status_code=status.HTTP_204_NO_CONTENT)
+async def purge_note(note_id: UUID, user: CurrentUser, db: DbSession) -> None:
+    # A separate path rather than DELETE /{note_id}?permanent=true: an
+    # irreversible action shouldn't be one query-string flag away from the
+    # reversible one sharing its URL.
+    await NoteService(db).purge(note_id, user)
+
+
 @router.get("/{note_id}/versions", response_model=list[NoteVersionSummary])
 async def list_note_versions(
     note_id: UUID, user: CurrentUser, db: DbSession

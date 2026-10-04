@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderKanban, Inbox, LogOut, Network, Tags, User } from "lucide-react";
+import { FolderKanban, Inbox, LogOut, Network, Tags, Trash2, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/workspaces", label: "Workspaces", icon: FolderKanban },
   { href: "/unfiled", label: "Unfiled", icon: Inbox },
   { href: "/tags", label: "Tags", icon: Tags },
+  { href: "/trash", label: "Trash", icon: Trash2 },
   { href: "/profile", label: "Profile", icon: User },
 ];
 
