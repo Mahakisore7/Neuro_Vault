@@ -1,6 +1,6 @@
 "use client";
 
-import { FolderKanban, Inbox, LogOut, Network, Tags, Trash2, User } from "lucide-react";
+import { FolderKanban, Inbox, Library, LogOut, Network, Tags, Trash2, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -12,6 +12,7 @@ import { supabase } from "@/lib/supabase";
 const NAV_ITEMS = [
   { href: "/workspaces", label: "Workspaces", icon: FolderKanban },
   { href: "/unfiled", label: "Unfiled", icon: Inbox },
+  { href: "/collections", label: "Collections", icon: Library },
   { href: "/tags", label: "Tags", icon: Tags },
   { href: "/trash", label: "Trash", icon: Trash2 },
   { href: "/profile", label: "Profile", icon: User },
@@ -38,11 +39,8 @@ export function Sidebar() {
 
       <nav className="flex-1 space-y-1 p-3">
         {NAV_ITEMS.map((item) => {
-          // Workspaces' subpages (notebooks, notes) should still highlight it.
-          const active =
-            item.href === "/workspaces"
-              ? pathname.startsWith("/workspaces")
-              : pathname === item.href;
+          // Subpages (a notebook, a single collection) still highlight their section.
+          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
           return (
             <Link
               key={item.href}

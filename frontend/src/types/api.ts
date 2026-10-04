@@ -138,6 +138,38 @@ export interface NoteVersionSummary {
   created_at: string;
 }
 
+export interface Collection {
+  id: string;
+  name: string;
+  description: string | null;
+  item_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CollectionItem {
+  note_id: string;
+  title: string;
+  word_count: number;
+  archived: boolean;
+  position: number;
+  added_at: string;
+}
+
+export interface CollectionDetail extends Collection {
+  items: CollectionItem[];
+}
+
+export interface CollectionCreate {
+  name: string;
+  description?: string | null;
+}
+
+export interface CollectionUpdate {
+  name?: string;
+  description?: string | null;
+}
+
 export interface RelationshipType {
   id: number;
   name: string;
