@@ -69,6 +69,21 @@ async def test_delete_note_returns_it_as_archived_not_gone(client: AsyncClient):
     assert get_response.json()["archived"] is True
 
 
+async def test_collection_round_trip_over_http(client: AsyncClient):
+    a = (await client.post("/api/v1/notes", json={"title": "A"})).json()["id"]
+    b = (await client.post("/api/v1/notes", json={"title": "B"})).json()["id"]
+    col = (await client.post("/api/v1/collections", json={"name": "Over HTTP"})).json()["id"]
+    for note_id in (a, b):
+        await client.post(f"/api/v1/collections/{col}/items", json={"note_id": note_id})
+
+    response = await client.put(f"/api/v1/collections/{col}/items/order", json={"note_ids": [b, a]})
+
+    assert response.status_code == 200
+    assert [i["title"] for i in response.json()["items"]] == ["B", "A"]
+    duplicate = await client.post("/api/v1/collections", json={"name": "Over HTTP"})
+    assert duplicate.status_code == 409
+
+
 async def test_search_route_is_not_swallowed_by_note_id_route(client: AsyncClient):
     """GET /notes/search must resolve to search, not to GET /notes/{note_id}
     with note_id="search" (which would be a 422 UUID error)."""
