@@ -69,6 +69,17 @@ async def test_delete_note_returns_it_as_archived_not_gone(client: AsyncClient):
     assert get_response.json()["archived"] is True
 
 
+async def test_search_route_is_not_swallowed_by_note_id_route(client: AsyncClient):
+    """GET /notes/search must resolve to search, not to GET /notes/{note_id}
+    with note_id="search" (which would be a 422 UUID error)."""
+    await client.post("/api/v1/notes", json={"title": "Searchable", "content": "<p>zebra</p>"})
+
+    response = await client.get("/api/v1/notes/search", params={"q": "zebra"})
+
+    assert response.status_code == 200
+    assert [r["title"] for r in response.json()] == ["Searchable"]
+
+
 async def test_purge_over_http_is_two_step(client: AsyncClient):
     note_id = (await client.post("/api/v1/notes", json={"title": "Bin me"})).json()["id"]
 

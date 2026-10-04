@@ -1,3 +1,4 @@
+import html
 from uuid import UUID
 
 from sqlalchemy import text
@@ -12,6 +13,7 @@ from app.repositories.notebook import NotebookRepository
 from app.schemas.note import (
     NoteCreate,
     NoteResponse,
+    NoteSearchResult,
     NoteSummary,
     NoteUpdate,
     NoteVersionSummary,
@@ -97,6 +99,27 @@ class NoteService:
         # in-memory attributes are now stale relative to what's in Postgres.
         await self.db.refresh(note)
         return NoteResponse.model_validate(note)
+
+    async def search(self, user: User, q: str, limit: int = 20) -> list[NoteSearchResult]:
+        if not q.strip():
+            return []
+        rows = await self.notes.search(user.id, q, limit)
+        # Unescape AFTER highlighting: content is stored as editor HTML, so
+        # the stripped text still holds entities like &amp;. The client
+        # renders these strings as plain text, never as HTML, so &lt; turning
+        # into a literal "<" here is safe — it's displayed, not parsed.
+        return [
+            NoteSearchResult(
+                id=r.id,
+                title=r.title,
+                title_highlight=html.unescape(r.title_highlight),
+                snippet=html.unescape(r.snippet).strip(),
+                rank=r.rank,
+                is_own=r.is_own,
+                updated_at=r.updated_at,
+            )
+            for r in rows
+        ]
 
     async def list(
         self,

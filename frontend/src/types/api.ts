@@ -119,6 +119,18 @@ export interface TagUpdate {
   color?: string;
 }
 
+// title_highlight / snippet delimit matches with "\u0001" ... "\u0002" —
+// render with <Highlighted>, never as HTML.
+export interface NoteSearchResult {
+  id: string;
+  title: string;
+  title_highlight: string;
+  snippet: string;
+  rank: number;
+  is_own: boolean;
+  updated_at: string;
+}
+
 export interface NoteVersionSummary {
   version_num: number;
   title: string;

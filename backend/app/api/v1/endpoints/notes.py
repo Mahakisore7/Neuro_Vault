@@ -8,6 +8,7 @@ from app.schemas.link import KnowledgeLinkCreate, KnowledgeLinkResponse, NoteGra
 from app.schemas.note import (
     NoteCreate,
     NoteResponse,
+    NoteSearchResult,
     NoteSummary,
     NoteUpdate,
     NoteVersionSummary,
@@ -38,6 +39,18 @@ async def list_notes(
         limit=limit,
         offset=offset,
     )
+
+
+# Must stay above GET /{note_id}: routes match in declaration order, and
+# "search" would otherwise be captured as a note_id and fail UUID parsing.
+@router.get("/search", response_model=list[NoteSearchResult])
+async def search_notes(
+    user: CurrentUser,
+    db: DbSession,
+    q: str = Query(min_length=1, max_length=200),
+    limit: int = Query(default=20, ge=1, le=50),
+) -> list[NoteSearchResult]:
+    return await NoteService(db).search(user, q, limit)
 
 
 @router.post("", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)
