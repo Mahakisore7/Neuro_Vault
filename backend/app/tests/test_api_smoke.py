@@ -69,6 +69,16 @@ async def test_delete_note_returns_it_as_archived_not_gone(client: AsyncClient):
     assert get_response.json()["archived"] is True
 
 
+async def test_purge_over_http_is_two_step(client: AsyncClient):
+    note_id = (await client.post("/api/v1/notes", json={"title": "Bin me"})).json()["id"]
+
+    assert (await client.delete(f"/api/v1/notes/{note_id}/permanent")).status_code == 422
+
+    await client.delete(f"/api/v1/notes/{note_id}")
+    assert (await client.delete(f"/api/v1/notes/{note_id}/permanent")).status_code == 204
+    assert (await client.get(f"/api/v1/notes/{note_id}")).status_code == 404
+
+
 async def test_note_graph_round_trip_over_http(client: AsyncClient):
     a = (await client.post("/api/v1/notes", json={"title": "A"})).json()
     b = (await client.post("/api/v1/notes", json={"title": "B"})).json()

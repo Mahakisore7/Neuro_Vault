@@ -66,10 +66,10 @@ export default function NotesPage() {
   }
 
   async function handleDelete(id: string, title: string) {
-    if (!confirm(`Archive "${title}"? It won't appear in this list anymore.`)) return;
+    if (!confirm(`Move "${title}" to Trash? You can restore it from Trash later.`)) return;
     try {
       await deleteNote.mutateAsync(id);
-      toast.success(`"${title}" archived`);
+      toast.success(`"${title}" moved to Trash`);
     } catch {
       toast.error("Couldn't archive the note.");
     }
@@ -181,7 +181,7 @@ export default function NotesPage() {
                       onClick={() => handleDelete(note.id, note.title)}
                     >
                       <Trash2 />
-                      Archive
+                      Move to Trash
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

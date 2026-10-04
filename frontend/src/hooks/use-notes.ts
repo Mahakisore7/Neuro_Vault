@@ -41,6 +41,35 @@ export function useAllNotes(options: { enabled?: boolean } = {}) {
   });
 }
 
+export function useArchivedNotes() {
+  const filters = { archived: true };
+  return useQuery({
+    queryKey: noteKeys.list(filters),
+    queryFn: async () => (await api.get<NoteSummary[]>("/notes", { params: filters })).data,
+  });
+}
+
+// Takes the id per call (unlike useUpdateNote) because the Trash list acts
+// on many notes from one component.
+export function useRestoreNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) =>
+      (await api.patch<Note>(`/notes/${id}`, { archived: false })).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: noteKeys.all }),
+  });
+}
+
+export function usePurgeNote() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/notes/${id}/permanent`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: noteKeys.all }),
+  });
+}
+
 export function useNote(id: string | undefined) {
   return useQuery({
     queryKey: noteKeys.detail(id ?? ""),
