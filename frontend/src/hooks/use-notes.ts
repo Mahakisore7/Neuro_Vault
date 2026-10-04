@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
-import type { Note, NoteCreate, NoteSummary, NoteUpdate, NoteVersionSummary } from "@/types/api";
+import type {
+  Note,
+  NoteCreate,
+  NoteSearchResult,
+  NoteSummary,
+  NoteUpdate,
+  NoteVersionSummary,
+} from "@/types/api";
 
 export const noteKeys = {
   all: ["notes"] as const,
@@ -38,6 +45,19 @@ export function useAllNotes(options: { enabled?: boolean } = {}) {
     queryKey: noteKeys.list({}),
     queryFn: async () => (await api.get<NoteSummary[]>("/notes", { params: { limit: 100 } })).data,
     enabled: options.enabled ?? true,
+  });
+}
+
+export function useNoteSearch(q: string) {
+  const trimmed = q.trim();
+  return useQuery({
+    queryKey: [...noteKeys.all, "search", trimmed],
+    queryFn: async () =>
+      (await api.get<NoteSearchResult[]>("/notes/search", { params: { q: trimmed } })).data,
+    enabled: trimmed.length > 0,
+    // Keep showing the previous results while the next keystroke's query is
+    // in flight, instead of flashing an empty list on every character.
+    placeholderData: (previous) => previous,
   });
 }
 

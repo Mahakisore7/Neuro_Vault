@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Sidebar } from "@/components/layout/sidebar";
+import { SearchDialog } from "@/components/search/search-dialog";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { supabase } from "@/lib/supabase";
 
@@ -41,7 +42,8 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
     <div className="flex h-screen bg-background">
       <Sidebar />
       <div className="flex flex-1 flex-col overflow-hidden">
-        <header className="flex h-14 shrink-0 items-center justify-end border-b px-4">
+        <header className="flex h-14 shrink-0 items-center justify-between border-b px-4">
+          <SearchDialog />
           <ThemeToggle />
         </header>
         <main className="flex-1 overflow-y-auto">{children}</main>

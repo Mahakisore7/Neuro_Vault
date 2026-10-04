@@ -65,6 +65,22 @@ class NoteSummary(BaseModel):
     updated_at: datetime
 
 
+class NoteSearchResult(BaseModel):
+    """title_highlight and snippet mark matches with \\x01 ... \\x02, not
+    <mark> tags (as docs/phases/New/03-SQL-LAYER.md Q15 sketched): the
+    client splits on the sentinels and builds <mark> elements itself, so no
+    note text is ever rendered as HTML. Entities are already unescaped.
+    """
+
+    id: UUID
+    title: str
+    title_highlight: str
+    snippet: str
+    rank: float
+    is_own: bool
+    updated_at: datetime
+
+
 class NoteVersionSummary(BaseModel):
     """No `content` here either, same reasoning as NoteSummary - a history
     list shows what changed and when; the content itself is only needed at
