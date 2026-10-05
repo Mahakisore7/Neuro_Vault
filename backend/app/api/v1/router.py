@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.v1.endpoints import (
     collections,
+    flashcards,
     notebooks,
     notes,
     relationship_types,
@@ -18,3 +19,4 @@ api_router.include_router(notes.router)
 api_router.include_router(tags.router)
 api_router.include_router(relationship_types.router)
 api_router.include_router(collections.router)
+api_router.include_router(flashcards.router)

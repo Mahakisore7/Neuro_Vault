@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from uuid import UUID, uuid4
 
 from sqlalchemy import (
@@ -53,7 +54,9 @@ class Flashcard(Base, TimestampMixin):
     # amounts, and binary floating point accumulates representation error —
     # a card that should sit at exactly 2.50 drifts to 2.4999999999. NUMERIC
     # is exact decimal arithmetic, the same reasoning as storing money.
-    ease_factor: Mapped[float] = mapped_column(Numeric(4, 2), nullable=False, default=2.50)
+    ease_factor: Mapped[Decimal] = mapped_column(
+        Numeric(4, 2), nullable=False, default=Decimal("2.50")
+    )
     interval_days: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
     repetitions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     due_at: Mapped[datetime] = mapped_column(

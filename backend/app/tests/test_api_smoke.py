@@ -84,6 +84,30 @@ async def test_collection_round_trip_over_http(client: AsyncClient):
     assert duplicate.status_code == 409
 
 
+async def test_flashcard_review_loop_over_http(client: AsyncClient):
+    """Also pins route order: /flashcards/due and /summary must not be parsed
+    as /flashcards/{card_id}."""
+    note_id = (await client.post("/api/v1/notes", json={"title": "Joins"})).json()["id"]
+    card = await client.post(
+        "/api/v1/flashcards",
+        json={"note_id": note_id, "question": "LEFT JOIN keeps?", "answer": "Unmatched left rows"},
+    )
+    assert card.status_code == 201
+    card_id = card.json()["id"]
+
+    due = await client.get("/api/v1/flashcards/due")
+    assert due.status_code == 200
+    assert [c["note_title"] for c in due.json()] == ["Joins"]
+
+    bad = await client.post(f"/api/v1/flashcards/{card_id}/review", json={"quality": 6})
+    assert bad.status_code == 422
+    reviewed = await client.post(f"/api/v1/flashcards/{card_id}/review", json={"quality": 5})
+    assert reviewed.json()["repetitions"] == 1
+
+    summary = (await client.get("/api/v1/flashcards/summary")).json()
+    assert (summary["total"], summary["due"]) == (1, 0)
+
+
 async def test_search_route_is_not_swallowed_by_note_id_route(client: AsyncClient):
     """GET /notes/search must resolve to search, not to GET /notes/{note_id}
     with note_id="search" (which would be a 422 UUID error)."""

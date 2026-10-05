@@ -216,3 +216,35 @@ export interface NoteGraph {
   nodes: NoteGraphNode[];
   edges: NoteGraphEdge[];
 }
+
+export interface Flashcard {
+  id: string;
+  note_id: string;
+  note_title: string;
+  question: string;
+  answer: string;
+  ease_factor: number;
+  interval_days: number;
+  repetitions: number;
+  due_at: string;
+  last_result: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FlashcardCreate {
+  note_id: string;
+  question: string;
+  answer: string;
+}
+
+export interface FlashcardUpdate {
+  question?: string;
+  answer?: string;
+}
+
+export interface FlashcardSummary {
+  total: number;
+  due: number;
+  next_due_at: string | null;
+}

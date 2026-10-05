@@ -8,15 +8,18 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { VersionHistoryDialog } from "@/components/editor/version-history-dialog";
 import { NoteEditor } from "@/components/editor/note-editor";
+import { FlashcardPanel } from "@/components/notes/flashcard-panel";
 import { LinkPanel } from "@/components/notes/link-panel";
 import { TagPicker } from "@/components/notes/tag-picker";
 import { useNote, useUpdateNote } from "@/hooks/use-notes";
+import { useMe } from "@/hooks/use-user";
 
 export default function NoteDetailPage() {
   const { noteId } = useParams<{ noteId: string }>();
   const router = useRouter();
   const { data: note, isLoading } = useNote(noteId);
   const updateNote = useUpdateNote(noteId);
+  const { data: me } = useMe();
 
   const [title, setTitle] = useState("");
   // Adjusting state during render (guarded so it only fires once per note),
@@ -87,8 +90,12 @@ export default function NoteDetailPage() {
         <TagPicker noteId={note.id} />
       </div>
 
-      <div className="mb-4">
-        <LinkPanel noteId={note.id} />
+      <div className="mb-4 flex flex-wrap items-start gap-x-2">
+        <div className="min-w-0 flex-1">
+          <LinkPanel noteId={note.id} />
+        </div>
+        {/* Flashcards are private study state - only on notes you own. */}
+        {me?.id === note.creator_id && <FlashcardPanel noteId={note.id} />}
       </div>
 
       <NoteEditor note={note} />
