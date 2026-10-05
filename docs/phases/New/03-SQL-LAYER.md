@@ -512,43 +512,95 @@ statement.
 notes you own, "someone linked to your note" is always true when this fires. If anyone
 could create an edge in either direction, the notification would be meaningless.
 
+**The trigger needs a database-side default for `is_read`.** The SQLAlchemy model gave
+`notifications.is_read` only a Python default (`default=False`), which the ORM fills in
+when *it* builds an INSERT. The trigger's INSERT is plain SQL that never passes through
+SQLAlchemy, so as first written every notification would have violated `NOT NULL`. The
+migration adds `ALTER COLUMN is_read SET DEFAULT FALSE` — the same trap
+`note_versions.id` fell into with T1. Rule of thumb: any column a trigger leaves out
+needs a `server_default`, not just a `default`.
+
 ### T3 — Activity log
+
+As built in `alembic/versions/20261005_1500_activity_log_and_notification_triggers.py`.
+It differs from the first design in a few ways, each explained below the code; the
+account-deletion guard is recorded in
+[ADR-020](../../adr/0020-audit-triggers-skip-deleted-users.md).
 
 ```python
     op.execute("""
         CREATE OR REPLACE FUNCTION fn_log_note_activity()
         RETURNS TRIGGER
         LANGUAGE plpgsql
+        SECURITY DEFINER
+        SET search_path = public, pg_temp
         AS $$
         DECLARE
-            v_action VARCHAR(50);
-            v_row    notes%ROWTYPE;
+            v_row     notes%ROWTYPE;
+            v_action  VARCHAR(50);
+            v_event   TEXT;
+            v_changes TEXT[] := ARRAY[]::TEXT[];
         BEGIN
             IF TG_OP = 'DELETE' THEN
+                v_row := OLD;
                 v_action := 'delete';
-                v_row    := OLD;
-            ELSIF TG_OP = 'UPDATE' THEN
-                v_action := 'update';
-                v_row    := NEW;
-            ELSE
+                v_event := 'deleted';
+                -- Account deletion cascades users -> notes. By the time this
+                -- runs the users row is gone, so logging against it would
+                -- violate activity_logs.user_id's FK and abort the deletion.
+                IF NOT EXISTS (SELECT 1 FROM users WHERE id = OLD.creator_id) THEN
+                    RETURN OLD;
+                END IF;
+            ELSIF TG_OP = 'INSERT' THEN
+                v_row := NEW;
                 v_action := 'create';
-                v_row    := NEW;
+                v_event := 'created';
+            ELSE
+                v_row := NEW;
+                v_action := 'update';
+                IF NEW.title IS DISTINCT FROM OLD.title THEN
+                    v_changes := v_changes || 'title'::TEXT;
+                END IF;
+                IF NEW.content IS DISTINCT FROM OLD.content THEN
+                    v_changes := v_changes || 'content'::TEXT;
+                END IF;
+                IF NEW.notebook_id IS DISTINCT FROM OLD.notebook_id THEN
+                    v_changes := v_changes || 'notebook_id'::TEXT;
+                END IF;
+                IF NEW.is_public IS DISTINCT FROM OLD.is_public THEN
+                    v_changes := v_changes || 'is_public'::TEXT;
+                END IF;
+                IF NEW.archived IS DISTINCT FROM OLD.archived THEN
+                    v_changes := v_changes || 'archived'::TEXT;
+                END IF;
+
+                -- Pinning (and anything else not listed) logs nothing.
+                IF cardinality(v_changes) = 0 THEN
+                    RETURN NEW;
+                END IF;
+
+                v_event := CASE
+                    WHEN 'archived' = ANY (v_changes) THEN
+                        CASE WHEN NEW.archived THEN 'trashed' ELSE 'restored' END
+                    WHEN 'is_public' = ANY (v_changes) THEN
+                        CASE WHEN NEW.is_public THEN 'published' ELSE 'unpublished' END
+                    WHEN 'notebook_id' = ANY (v_changes) THEN 'moved'
+                    ELSE 'edited'
+                END;
             END IF;
 
-            -- NOTE: the column is "metadata". The SQLAlchemy ATTRIBUTE is metadata_
+            -- The column is "metadata". The SQLAlchemy ATTRIBUTE is metadata_
             -- only because `metadata` is reserved on DeclarativeBase. Triggers are
-            -- SQL and must use the SQL name. Getting this wrong makes every write
-            -- to notes fail at runtime.
+            -- SQL and must use the SQL name.
             INSERT INTO activity_logs (user_id, action_type, entity_type, entity_id, metadata)
             VALUES (
-                v_row.creator_id,
-                v_action,
-                'note',
-                v_row.id,
+                v_row.creator_id, v_action, 'note', v_row.id,
                 jsonb_build_object(
+                    'event',      v_event,
                     'title',      v_row.title,
                     'word_count', v_row.word_count,
-                    'is_public',  v_row.is_public
+                    'is_public',  v_row.is_public,
+                    'changes',    to_jsonb(v_changes)
                 )
             );
 
@@ -565,6 +617,10 @@ could create an edge in either direction, the notification would be meaningless.
     """)
 ```
 
+A sibling, `fn_log_link_activity()` on `knowledge_links`, logs `link` / `unlink` rows the
+same way — and skips deletes caused by a note purge's `ON DELETE CASCADE`, which the
+note's own `deleted` row already records.
+
 **`TG_OP` lets one function serve three events.** Three near-identical functions would
 drift; this is the same one-definition instinct as the views.
 
@@ -572,6 +628,35 @@ drift; this is the same one-definition instinct as the views.
 delete — in a `BEFORE` trigger silently cancels the operation. Here the trigger is
 `AFTER`, so the return value is ignored, but writing it correctly means the function
 still behaves if someone later changes the timing.
+
+**Only meaningful updates are logged.** The editor autosaves, so "log every `UPDATE`"
+would bury the feed under identical rows, and toggling a pin would be audited like an
+edit. The trigger compares `OLD` and `NEW` (with `IS DISTINCT FROM`, which is NULL-safe —
+`content` and `notebook_id` are nullable), names the change as one readable `event`, and
+keeps the full list in `metadata.changes`. Runs of consecutive `edited` rows are then
+merged at *read* time by the activity feed's gaps-and-islands query (`LAG()` marks where
+a run starts, a running `SUM()` numbers the runs, `GROUP BY` the run) — the log itself
+stays complete and append-only.
+
+**`SECURITY DEFINER` with a pinned `search_path`.** The function writes with its owner's
+rights, so no client role ever needs `INSERT` on `activity_logs` — an audit row a client
+can write is one it can forge (this pairs with the RLS policies in 3.8, which deliberately
+have no `INSERT` policy). Pinning `search_path` stops a caller from shadowing `users` or
+`activity_logs` with a same-named table in a schema they control.
+
+> **Viva question — a trap the first version of this trigger fell into:** *What happens
+> when a user deletes their account?*
+>
+> "`DELETE FROM users` cascades to their notes, and each cascaded delete fires this
+> trigger. The first version logged it like any other delete — `INSERT INTO
+> activity_logs (user_id, ...) VALUES (OLD.creator_id, ...)` — but that user row has
+> already been deleted in the same statement, so the insert violates
+> `fk_activity_logs_user_id` and PostgreSQL rolls back the *entire* account deletion.
+> An audit trigger made a core operation impossible. The fix is the `NOT EXISTS` guard:
+> if the actor is gone, skip the log row. The history isn't lost — the user's earlier
+> rows stay, with `user_id` set to `NULL` by the FK's `ON DELETE SET NULL`. A test
+> deletes a user with notes and links and asserts it succeeds; with the guard removed,
+> that test fails with `ForeignKeyViolationError`."
 
 ### Prove the trigger fires
 
@@ -1382,6 +1467,8 @@ Same table, same query, different results by identity. That is the demo.
 □ Updating a note WITHOUT changing title or content creates NO version row
 □ Linking to another user's public note creates a notification for them
 □ Linking to your OWN note creates no notification
+□ Toggling pinned on a note creates NO activity_logs row
+□ DELETE FROM users for a user with notes and links succeeds (trigger guard, ADR-020)
 □ The recursive CTE terminates on a deliberately cyclic graph (A→B→C→A)
 □ fn_shortest_path returns 4 steps from Normalization to BCNF
 □ sp_rollback_note_version restores content AND creates a version of what it replaced
