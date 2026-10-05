@@ -3,6 +3,7 @@
 import {
   FolderKanban,
   GraduationCap,
+  History,
   Inbox,
   Library,
   LogOut,
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { href: "/collections", label: "Collections", icon: Library },
   { href: "/review", label: "Review", icon: GraduationCap },
   { href: "/tags", label: "Tags", icon: Tags },
+  { href: "/activity", label: "Activity", icon: History },
   { href: "/trash", label: "Trash", icon: Trash2 },
   { href: "/profile", label: "Profile", icon: User },
 ];

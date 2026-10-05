@@ -108,6 +108,21 @@ async def test_flashcard_review_loop_over_http(client: AsyncClient):
     assert (summary["total"], summary["due"]) == (1, 0)
 
 
+async def test_activity_and_notification_routes_over_http(client: AsyncClient):
+    """/notifications/unread-count and /read-all must not be parsed as
+    /notifications/{notification_id}; the feed reflects trigger-written rows."""
+    await client.post("/api/v1/notes", json={"title": "Logged by a trigger"})
+
+    feed = await client.get("/api/v1/activity")
+    assert feed.status_code == 200
+    assert feed.json()[0]["metadata"]["event"] == "created"
+
+    unread = await client.get("/api/v1/notifications/unread-count")
+    assert (unread.status_code, unread.json()) == (200, {"count": 0})
+    assert (await client.post("/api/v1/notifications/read-all")).status_code == 204
+    assert (await client.post("/api/v1/notifications/999999999/read")).status_code == 404
+
+
 async def test_search_route_is_not_swallowed_by_note_id_route(client: AsyncClient):
     """GET /notes/search must resolve to search, not to GET /notes/{note_id}
     with note_id="search" (which would be a 422 UUID error)."""
