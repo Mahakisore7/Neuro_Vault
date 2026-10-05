@@ -1,11 +1,22 @@
 "use client";
 
-import { FolderKanban, Inbox, Library, LogOut, Network, Tags, Trash2, User } from "lucide-react";
+import {
+  FolderKanban,
+  GraduationCap,
+  Inbox,
+  Library,
+  LogOut,
+  Network,
+  Tags,
+  Trash2,
+  User,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { useFlashcardSummary } from "@/hooks/use-flashcards";
 import { useMe } from "@/hooks/use-user";
 import { supabase } from "@/lib/supabase";
 
@@ -13,6 +24,7 @@ const NAV_ITEMS = [
   { href: "/workspaces", label: "Workspaces", icon: FolderKanban },
   { href: "/unfiled", label: "Unfiled", icon: Inbox },
   { href: "/collections", label: "Collections", icon: Library },
+  { href: "/review", label: "Review", icon: GraduationCap },
   { href: "/tags", label: "Tags", icon: Tags },
   { href: "/trash", label: "Trash", icon: Trash2 },
   { href: "/profile", label: "Profile", icon: User },
@@ -22,6 +34,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { data: user } = useMe();
+  const { data: flashcards } = useFlashcardSummary();
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -53,6 +66,16 @@ export function Sidebar() {
             >
               <item.icon className="size-4" />
               {item.label}
+              {item.href === "/review" && flashcards && flashcards.due > 0 && (
+                <span
+                  aria-label={`${flashcards.due} due`}
+                  className={`ml-auto rounded-full px-1.5 text-xs tabular-nums ${
+                    active ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
+                  }`}
+                >
+                  {flashcards.due}
+                </span>
+              )}
             </Link>
           );
         })}
