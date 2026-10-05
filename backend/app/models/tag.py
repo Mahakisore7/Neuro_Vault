@@ -20,7 +20,9 @@ class Tag(Base):
     user_id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
     name: Mapped[str] = mapped_column(String(50), nullable=False)
     slug: Mapped[str] = mapped_column(String(50), nullable=False)
-    color: Mapped[str] = mapped_column(String(7), nullable=False, default="#6366F1")
+    color: Mapped[str] = mapped_column(
+        String(7), nullable=False, default="#6366F1", server_default="#6366F1"
+    )
 
 
 class NoteTag(Base):

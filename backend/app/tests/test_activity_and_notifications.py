@@ -27,12 +27,7 @@ async def _events(db, user) -> list[tuple[str, int]]:
 async def test_trigger_logs_a_raw_sql_insert_with_no_app_code_involved(db, user):
     note_id = uuid4()
     await db.execute(
-        # The boolean columns are listed because notes' defaults for them are
-        # Python-side only (applied by SQLAlchemy, not by the database).
-        text(
-            "INSERT INTO notes (id, creator_id, title, is_public, pinned, archived) "
-            "VALUES (:id, :uid, 'Raw SQL', false, false, false)"
-        ),
+        text("INSERT INTO notes (id, creator_id, title) VALUES (:id, :uid, 'Raw SQL')"),
         {"id": note_id, "uid": user.id},
     )
 
