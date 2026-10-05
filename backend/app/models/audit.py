@@ -1,7 +1,16 @@
 from datetime import datetime
 from uuid import UUID
 
-from sqlalchemy import BigInteger, CheckConstraint, DateTime, ForeignKey, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    String,
+    Text,
+    false,
+    func,
+)
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -10,10 +19,9 @@ from app.db.base import Base
 
 
 class ActivityLog(Base):
-    """Append-only audit trail. In the full design this is written by a
-    trigger on every INSERT/UPDATE/DELETE to `notes` — not built in this
-    basic-CRUD phase, so this table exists (created by the migration) but
-    stays empty until that trigger is added later.
+    """Append-only audit trail, written only by triggers: fn_log_note_activity
+    (notes: create / meaningful update / delete) and fn_log_link_activity
+    (knowledge_links: link / unlink). No application code inserts here.
     """
 
     __tablename__ = "activity_logs"
@@ -47,12 +55,10 @@ class ActivityLog(Base):
 
 
 class Notification(Base):
-    """The table behind the notification bell. Written by a trigger
-    (`trg_knowledge_links_notify`, later phase) when someone links to your
-    PUBLIC note — the only event that currently produces a notification.
-    Like ActivityLog, this table exists from Stage 2 onward but stays empty
-    until that trigger exists; `is_read` is the one column Stage 3's CRUD
-    layer WILL be able to write, once a notifications route is added.
+    """The table behind the notification bell. Written by the trigger
+    trg_knowledge_links_notify when someone links to your PUBLIC note — the
+    only event that currently produces a notification. `is_read` is the one
+    column the application writes.
     """
 
     __tablename__ = "notifications"
@@ -71,7 +77,9 @@ class Notification(Base):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     body: Mapped[str | None] = mapped_column(Text)
     link_url: Mapped[str | None] = mapped_column(Text)
-    is_read: Mapped[bool] = mapped_column(nullable=False, default=False)
+    # server_default as well as default: the trigger's raw INSERT never goes
+    # through SQLAlchemy, so only a database-side default reaches it.
+    is_read: Mapped[bool] = mapped_column(nullable=False, default=False, server_default=false())
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

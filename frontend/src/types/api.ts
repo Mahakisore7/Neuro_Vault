@@ -248,3 +248,35 @@ export interface FlashcardSummary {
   due: number;
   next_due_at: string | null;
 }
+
+// metadata is written by database triggers (fn_log_note_activity /
+// fn_log_link_activity); `event` is always present, other keys depend on it.
+export interface ActivityEntry {
+  id: number;
+  action_type: "create" | "update" | "delete" | "link" | "unlink";
+  entity_type: "note" | "link";
+  entity_id: string | null;
+  metadata: {
+    event: string;
+    title?: string;
+    changes?: string[];
+    source_note_id?: string;
+    source_title?: string;
+    target_note_id?: string;
+    target_title?: string;
+    relationship?: string;
+  };
+  created_at: string;
+  first_at: string;
+  count: number;
+}
+
+export interface Notification {
+  id: number;
+  type: string;
+  title: string;
+  body: string | null;
+  link_url: string | null;
+  is_read: boolean;
+  created_at: string;
+}
