@@ -8,6 +8,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    func,
 )
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -30,7 +31,9 @@ class Workspace(Base, TimestampMixin):
         CheckConstraint("slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'", name="slug_format"),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), primary_key=True, default=uuid4, server_default=func.gen_random_uuid()
+    )
     owner_id: Mapped[UUID] = mapped_column(
         PgUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -63,7 +66,9 @@ class Notebook(Base, TimestampMixin):
         CheckConstraint("color ~ '^#[0-9A-Fa-f]{6}$'", name="color_format"),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), primary_key=True, default=uuid4, server_default=func.gen_random_uuid()
+    )
     workspace_id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
     # Denormalized on purpose: owner_id is already derivable via workspace_id
     # -> workspaces.owner_id, so storing it again breaks 3NF. It's what lets
@@ -73,7 +78,9 @@ class Notebook(Base, TimestampMixin):
     owner_id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
-    color: Mapped[str] = mapped_column(String(7), nullable=False, default="#4CAF50")
+    color: Mapped[str] = mapped_column(
+        String(7), nullable=False, default="#4CAF50", server_default="#4CAF50"
+    )
 
     workspace: Mapped["Workspace"] = relationship(back_populates="notebooks", lazy="raise_on_sql")
     notes: Mapped[list["Note"]] = relationship(

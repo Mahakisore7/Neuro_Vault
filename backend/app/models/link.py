@@ -9,6 +9,9 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
+    func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -36,8 +39,12 @@ class RelationshipType(Base):
     id: Mapped[int] = mapped_column(SmallInteger, primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(Text)
-    color: Mapped[str] = mapped_column(String(7), nullable=False, default="#888888")
-    is_symmetric: Mapped[bool] = mapped_column(nullable=False, default=False)
+    color: Mapped[str] = mapped_column(
+        String(7), nullable=False, default="#888888", server_default="#888888"
+    )
+    is_symmetric: Mapped[bool] = mapped_column(
+        nullable=False, default=False, server_default=false()
+    )
 
 
 class KnowledgeLink(Base, TimestampMixin):
@@ -62,7 +69,9 @@ class KnowledgeLink(Base, TimestampMixin):
         CheckConstraint("origin IN ('manual', 'wiki', 'ai')", name="origin"),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), primary_key=True, default=uuid4, server_default=func.gen_random_uuid()
+    )
     source_note_id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
     # ...while target_note_id is a PLAIN fk: you may point an edge at ANY
     # note you can read, including someone else's public one. That asymmetry
@@ -77,14 +86,18 @@ class KnowledgeLink(Base, TimestampMixin):
         nullable=False,
     )
     created_by: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
-    strength: Mapped[int] = mapped_column(SmallInteger, nullable=False, default=5)
+    strength: Mapped[int] = mapped_column(
+        SmallInteger, nullable=False, default=5, server_default=text("5")
+    )
     description: Mapped[str | None] = mapped_column(Text)
     # How this row came to exist. Not used yet in Stage 3 (there's no
     # wiki-link or AI feature in a basic-CRUD build) — but the column has to
     # exist now, because retrofitting a NOT NULL column with a default onto
     # a live links table later is a much bigger migration than including it
     # on day one. 'manual' is the only value Stage 3 will ever write.
-    origin: Mapped[str] = mapped_column(String(10), nullable=False, default="manual")
+    origin: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="manual", server_default="manual"
+    )
 
     source_note: Mapped["Note"] = relationship(
         foreign_keys=[source_note_id], viewonly=True, lazy="raise_on_sql"

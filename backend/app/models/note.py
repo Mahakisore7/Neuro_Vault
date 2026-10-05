@@ -13,6 +13,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    false,
     func,
 )
 from sqlalchemy.dialects.postgresql import TSVECTOR
@@ -66,7 +67,9 @@ class Note(Base, TimestampMixin):
         CheckConstraint("btrim(title) <> ''", name="title_not_blank"),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), primary_key=True, default=uuid4, server_default=func.gen_random_uuid()
+    )
     creator_id: Mapped[UUID] = mapped_column(
         PgUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
@@ -74,11 +77,17 @@ class Note(Base, TimestampMixin):
 
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     content: Mapped[str | None] = mapped_column(Text)
-    is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    pinned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    is_public: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
+    pinned: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
     # See NoteService.delete in Stage 3: DELETE /notes/{id} sets this to True
     # rather than issuing a real SQL DELETE, so a note's history survives.
-    archived: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    archived: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default=false()
+    )
 
     # Generated columns — computed BY POSTGRES on every write. Never assigned
     # in Python; PostgreSQL rejects a direct UPDATE to either one.

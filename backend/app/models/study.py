@@ -13,6 +13,7 @@ from sqlalchemy import (
     String,
     Text,
     func,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column
@@ -45,7 +46,9 @@ class Flashcard(Base, TimestampMixin):
         CheckConstraint("last_result BETWEEN 0 AND 5", name="last_result_range"),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), primary_key=True, default=uuid4, server_default=func.gen_random_uuid()
+    )
     note_id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
     owner_id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
     question: Mapped[str] = mapped_column(Text, nullable=False)
@@ -55,10 +58,14 @@ class Flashcard(Base, TimestampMixin):
     # a card that should sit at exactly 2.50 drifts to 2.4999999999. NUMERIC
     # is exact decimal arithmetic, the same reasoning as storing money.
     ease_factor: Mapped[Decimal] = mapped_column(
-        Numeric(4, 2), nullable=False, default=Decimal("2.50")
+        Numeric(4, 2), nullable=False, default=Decimal("2.50"), server_default=text("2.50")
     )
-    interval_days: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
-    repetitions: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    interval_days: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default=text("1")
+    )
+    repetitions: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=0, server_default=text("0")
+    )
     due_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
@@ -83,7 +90,9 @@ class Resource(Base):
         CheckConstraint("file_size IS NULL OR file_size >= 0", name="file_size_non_negative"),
     )
 
-    id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), primary_key=True, default=uuid4)
+    id: Mapped[UUID] = mapped_column(
+        PgUUID(as_uuid=True), primary_key=True, default=uuid4, server_default=func.gen_random_uuid()
+    )
     note_id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
     owner_id: Mapped[UUID] = mapped_column(PgUUID(as_uuid=True), nullable=False)
     resource_type: Mapped[str] = mapped_column(String(20), nullable=False)
