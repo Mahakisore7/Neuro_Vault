@@ -37,7 +37,7 @@ export default function LandingPage() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        router.replace("/workspaces");
+        router.replace("/dashboard");
       } else {
         setCheckedSession(true);
       }

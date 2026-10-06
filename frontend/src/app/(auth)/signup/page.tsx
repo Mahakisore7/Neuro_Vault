@@ -55,7 +55,7 @@ export default function SignupPage() {
     // is nothing to redirect into yet. A project with it off returns a
     // session immediately, so the new account can go straight in.
     if (data.session) {
-      router.push("/workspaces");
+      router.push("/dashboard");
     } else {
       setConfirmEmailSent(true);
     }

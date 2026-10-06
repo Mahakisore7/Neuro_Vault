@@ -23,7 +23,7 @@ export default function AuthCallbackPage() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session && !settled) {
         settled = true;
-        router.replace("/workspaces");
+        router.replace("/dashboard");
       }
     });
 
@@ -32,7 +32,7 @@ export default function AuthCallbackPage() {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session && !settled) {
         settled = true;
-        router.replace("/workspaces");
+        router.replace("/dashboard");
       }
     });
 
