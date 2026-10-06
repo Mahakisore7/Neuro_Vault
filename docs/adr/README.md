@@ -28,3 +28,5 @@ New ADRs get added here as they come up during the build — not written all upf
 | [0018](0018-jwt-verification-via-jwks.md) | Verify Supabase JWTs via JWKS (ES256), not a shared secret |
 | [0019](0019-card-action-slot-and-full-row-click.md) | List-item cards use the `CardAction` slot and a full-row click handler |
 | [0020](0020-audit-triggers-skip-deleted-users.md) | Audit triggers skip rows whose actor no longer exists |
+| [0021](0021-graph-traversal-is-breadth-first.md) | Graph traversal is a breadth-first search, not a per-path recursive CTE |
+| [0022](0022-views-are-security-invoker.md) | Views are created `WITH (security_invoker = true)` |

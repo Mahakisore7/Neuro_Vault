@@ -64,3 +64,20 @@ class NoteGraphEdge(BaseModel):
 class NoteGraphResponse(BaseModel):
     nodes: list[NoteGraphNode]
     edges: list[NoteGraphEdge]
+
+
+class NotePathStep(BaseModel):
+    """One note on a shortest path; step 0 is the start, the last step the target."""
+
+    step: int
+    note_id: UUID
+    title: str
+
+
+class NoteGraphStats(BaseModel):
+    outgoing_count: int
+    incoming_count: int
+    degree: int
+    version_count: int
+    # Hops to the farthest note reachable from this one (0 = no links).
+    max_depth: int

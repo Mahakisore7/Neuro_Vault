@@ -79,6 +79,9 @@ class NoteSearchResult(BaseModel):
     rank: float
     is_own: bool
     updated_at: datetime
+    # True when nothing matched as words and these are similar titles instead
+    # (trigram fallback, e.g. for a typo). No highlights in that case.
+    fuzzy: bool = False
 
 
 class NoteVersionSummary(BaseModel):

@@ -195,6 +195,27 @@ def downgrade() -> None:
         op.execute(f"DROP INDEX IF EXISTS {name}")
 ```
 
+> **As built** (`alembic/versions/20261006_1000_remaining_query_indexes.py`, plus the
+> per-feature migrations). Three differences from the plan above, each of which is a
+> fair viva question:
+>
+> - **#2 matches the real query, not the sketch.** The note list sorts by
+>   `pinned DESC, updated_at DESC`, so the index is
+>   `idx_notes_creator_id_pinned_updated_at ON notes (creator_id, pinned DESC,
+>   updated_at DESC) WHERE archived = FALSE`. Indexed as planned, `(creator_id,
+>   updated_at)` could filter but not deliver rows in order, and every list would need a
+>   Sort step. A test checks that the plan has no Sort node.
+> - **#3 is not built: it is redundant.** `UNIQUE (source_note_id, target_note_id,
+>   rel_type_id)` is already a B-tree whose leftmost column is `source_note_id`, so it
+>   serves every "edges out of this note" lookup. A second index would only cost writes.
+>   This is the "when would you NOT add an index?" answer, in this schema.
+> - **#10 is not built yet.** It serves wiki-link reconciliation, which doesn't exist yet.
+>   An index with no query is pure cost.
+>
+> The trigram index (#9) shipped together with the query that needs it: search falls
+> back to `title % :q` (similar titles) when full-text search finds nothing, which
+> catches typos like "normalizaton". Every built index has an `EXPLAIN` test.
+
 ### The four index types, and why each was chosen
 
 | # | Type | Why not a plain B-tree |
@@ -272,6 +293,26 @@ substitutes the definition into your query at plan time.
 that appears in the note detail page, the dashboard, and the orphan report. Written
 three times it drifts three ways. Written once as a view, the definition is in the
 migration and every caller gets the same answer.
+
+> **As built** (`alembic/versions/20261006_1100_views_and_graph_functions.py`). Three
+> changes from the sketch below:
+>
+> - **Every view is `WITH (security_invoker = true)`.** A default view runs with its
+>   *owner's* rights, which bypass row-level security, and Supabase serves every view in
+>   `public` over its REST API, so a default view is a way around RLS
+>   ([ADR-022](../../adr/0022-views-are-security-invoker.md)).
+> - **`v_user_dashboard` had a fan-out bug.** One `FROM` joining notes, workspaces and
+>   links multiplies the rows. `COUNT(DISTINCT …)` hides that for the counts, but
+>   `SUM(word_count)` is multiplied by workspaces × links (3 workspaces and 10 links
+>   report 30× the real total). The built view aggregates each table separately in a
+>   `LATERAL` subquery. A test runs the original query beside it to show the inflated
+>   sum. It also separates trashed notes and adds flashcard counts.
+> - **`v_note_search` can't contain the snippet.** A view can't take the user's query as a
+>   parameter, so `ts_headline(…, websearch_to_tsquery(''))` was always a headline for an
+>   empty query. The built view is the searchable base (live notes plus HTML-stripped
+>   `plain_content`), and the search endpoint applies the user's query on top of it. The
+>   planner inlines the view, which a test checks by comparing plans with the equivalent
+>   query on `notes`.
 
 ### `backend/alembic/versions/003_views_functions_triggers.py` — views
 
@@ -742,6 +783,18 @@ demonstrate in the viva, and Phase 6 turns it into an automated test.
 back a rollback. Composing a procedure out of operations that already carry their own
 guarantees is the point of putting the logic in the database at all.
 
+> **As built: P2 and P3 were rewritten** as `fn_note_distances` (a breadth-first search in
+> PL/pgSQL), with `fn_max_graph_depth` and `fn_shortest_path` built on top of it
+> ([ADR-021](../../adr/0021-graph-traversal-is-breadth-first.md)). The versions below
+> carry a visited array **per path**. That stops cycles, but it still lists *every*
+> simple path, so on a densely linked graph the work grows exponentially with depth. A
+> test with 9 fully linked notes counts 2,081 rows from that CTE at depth 4, against 9
+> from the BFS. They also took no user, so `fn_shortest_path` could route through, and
+> reveal the titles of, someone else's private notes. The built functions take
+> `p_user_id` and apply the same visibility rule as the graph endpoint. `fn_max_graph_depth`
+> now means "hops to the farthest reachable note" (the longest *shortest* distance),
+> because the longest simple path is not something any query should try to compute.
+
 ### P2 — Maximum reachable depth from a note
 
 ```python
@@ -852,6 +905,15 @@ SELECT * FROM fn_shortest_path('<normalization-id>', '<bcnf-id>');
 ## 3.6 The recursive CTE — the heart of the project
 
 This is the query to be able to write on a whiteboard and explain line by line.
+
+> **As built, the app no longer runs this query.** The graph endpoint now calls
+> `fn_note_distances()`, a breadth-first search with one global visited set
+> ([ADR-021](../../adr/0021-graph-traversal-is-breadth-first.md)). This CTE is still worth
+> knowing cold, because it is the textbook form and the obvious first answer. The follow-up
+> question to be ready for is: *"Its `visited_path` prevents cycles, so why replace it?"*
+> Because `visited_path` belongs to each **path**, not to the search as a whole. A note
+> reachable by many routes is expanded once per route, so a densely linked graph produces
+> one row per simple path, which is exponential in depth. BFS expands each note once.
 
 ```sql
 WITH RECURSIVE connected_graph AS (
@@ -1460,16 +1522,17 @@ Same table, same query, different results by identity. That is the demo.
 ## 3.9 Phase 3 checklist
 
 ```
-□ \di shows 10 indexes         □ \dv shows 4 views        □ \df shows 6 routines
+□ \di idx_* shows 10 indexes    □ \dv shows 4 views        □ \df shows 9 routines
+□ Every view has security_invoker=true in pg_class.reloptions (ADR-022)
 □ EXPLAIN ANALYZE on search shows Bitmap Index Scan, not Seq Scan
-□ EXPLAIN ANALYZE on the recursive CTE shows Index Scan on knowledge_links
+□ fn_note_distances on 9 fully linked notes returns 9 rows (the per-path CTE: 2,081)
 □ UPDATE on a note creates exactly one note_versions row
 □ Updating a note WITHOUT changing title or content creates NO version row
 □ Linking to another user's public note creates a notification for them
 □ Linking to your OWN note creates no notification
 □ Toggling pinned on a note creates NO activity_logs row
 □ DELETE FROM users for a user with notes and links succeeds (trigger guard, ADR-020)
-□ The recursive CTE terminates on a deliberately cyclic graph (A→B→C→A)
+□ fn_note_distances terminates on a deliberately cyclic graph (A→B→C→A)
 □ fn_shortest_path returns 4 steps from Normalization to BCNF
 □ sp_rollback_note_version restores content AND creates a version of what it replaced
 □ All 15 queries run against the seeded database
