@@ -6,44 +6,35 @@ from sqlalchemy import Row, or_, select, text
 from app.models.link import KnowledgeLink, RelationshipType
 from app.repositories.base import BaseRepository
 
-# docs/phases/New/03-SQL-LAYER.md §3.6 — the recursive CTE, unchanged, with
-# one addition: the visibility predicate (creator_id = :user_id OR is_public)
-# on BOTH the anchor and the recursive term. Without it on the recursive
-# term, traversal could walk THROUGH a note the caller can't read to reach
-# one they can, leaking the fact that a private note connects two others.
-# Restricting it on the anchor too turns "root note isn't visible" into an
-# empty result here, which the service layer turns into the same 404 every
-# other not-visible-note case gets (see LinkService.get_graph).
+# Breadth-first traversal, done by the database function fn_note_distances()
+# (migration b7e2c4f9a031). It replaced a recursive CTE that carried a visited
+# array per *path*: that stopped cycles but still enumerated every simple path,
+# so a densely linked graph grew exponentially with depth. The function keeps
+# one global visited set and expands each note once.
+#
+# Visibility is inside the function, on the root and on every hop: only live
+# notes the caller owns or that are public. Traversal can't walk THROUGH a
+# private note to reach a visible one, and a root the caller can't see gives
+# an empty result, which LinkService.get_graph turns into the usual 404.
 _GRAPH_SQL = text("""
-    WITH RECURSIVE connected_graph AS (
-        SELECT
-            n.id, n.title, n.is_public, n.creator_id,
-            0 AS depth, ARRAY[n.id] AS visited_path
-        FROM notes n
-        WHERE n.id = :root_id
-          AND n.archived = false
-          AND (n.creator_id = :user_id OR n.is_public)
+    SELECT n.id, n.title, n.is_public, d.depth
+    FROM fn_note_distances(:root_id, :user_id, :max_depth) d
+    JOIN notes n ON n.id = d.note_id
+    ORDER BY d.depth, n.title
+""")
 
-        UNION ALL
+# Step 0 is the start note, the last step the target; empty if unreachable.
+_PATH_SQL = text("""
+    SELECT p.step, p.note_id, p.title
+    FROM fn_shortest_path(:from_id, :to_id, :user_id, :max_depth) p
+    ORDER BY p.step
+""")
 
-        SELECT
-            nxt.id, nxt.title, nxt.is_public, nxt.creator_id,
-            g.depth + 1, g.visited_path || nxt.id
-        FROM connected_graph g
-        JOIN knowledge_links kl
-          ON kl.source_note_id = g.id OR kl.target_note_id = g.id
-        JOIN notes nxt
-          ON nxt.id = CASE WHEN kl.source_note_id = g.id
-                           THEN kl.target_note_id
-                           ELSE kl.source_note_id END
-        WHERE g.depth < :max_depth
-          AND nxt.id <> ALL(g.visited_path)
-          AND nxt.archived = false
-          AND (nxt.creator_id = :user_id OR nxt.is_public)
-    )
-    SELECT DISTINCT ON (id) id, title, is_public, depth
-    FROM connected_graph
-    ORDER BY id, depth
+_STATS_SQL = text("""
+    SELECT s.outgoing_count, s.incoming_count, s.degree, s.version_count,
+           fn_max_graph_depth(s.note_id, :user_id) AS max_depth
+    FROM v_note_graph_stats s
+    WHERE s.note_id = :note_id
 """)
 
 
@@ -92,3 +83,13 @@ class KnowledgeLinkRepository(BaseRepository[KnowledgeLink]):
         )
         edge_rows = (await self.db.execute(edges_stmt)).all()
         return node_rows, edge_rows
+
+    async def shortest_path(
+        self, from_id: UUID, to_id: UUID, user_id: UUID, max_depth: int
+    ) -> Sequence[Row]:
+        params = {"from_id": from_id, "to_id": to_id, "user_id": user_id, "max_depth": max_depth}
+        return (await self.db.execute(_PATH_SQL, params)).all()
+
+    async def stats(self, note_id: UUID, user_id: UUID) -> Row | None:
+        params = {"note_id": note_id, "user_id": user_id}
+        return (await self.db.execute(_STATS_SQL, params)).one_or_none()

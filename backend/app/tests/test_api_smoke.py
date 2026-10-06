@@ -123,6 +123,24 @@ async def test_activity_and_notification_routes_over_http(client: AsyncClient):
     assert (await client.post("/api/v1/notifications/999999999/read")).status_code == 404
 
 
+async def test_shortest_path_and_stats_over_http(client: AsyncClient):
+    ids = [
+        (await client.post("/api/v1/notes", json={"title": t})).json()["id"] for t in "ABC"
+    ]
+    for source, target in ((ids[0], ids[1]), (ids[1], ids[2])):
+        await client.post(
+            f"/api/v1/notes/{source}/links", json={"target_note_id": target, "rel_type_id": 1}
+        )
+
+    path = await client.get(f"/api/v1/notes/{ids[0]}/path", params={"to": ids[2]})
+    assert path.status_code == 200
+    assert [p["title"] for p in path.json()] == ["A", "B", "C"]
+
+    stats = (await client.get(f"/api/v1/notes/{ids[1]}/stats")).json()
+    assert (stats["degree"], stats["max_depth"]) == (2, 1)
+    assert (await client.get(f"/api/v1/notes/{ids[0]}/path")).status_code == 422  # `to` required
+
+
 async def test_search_route_is_not_swallowed_by_note_id_route(client: AsyncClient):
     """GET /notes/search must resolve to search, not to GET /notes/{note_id}
     with note_id="search" (which would be a 422 UUID error)."""

@@ -55,10 +55,13 @@ export function NoteGraph({
   graph,
   rootId,
   relationshipTypes,
+  highlightPath = [],
 }: {
   graph: NoteGraphData;
   rootId: string;
   relationshipTypes: RelationshipType[];
+  /** Note ids of a shortest path, in order; drawn on top, everything else dimmed. */
+  highlightPath?: string[];
 }) {
   const router = useRouter();
   const positioned = useMemo(() => layoutNodes(graph.nodes, rootId), [graph.nodes, rootId]);
@@ -69,6 +72,15 @@ export function NoteGraph({
   );
 
   const usedRelTypeIds = [...new Set(graph.edges.map((e) => e.rel_type_id))];
+
+  const onPath = new Set(highlightPath);
+  // Consecutive pairs, either direction - the path is undirected.
+  const pathEdges = new Set(
+    highlightPath
+      .slice(1)
+      .flatMap((id, i) => [`${highlightPath[i]}>${id}`, `${id}>${highlightPath[i]}`]),
+  );
+  const dimming = highlightPath.length > 1;
 
   return (
     <svg
@@ -117,6 +129,7 @@ export function NoteGraph({
         const target = byId.get(edge.target_note_id);
         if (!source || !target) return null;
         const relType = relTypeById.get(edge.rel_type_id);
+        const isPathEdge = pathEdges.has(`${edge.source_note_id}>${edge.target_note_id}`);
         return (
           <line
             key={edge.id}
@@ -124,9 +137,9 @@ export function NoteGraph({
             y1={source.y}
             x2={target.x}
             y2={target.y}
-            stroke={relType?.color ?? "#888888"}
-            strokeWidth={0.8 + edge.strength * 0.25}
-            strokeOpacity={0.7}
+            stroke={isPathEdge ? "var(--primary)" : (relType?.color ?? "#888888")}
+            strokeWidth={isPathEdge ? 3 : 0.8 + edge.strength * 0.25}
+            strokeOpacity={dimming && !isPathEdge ? 0.15 : 0.7}
             markerEnd={relType?.is_symmetric ? undefined : `url(#nv-arrow-${edge.rel_type_id})`}
           />
         );
@@ -134,10 +147,12 @@ export function NoteGraph({
 
       {positioned.map((node) => {
         const isRoot = node.id === rootId;
+        const faded = dimming && !onPath.has(node.id);
         return (
           <g
             key={node.id}
             transform={`translate(${node.x}, ${node.y})`}
+            opacity={faded ? 0.35 : 1}
             className="cursor-pointer"
             onClick={() => !isRoot && router.push(`/notes/${node.id}`)}
           >
@@ -145,8 +160,8 @@ export function NoteGraph({
             <circle
               r={isRoot ? ROOT_RADIUS : NODE_RADIUS}
               fill={isRoot ? "var(--primary)" : "var(--card)"}
-              stroke={isRoot ? "var(--primary)" : "var(--border)"}
-              strokeWidth={1.5}
+              stroke={isRoot || (dimming && onPath.has(node.id)) ? "var(--primary)" : "var(--border)"}
+              strokeWidth={dimming && onPath.has(node.id) ? 3 : 1.5}
             />
             <text
               y={isRoot ? ROOT_RADIUS + 16 : NODE_RADIUS + 14}

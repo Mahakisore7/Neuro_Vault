@@ -136,6 +136,13 @@ export function SearchDialog() {
                 No notes match &ldquo;{debounced.trim()}&rdquo;.
               </p>
             )}
+            {/* The backend only falls back to similar titles when no word
+                matched, so either every result is fuzzy or none is. */}
+            {results[0]?.fuzzy && (
+              <p className="px-3 pt-1 pb-1.5 text-xs text-muted-foreground">
+                No exact matches — notes with similar titles:
+              </p>
+            )}
             {results.map((r, idx) => (
               <button
                 key={r.id}

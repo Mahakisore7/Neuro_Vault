@@ -4,7 +4,13 @@ from fastapi import APIRouter, Query, status
 
 from app.core.config import settings
 from app.core.dependencies import CurrentUser, DbSession
-from app.schemas.link import KnowledgeLinkCreate, KnowledgeLinkResponse, NoteGraphResponse
+from app.schemas.link import (
+    KnowledgeLinkCreate,
+    KnowledgeLinkResponse,
+    NoteGraphResponse,
+    NoteGraphStats,
+    NotePathStep,
+)
 from app.schemas.note import (
     NoteCreate,
     NoteResponse,
@@ -144,3 +150,19 @@ async def get_note_graph(
     max_depth: int = Query(default=3, ge=1, le=settings.graph_max_depth),
 ) -> NoteGraphResponse:
     return await LinkService(db).get_graph(note_id, user, max_depth)
+
+
+@router.get("/{note_id}/path", response_model=list[NotePathStep])
+async def get_shortest_path(
+    note_id: UUID,
+    user: CurrentUser,
+    db: DbSession,
+    to: UUID,
+    max_depth: int = Query(default=10, ge=1, le=10),
+) -> list[NotePathStep]:
+    return await LinkService(db).shortest_path(note_id, to, user, max_depth)
+
+
+@router.get("/{note_id}/stats", response_model=NoteGraphStats)
+async def get_note_stats(note_id: UUID, user: CurrentUser, db: DbSession) -> NoteGraphStats:
+    return await LinkService(db).stats(note_id, user)

@@ -12,6 +12,8 @@ from app.schemas.link import (
     NoteGraphEdge,
     NoteGraphNode,
     NoteGraphResponse,
+    NoteGraphStats,
+    NotePathStep,
     RelationshipTypeResponse,
 )
 
@@ -61,6 +63,37 @@ class LinkService:
             for row in edge_rows
         ]
         return NoteGraphResponse(nodes=nodes, edges=edges)
+
+    async def _assert_can_read(self, note_id: UUID, user: User) -> None:
+        note = await self.notes.get(note_id)
+        if note is None or (note.creator_id != user.id and not note.is_public):
+            raise NotFoundError("Note", note_id)
+
+    async def shortest_path(
+        self, from_id: UUID, to_id: UUID, user: User, max_depth: int
+    ) -> list[NotePathStep]:
+        # Both ends must be readable (404 otherwise). Between them, the
+        # database function only walks through notes the user can see, so an
+        # empty list means "no visible route", never "a route you can't see".
+        await self._assert_can_read(from_id, user)
+        await self._assert_can_read(to_id, user)
+        rows = await self.links.shortest_path(from_id, to_id, user.id, max_depth)
+        return [NotePathStep(step=r.step, note_id=r.note_id, title=r.title) for r in rows]
+
+    async def stats(self, note_id: UUID, user: User) -> NoteGraphStats:
+        await self._assert_can_read(note_id, user)
+        row = await self.links.stats(note_id, user.id)
+        if row is None:
+            raise NotFoundError("Note", note_id)
+        return NoteGraphStats(
+            outgoing_count=row.outgoing_count,
+            incoming_count=row.incoming_count,
+            degree=row.degree,
+            version_count=row.version_count,
+            # NULL only when the note isn't visible, which was ruled out above
+            # (but an archived note is: its traversal is empty).
+            max_depth=row.max_depth or 0,
+        )
 
     async def create(
         self, note_id: UUID, payload: KnowledgeLinkCreate, user: User

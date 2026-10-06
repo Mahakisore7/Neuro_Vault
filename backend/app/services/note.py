@@ -108,7 +108,7 @@ class NoteService:
         # the stripped text still holds entities like &amp;. The client
         # renders these strings as plain text, never as HTML, so &lt; turning
         # into a literal "<" here is safe — it's displayed, not parsed.
-        return [
+        results = [
             NoteSearchResult(
                 id=r.id,
                 title=r.title,
@@ -119,6 +119,24 @@ class NoteService:
                 updated_at=r.updated_at,
             )
             for r in rows
+        ]
+        if results or len(q.strip()) < 3:
+            return results
+        # Nothing matched as words: offer similar titles instead. Under three
+        # characters there are no trigrams worth comparing.
+        fuzzy = await self.notes.search_fuzzy(user.id, q.strip(), limit)
+        return [
+            NoteSearchResult(
+                id=r.id,
+                title=r.title,
+                title_highlight=r.title,
+                snippet=html.unescape(r.snippet),
+                rank=r.rank,
+                is_own=r.is_own,
+                updated_at=r.updated_at,
+                fuzzy=True,
+            )
+            for r in fuzzy
         ]
 
     async def list(

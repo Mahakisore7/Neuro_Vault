@@ -129,6 +129,8 @@ export interface NoteSearchResult {
   rank: number;
   is_own: boolean;
   updated_at: string;
+  /** Similar titles (typo fallback) rather than word matches - no highlights. */
+  fuzzy: boolean;
 }
 
 export interface NoteVersionSummary {
@@ -279,4 +281,18 @@ export interface Notification {
   link_url: string | null;
   is_read: boolean;
   created_at: string;
+}
+
+export interface NotePathStep {
+  step: number;
+  note_id: string;
+  title: string;
+}
+
+export interface NoteGraphStats {
+  outgoing_count: number;
+  incoming_count: number;
+  degree: number;
+  version_count: number;
+  max_depth: number;
 }

@@ -1,7 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
-import type { KnowledgeLink, KnowledgeLinkCreate, NoteGraph, RelationshipType } from "@/types/api";
+import type {
+  KnowledgeLink,
+  KnowledgeLinkCreate,
+  NoteGraph,
+  NoteGraphStats,
+  NotePathStep,
+  RelationshipType,
+} from "@/types/api";
 
 export const linkKeys = {
   all: ["links"] as const,
@@ -52,5 +59,23 @@ export function useNoteGraph(noteId: string | undefined, maxDepth: number) {
       (await api.get<NoteGraph>(`/notes/${noteId}/graph`, { params: { max_depth: maxDepth } }))
         .data,
     enabled: Boolean(noteId),
+  });
+}
+
+export function useNoteStats(noteId: string | undefined) {
+  return useQuery({
+    queryKey: [...linkKeys.all, "stats", noteId ?? ""],
+    queryFn: async () => (await api.get<NoteGraphStats>(`/notes/${noteId}/stats`)).data,
+    enabled: Boolean(noteId),
+  });
+}
+
+export function useShortestPath(noteId: string | undefined, targetId: string | null) {
+  return useQuery({
+    queryKey: [...linkKeys.all, "path", noteId ?? "", targetId ?? ""],
+    queryFn: async () =>
+      (await api.get<NotePathStep[]>(`/notes/${noteId}/path`, { params: { to: targetId } }))
+        .data,
+    enabled: Boolean(noteId && targetId),
   });
 }
