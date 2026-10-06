@@ -283,6 +283,13 @@ including someone else's public one).
 - `fn_notify_on_link()` — `AFTER INSERT ON knowledge_links`, notifies the target note's
   owner when someone else links to it.
 
+Row level security is on for every table, with per-user policies for the one path that
+skips FastAPI: the anon key in the browser, talking to Supabase's REST API. Signed in, you
+see your own rows and other people's live public notes. Without a session you see
+nothing ([ADR-008](docs/adr/0008-row-level-security.md),
+[ADR-023](docs/adr/0023-rls-policies-as-built.md)). The backend's own role bypasses RLS;
+its services enforce the same rules.
+
 All three audit triggers are `SECURITY DEFINER`, so no client role needs `INSERT` on the
 audit tables. Every column with a default has it on the database side, not just in the
 ORM, so plain SQL and triggers get the same defaults the app does.

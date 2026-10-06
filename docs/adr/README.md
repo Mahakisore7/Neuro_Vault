@@ -30,3 +30,4 @@ New ADRs get added here as they come up during the build — not written all upf
 | [0020](0020-audit-triggers-skip-deleted-users.md) | Audit triggers skip rows whose actor no longer exists |
 | [0021](0021-graph-traversal-is-breadth-first.md) | Graph traversal is a breadth-first search, not a per-path recursive CTE |
 | [0022](0022-views-are-security-invoker.md) | Views are created `WITH (security_invoker = true)` |
+| [0023](0023-rls-policies-as-built.md) | Row level security policies: four departures from the design |
