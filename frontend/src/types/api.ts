@@ -296,3 +296,31 @@ export interface NoteGraphStats {
   version_count: number;
   max_depth: number;
 }
+
+export interface DashboardTotals {
+  total_notes: number;
+  pinned_notes: number;
+  public_notes: number;
+  archived_notes: number;
+  total_words: number;
+  workspace_count: number;
+  link_count: number;
+  total_cards: number;
+  cards_due: number;
+  last_edited_at: string | null;
+}
+
+export interface DashboardNote {
+  id: string;
+  title: string;
+  updated_at: string;
+  word_count: number;
+  degree: number | null;
+}
+
+export interface Dashboard {
+  totals: DashboardTotals;
+  most_connected: DashboardNote[];
+  orphans: DashboardNote[];
+  recent: DashboardNote[];
+}

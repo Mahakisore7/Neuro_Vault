@@ -141,6 +141,17 @@ async def test_shortest_path_and_stats_over_http(client: AsyncClient):
     assert (await client.get(f"/api/v1/notes/{ids[0]}/path")).status_code == 422  # `to` required
 
 
+async def test_dashboard_over_http(client: AsyncClient):
+    await client.post("/api/v1/notes", json={"title": "First note"})
+
+    response = await client.get("/api/v1/dashboard")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["totals"]["total_notes"] == 1
+    assert [n["title"] for n in body["recent"]] == ["First note"]
+
+
 async def test_search_route_is_not_swallowed_by_note_id_route(client: AsyncClient):
     """GET /notes/search must resolve to search, not to GET /notes/{note_id}
     with note_id="search" (which would be a 422 UUID error)."""

@@ -3,6 +3,7 @@ from fastapi import APIRouter
 from app.api.v1.endpoints import (
     activity,
     collections,
+    dashboard,
     flashcards,
     notebooks,
     notes,
@@ -24,3 +25,4 @@ api_router.include_router(collections.router)
 api_router.include_router(flashcards.router)
 api_router.include_router(activity.router)
 api_router.include_router(notifications.router)
+api_router.include_router(dashboard.router)

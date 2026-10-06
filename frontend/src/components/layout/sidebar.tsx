@@ -5,6 +5,7 @@ import {
   GraduationCap,
   History,
   Inbox,
+  LayoutDashboard,
   Library,
   LogOut,
   Network,
@@ -22,6 +23,7 @@ import { useMe } from "@/hooks/use-user";
 import { supabase } from "@/lib/supabase";
 
 const NAV_ITEMS = [
+  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/workspaces", label: "Workspaces", icon: FolderKanban },
   { href: "/unfiled", label: "Unfiled", icon: Inbox },
   { href: "/collections", label: "Collections", icon: Library },

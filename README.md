@@ -35,6 +35,7 @@ This README describes the system as it exists, not as it was originally scoped �
 |---|---|
 | Auth | Sign up / sign in with email+password, or Google / GitHub OAuth. Sessions are Supabase-issued JWTs, verified by the backend via JWKS (no shared secret — [ADR-018](docs/adr/0018-jwt-verification-via-jwks.md)). |
 | Profile | Display name, bio, avatar upload (Supabase Storage), sign out. |
+| Home | The landing page after sign-in: totals, your most-connected notes, notes linked to nothing yet, and recent edits — each read from a database view (`v_user_dashboard`, `v_note_graph_stats`, `v_orphan_notes`). |
 | Workspaces & notebooks | Create, rename, color-code, delete. Deleting a workspace cascades; deleting a notebook un-files its notes instead of deleting them. |
 | Notes | Rich-text editing (Tiptap: headings, bold/italic/underline/strike, highlight, lists, task lists, quotes, code, links), autosave 1.5s after you stop typing, pin, public/private toggle. |
 | Unfiled notes | A dedicated view for notes with no notebook — including any left behind by a notebook delete. |
@@ -306,8 +307,9 @@ flowchart TD
     AuthChoice -- "Google / GitHub" --> Callback["/auth/callback<br/>exchanges the OAuth code"]
     Callback --> Session["Supabase issues a JWT session"]
     Session --> Sync["Trigger mirrors the account<br/>into public.users"]
-    HasSession -- Yes --> Workspaces
-    Sync --> Workspaces["/workspaces"]
+    HasSession -- Yes --> Home
+    Sync --> Home["/dashboard<br/>totals, hubs, orphans, recent"]
+    Home --> Workspaces["/workspaces"]
 
     Workspaces -- "create" --> WsDetail
     Workspaces -- "open" --> WsDetail["notebooks in this workspace"]
@@ -397,6 +399,7 @@ Interactive docs (`/docs`) are available when running outside production.
 | | `PATCH` | `/flashcards/{id}` | rewording keeps the schedule |
 | | `DELETE` | `/flashcards/{id}` | |
 | | `POST` | `/flashcards/{id}/review` | `quality` 0–5; runs SM-2 |
+| Dashboard | `GET` | `/dashboard` | totals, most-connected, orphans, recent |
 | Activity | `GET` | `/activity?limit=` | consecutive identical events merged |
 | Notifications | `GET` | `/notifications` | recent, read and unread |
 | | `GET` | `/notifications/unread-count` | the bell badge |

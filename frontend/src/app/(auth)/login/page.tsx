@@ -40,7 +40,7 @@ export default function LoginPage() {
       setServerError("Incorrect email or password.");
       return;
     }
-    router.push("/workspaces");
+    router.push("/dashboard");
   }
 
   return (
