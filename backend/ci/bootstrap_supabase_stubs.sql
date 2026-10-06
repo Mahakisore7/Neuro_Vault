@@ -11,8 +11,9 @@
 -- the real database, so a broken migration is caught here instead of only
 -- discovered against Supabase.
 --
--- Never run this anywhere but CI: a real project already has both schemas,
--- provisioned and owned by Supabase.
+-- Never run this anywhere but CI or a throwaway local database: a real project
+-- already has both schemas, provisioned and owned by Supabase. It is safe to
+-- re-run (every statement is IF NOT EXISTS / OR REPLACE / idempotent GRANT).
 
 CREATE SCHEMA IF NOT EXISTS auth;
 
@@ -22,12 +23,43 @@ CREATE TABLE IF NOT EXISTS auth.users (
     raw_user_meta_data jsonb NOT NULL DEFAULT '{}'::jsonb
 );
 
--- Real auth.uid() reads the JWT claim GoTrue set for the current request.
--- Nothing in CI authenticates as a real Supabase session, so NULL is the
--- only honest stand-in.
+-- Same body as Supabase's own auth.uid(): PostgREST puts the verified JWT's
+-- claims into these settings for each request, and the function reads `sub`
+-- from them (older format first, then the JSON one). Outside a request both
+-- are unset, so it returns NULL. Tests impersonate a user by setting
+-- request.jwt.claim.sub themselves (see app/tests/test_row_level_security.py).
 CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid
     LANGUAGE sql STABLE
-    AS $$ SELECT NULL::uuid $$;
+    AS $$
+        SELECT COALESCE(
+            NULLIF(current_setting('request.jwt.claim.sub', true), ''),
+            (NULLIF(current_setting('request.jwt.claims', true), '')::jsonb ->> 'sub')
+        )::uuid
+    $$;
+
+-- The two roles PostgREST switches to for every request: `anon` with no JWT,
+-- `authenticated` with one. RLS policies are written against these, so the
+-- tests need them to exist. Grants mirror Supabase's defaults: both roles get
+-- table privileges on everything in `public`, and RLS policies - not GRANTs -
+-- decide which ROWS they can touch. ALTER DEFAULT PRIVILEGES applies to tables
+-- the migrations create afterwards, as on a real project.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        CREATE ROLE anon NOLOGIN NOINHERIT;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+        CREATE ROLE authenticated NOLOGIN NOINHERIT;
+    END IF;
+END
+$$;
+GRANT USAGE ON SCHEMA public, auth TO anon, authenticated;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon, authenticated;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+    GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+    GRANT USAGE, SELECT ON SEQUENCES TO anon, authenticated;
 
 CREATE SCHEMA IF NOT EXISTS storage;
 

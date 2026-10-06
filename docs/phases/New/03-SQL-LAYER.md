@@ -1364,6 +1364,28 @@ layer, none of your authorization code.
 is [ADR-008](../../adr/0008-row-level-security.md), and it is the difference between a project
 that demonstrates security and one that only demonstrates intent.
 
+> **As built** (`alembic/versions/20261006_1500_row_level_security_policies.py`,
+> [ADR-023](../../adr/0023-rls-policies-as-built.md)). Four changes from the sketch below:
+>
+> - **No `auth.uid()` stand-in in the migration.** The "local development caveat" further
+>   down would `CREATE OR REPLACE` Supabase's own `auth.uid()`, and its body ignores the
+>   JSON claims current PostgREST sends, so every user would look anonymous.
+>   `backend/ci/bootstrap_supabase_stubs.sql` provides a Supabase-identical
+>   `auth.uid()`, plus the `anon` and `authenticated` roles, for CI and local Docker only.
+> - **`trg_notes_create_version` is `SECURITY DEFINER`.** `note_versions` has no INSERT
+>   policy, so with an invoker-rights trigger a client's own note edit would be denied
+>   halfway through and abort.
+> - **Every policy is `TO authenticated`**, and the public branch is
+>   `is_public AND NOT archived`. Without a `TO` clause, `anon` could read every public
+>   note, including trashed ones. Policies also call `(select auth.uid())`, which is
+>   evaluated once per statement instead of once per row.
+> - **`note_versions` gets a read policy** (history of your own notes), which the sketch
+>   left out. `alembic_version` gets RLS with no policy (deny-all).
+>
+> Downgrading drops the policies but leaves RLS on (deny-all): a rollback must never open
+> the tables to the anon key. The "Prove RLS works" demo at the end of this section is an
+> automated test now: `test_same_query_different_rows_by_identity`.
+
 ### `backend/alembic/versions/004_rls.py`
 
 ```python
@@ -1536,7 +1558,8 @@ Same table, same query, different results by identity. That is the demo.
 □ fn_shortest_path returns 4 steps from Normalization to BCNF
 □ sp_rollback_note_version restores content AND creates a version of what it replaced
 □ All 15 queries run against the seeded database
-□ Two different request.jwt.claim.sub values return different row counts
+□ Two different request.jwt.claim.sub values return different row counts (ADR-023)
+□ SET ROLE anon; SELECT * FROM notes returns nothing — not even public notes
 □ `alembic downgrade base` removes every index, view, function, trigger, and policy
 ```
 
