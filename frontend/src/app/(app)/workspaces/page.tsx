@@ -28,7 +28,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/error-state";
+import { useConfirm } from "@/components/confirm-dialog";
 import { useCreateWorkspace, useDeleteWorkspace, useWorkspaces } from "@/hooks/use-workspaces";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required").max(255),
@@ -53,8 +55,10 @@ function slugify(value: string) {
 export default function WorkspacesPage() {
   const router = useRouter();
   const { data: workspaces, isLoading, isError, refetch } = useWorkspaces();
+  usePageTitle("Workspaces");
   const createWorkspace = useCreateWorkspace();
   const deleteWorkspace = useDeleteWorkspace();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
 
   const {
@@ -77,7 +81,14 @@ export default function WorkspacesPage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete "${name}"? This removes every notebook and note inside it.`)) return;
+    const ok = await confirm({
+      title: `Delete "${name}"?`,
+      description:
+        "This permanently deletes the workspace with every notebook and note inside it. It can't be undone.",
+      confirmLabel: "Delete workspace",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await deleteWorkspace.mutateAsync(id);
       toast.success(`Workspace "${name}" deleted`);

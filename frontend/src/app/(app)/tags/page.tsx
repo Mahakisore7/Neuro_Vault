@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { ErrorState } from "@/components/error-state";
+import { useConfirm } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCreateTag, useDeleteTag, useTags } from "@/hooks/use-tags";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required").max(50),
@@ -52,8 +54,10 @@ function slugify(value: string) {
 
 export default function TagsPage() {
   const { data: tags, isLoading, isError, refetch } = useTags();
+  usePageTitle("Tags");
   const createTag = useCreateTag();
   const deleteTag = useDeleteTag();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
 
@@ -83,7 +87,13 @@ export default function TagsPage() {
   }
 
   async function handleDelete(id: number, name: string) {
-    if (!confirm(`Delete "${name}"? It's removed from every note it's on.`)) return;
+    const ok = await confirm({
+      title: `Delete the "${name}" tag?`,
+      description: "It's removed from every note it's on. The notes themselves stay.",
+      confirmLabel: "Delete tag",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await deleteTag.mutateAsync(id);
       toast.success(`Tag "${name}" deleted`);

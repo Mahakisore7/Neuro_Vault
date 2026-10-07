@@ -19,11 +19,13 @@ import {
   useReorderCollection,
 } from "@/hooks/use-collections";
 import { useAllNotes } from "@/hooks/use-notes";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function CollectionDetailPage() {
   const { collectionId } = useParams<{ collectionId: string }>();
   const router = useRouter();
   const { data: collection, isLoading, isError, refetch } = useCollection(collectionId);
+  usePageTitle(collection?.name);
   const addItem = useAddCollectionItem(collectionId);
   const removeItem = useRemoveCollectionItem(collectionId);
   const reorder = useReorderCollection(collectionId);

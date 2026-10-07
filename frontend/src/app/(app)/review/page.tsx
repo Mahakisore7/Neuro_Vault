@@ -9,6 +9,7 @@ import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDueFlashcards, useFlashcardSummary, useReviewFlashcard } from "@/hooks/use-flashcards";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 // Four buttons onto SM-2's 0-5 quality scale. "Again" is a lapse (< 3) and
 // restarts the card; the other three are passes of increasing ease.
@@ -32,6 +33,7 @@ function formatNextDue(iso: string) {
 export default function ReviewPage() {
   const { data: due, isLoading, isError, refetch } = useDueFlashcards();
   const { data: summary } = useFlashcardSummary();
+  usePageTitle(summary?.due ? `Review (${summary.due})` : "Review");
   const review = useReviewFlashcard();
 
   // The queue itself stays as fetched; what's been answered this session is

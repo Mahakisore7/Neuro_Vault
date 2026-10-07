@@ -19,9 +19,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useArchivedNotes, usePurgeNote, useRestoreNote } from "@/hooks/use-notes";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function TrashPage() {
   const { data: notes, isLoading, isError, refetch } = useArchivedNotes();
+  usePageTitle("Trash");
   const restore = useRestoreNote();
   const purge = usePurgeNote();
   const [pendingPurge, setPendingPurge] = useState<{ id: string; title: string } | null>(null);

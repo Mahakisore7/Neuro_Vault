@@ -14,16 +14,22 @@ import {
 } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNoteVersions, useRollbackVersion } from "@/hooks/use-notes";
+import { useConfirm } from "@/components/confirm-dialog";
 
 export function VersionHistoryDialog({ noteId }: { noteId: string }) {
   const [open, setOpen] = useState(false);
   const { data: versions, isLoading } = useNoteVersions(open ? noteId : undefined);
   const rollback = useRollbackVersion(noteId);
+  const confirm = useConfirm();
 
   async function handleRestore(versionNum: number) {
-    if (!confirm(`Restore version ${versionNum}? The current content becomes a new version, so this can always be undone too.`)) {
-      return;
-    }
+    const ok = await confirm({
+      title: `Restore version ${versionNum}?`,
+      description:
+        "The note goes back to this version. What it says now is saved as a new version first, so you can always switch back.",
+      confirmLabel: "Restore",
+    });
+    if (!ok) return;
     try {
       await rollback.mutateAsync(versionNum);
       toast.success(`Restored version ${versionNum}`);

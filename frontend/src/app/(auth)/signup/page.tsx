@@ -14,6 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { supabase } from "@/lib/supabase";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const schema = z
   .object({
@@ -31,6 +32,7 @@ type FormValues = z.infer<typeof schema>;
 
 export default function SignupPage() {
   const router = useRouter();
+  usePageTitle("Create account");
   const [serverError, setServerError] = useState<string | null>(null);
   const [confirmEmailSent, setConfirmEmailSent] = useState(false);
 

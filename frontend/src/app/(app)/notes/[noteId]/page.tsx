@@ -13,11 +13,13 @@ import { LinkPanel } from "@/components/notes/link-panel";
 import { TagPicker } from "@/components/notes/tag-picker";
 import { useNote, useUpdateNote } from "@/hooks/use-notes";
 import { useMe } from "@/hooks/use-user";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function NoteDetailPage() {
   const { noteId } = useParams<{ noteId: string }>();
   const router = useRouter();
   const { data: note, isLoading } = useNote(noteId);
+  usePageTitle(note?.title);
   const updateNote = useUpdateNote(noteId);
   const { data: me } = useMe();
 

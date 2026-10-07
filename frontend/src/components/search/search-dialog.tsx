@@ -98,11 +98,11 @@ export function SearchDialog() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-8 w-64 items-center gap-2 rounded-md border border-border bg-background px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+        className="flex h-8 w-full max-w-64 items-center gap-2 rounded-md border border-border bg-background px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
       >
         <Search className="size-3.5" />
         <span className="flex-1 text-left">Search notes…</span>
-        <kbd className="rounded border border-border px-1.5 font-mono text-[10px]">Ctrl K</kbd>
+        <kbd className="hidden rounded border border-border px-1.5 font-mono text-[10px] sm:inline">Ctrl K</kbd>
       </button>
 
       <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : close())}>
