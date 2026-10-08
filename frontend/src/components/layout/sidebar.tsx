@@ -58,8 +58,11 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   }
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-sidebar">
-      <div className="flex items-center gap-2 border-b px-4 py-4">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
+      {/* The sidebar is dark in both themes, so everything inside takes the
+          sidebar-* tokens. The page-level ones (foreground, muted, border) are
+          dark in light mode and made the wordmark and name near-invisible. */}
+      <div className="flex items-center gap-2 border-b border-sidebar-border px-4 py-4">
         <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Network className="size-4" />
         </div>
@@ -70,7 +73,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         {NAV_GROUPS.map((group, i) => (
           <div key={group.label ?? i} className="space-y-0.5">
             {group.label && (
-              <p className="px-3 pb-1 text-[11px] font-medium tracking-wider text-muted-foreground/80 uppercase">
+              <p className="px-3 pb-1 text-[11px] font-medium tracking-wider text-sidebar-foreground/50 uppercase">
                 {group.label}
               </p>
             )}
@@ -83,10 +86,10 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+                  className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none ${
                     active
                       ? "bg-primary text-primary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                   }`}
                 >
                   <item.icon className="size-4" />
@@ -95,7 +98,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                     <span
                       aria-label={`${flashcards.due} due`}
                       className={`ml-auto rounded-full px-1.5 text-xs tabular-nums ${
-                        active ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
+                        active ? "bg-primary-foreground/20" : "bg-sidebar-primary/25 text-sidebar-accent-foreground"
                       }`}
                     >
                       {flashcards.due}
@@ -108,13 +111,13 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
-      <div className="border-t p-3">
+      <div className="border-t border-sidebar-border p-3">
         <Link
           href="/profile"
           onClick={onNavigate}
           aria-current={pathname === "/profile" ? "page" : undefined}
-          className={`mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted ${
-            pathname === "/profile" ? "bg-muted" : ""
+          className={`mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-sidebar-accent ${
+            pathname === "/profile" ? "bg-sidebar-accent" : ""
           }`}
         >
           <Avatar className="size-7">
@@ -128,14 +131,14 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
               {user?.display_name ?? "Loading…"}
             </span>
             {user?.email && (
-              <span className="block truncate text-xs text-muted-foreground">{user.email}</span>
+              <span className="block truncate text-xs text-sidebar-foreground/60">{user.email}</span>
             )}
           </span>
         </Link>
         <Button
           variant="ghost"
           size="sm"
-          className="w-full justify-start gap-2 text-muted-foreground"
+          className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent"
           onClick={handleSignOut}
         >
           <LogOut className="size-4" />
