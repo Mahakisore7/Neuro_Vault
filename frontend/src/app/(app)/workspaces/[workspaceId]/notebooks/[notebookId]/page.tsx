@@ -44,7 +44,15 @@ export default function NotesPage() {
   const router = useRouter();
   const { data: notebook } = useNotebook(notebookId);
   usePageTitle(notebook?.name);
-  const { data: notes, isLoading, isError, refetch } = useNotes({ notebook_id: notebookId });
+  const {
+    notes,
+    isLoading,
+    isError,
+    refetch,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useNotes({ notebook_id: notebookId });
   const createNote = useCreateNote();
   const deleteNote = useDeleteNote();
   const restoreNote = useRestoreNote();
@@ -199,6 +207,16 @@ export default function NotesPage() {
               </CardHeader>
             </Card>
           ))}
+          {hasNextPage && (
+            <Button
+              variant="outline"
+              className="w-full"
+              disabled={isFetchingNextPage}
+              onClick={() => fetchNextPage()}
+            >
+              {isFetchingNextPage ? "Loading…" : "Load more notes"}
+            </Button>
+          )}
         </div>
       )}
     </div>

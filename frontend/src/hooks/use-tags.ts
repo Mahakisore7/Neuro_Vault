@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { noteKeys } from "@/hooks/use-notes";
 import { api } from "@/lib/api";
 import type { Tag, TagCreate, TagUpdate } from "@/types/api";
 
@@ -56,7 +57,11 @@ export function useAttachTag(noteId: string) {
     mutationFn: async (tagId: number) => {
       await api.post(`/notes/${noteId}/tags/${tagId}`);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: tagKeys.forNote(noteId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: tagKeys.forNote(noteId) });
+      // The Tags page lists notes by tag, so that list is now stale too.
+      qc.invalidateQueries({ queryKey: [...noteKeys.all, "list"] });
+    },
   });
 }
 
@@ -66,6 +71,10 @@ export function useDetachTag(noteId: string) {
     mutationFn: async (tagId: number) => {
       await api.delete(`/notes/${noteId}/tags/${tagId}`);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: tagKeys.forNote(noteId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: tagKeys.forNote(noteId) });
+      // The Tags page lists notes by tag, so that list is now stale too.
+      qc.invalidateQueries({ queryKey: [...noteKeys.all, "list"] });
+    },
   });
 }

@@ -61,7 +61,7 @@ Services raise domain exceptions, which are mapped to status codes in one place
 
 | Method | Path | Notes |
 |---|---|---|
-| `GET` | `/notes?notebook_id=&unfiled=&archived=` | Your notes; `archived=true` lists Trash |
+| `GET` | `/notes?notebook_id=&unfiled=&archived=&tag_id=&limit=&offset=` | Your notes; `archived=true` lists Trash, `tag_id` keeps notes carrying that tag. Pages of up to 100 (`limit`, default 50) |
 | `GET` | `/notes/search?q=&limit=` | Full-text search over your notes and public ones: ranked and highlighted, with a similar-titles fallback for typos (`fuzzy: true`) |
 | `POST` | `/notes` | |
 | `GET` | `/notes/{id}` | |

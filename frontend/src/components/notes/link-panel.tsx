@@ -27,6 +27,9 @@ export function LinkPanel({ noteId }: { noteId: string }) {
   // silently disabled with nothing in the UI explaining why: the fix is a
   // sensible default, not a clearer disabled state.
   const [relTypeId, setRelTypeId] = useState<number | null>(null);
+  // 1–10, the CHECK range on knowledge_links.strength; 5 is the API default.
+  // It sets edge thickness in the graph view.
+  const [strength, setStrength] = useState(5);
 
   const candidates = (allNotes ?? [])
     .filter((n) => n.id !== noteId)
@@ -43,12 +46,17 @@ export function LinkPanel({ noteId }: { noteId: string }) {
     setQuery("");
     setTargetId(null);
     setRelTypeId(null);
+    setStrength(5);
   }
 
   async function handleCreate() {
     if (!targetId || !effectiveRelTypeId) return;
     try {
-      await createLink.mutateAsync({ target_note_id: targetId, rel_type_id: effectiveRelTypeId });
+      await createLink.mutateAsync({
+        target_note_id: targetId,
+        rel_type_id: effectiveRelTypeId,
+        strength,
+      });
       setOpen(false);
       resetForm();
     } catch {
@@ -73,6 +81,7 @@ export function LinkPanel({ noteId }: { noteId: string }) {
         return (
           <span
             key={link.id}
+            title={`Strength ${link.strength}/10`}
             className="flex items-center gap-1.5 rounded-full border border-border py-0.5 pr-1 pl-2.5 text-xs"
           >
             <span
@@ -157,6 +166,29 @@ export function LinkPanel({ noteId }: { noteId: string }) {
                 {t.name}
               </button>
             ))}
+          </div>
+
+          <div className="mb-3 px-1">
+            <div className="mb-1 flex items-center justify-between">
+              <label htmlFor="link-strength" className="text-xs font-medium text-muted-foreground">
+                Strength
+              </label>
+              <span className="text-xs tabular-nums">{strength}/10</span>
+            </div>
+            <input
+              id="link-strength"
+              type="range"
+              min={1}
+              max={10}
+              step={1}
+              value={strength}
+              onChange={(e) => setStrength(Number(e.target.value))}
+              className="w-full accent-primary"
+            />
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              <span>Loose</span>
+              <span>Strong</span>
+            </div>
           </div>
 
           <Button

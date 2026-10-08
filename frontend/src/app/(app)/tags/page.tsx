@@ -1,7 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MoreVertical, Plus, Tag as TagIcon, Trash2 } from "lucide-react";
+import { FileText, MoreVertical, Pin, Plus, Tag as TagIcon, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -27,6 +28,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNotes } from "@/hooks/use-notes";
 import { useCreateTag, useDeleteTag, useTags } from "@/hooks/use-tags";
 import { usePageTitle } from "@/hooks/use-page-title";
 
@@ -58,6 +60,8 @@ export default function TagsPage() {
   const createTag = useCreateTag();
   const deleteTag = useDeleteTag();
   const confirm = useConfirm();
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const selected = tags?.find((t) => t.id === selectedId);
   const [open, setOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
 
@@ -190,10 +194,19 @@ export default function TagsPage() {
           {tags.map((tag) => (
             <div
               key={tag.id}
-              className="group flex items-center gap-1 rounded-full py-0.5 pr-1 pl-3"
+              className={`group flex items-center gap-1 rounded-full py-0.5 pr-1 pl-3 ${
+                tag.id === selectedId ? "ring-2 ring-current" : ""
+              }`}
               style={{ backgroundColor: `${tag.color}1A`, color: tag.color }}
             >
-              <span className="text-sm font-medium">{tag.name}</span>
+              <button
+                type="button"
+                aria-pressed={tag.id === selectedId}
+                onClick={() => setSelectedId(tag.id === selectedId ? null : tag.id)}
+                className="rounded-sm text-sm font-medium focus-visible:outline-2 focus-visible:outline-current"
+              >
+                {tag.name}
+              </button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -218,6 +231,74 @@ export default function TagsPage() {
           ))}
         </div>
       )}
+
+      {!isLoading && tags && tags.length > 0 && !selected && (
+        <p className="mt-6 text-sm text-muted-foreground">Select a tag to see its notes.</p>
+      )}
+      {selected && <TaggedNotes tagId={selected.id} tagName={selected.name} />}
     </div>
+  );
+}
+
+function TaggedNotes({ tagId, tagName }: { tagId: number; tagName: string }) {
+  const { notes, isLoading, isError, refetch, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useNotes({ tag_id: tagId });
+
+  return (
+    <section className="mt-8" aria-label={`Notes tagged ${tagName}`}>
+      <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+        Notes tagged <span className="text-foreground">{tagName}</span>
+        {notes && !hasNextPage && <span className="tabular-nums"> · {notes.length}</span>}
+      </h2>
+
+      {isLoading && (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-11 rounded-lg" />
+          ))}
+        </div>
+      )}
+
+      {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
+
+      {notes?.length === 0 && (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-12 text-center">
+          <FileText className="mb-2 size-6 text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">
+            No notes carry this tag yet. Add it from a note&rsquo;s tag bar.
+          </p>
+        </div>
+      )}
+
+      {notes && notes.length > 0 && (
+        <ul className="divide-y rounded-lg border">
+          {notes.map((note) => (
+            <li key={note.id}>
+              <Link
+                href={`/notes/${note.id}`}
+                className="flex items-center gap-2 px-4 py-2.5 text-sm hover:bg-muted"
+              >
+                {note.pinned && <Pin className="size-3.5 shrink-0 text-primary" />}
+                <span className="truncate">{note.title}</span>
+                <span className="ml-auto shrink-0 text-xs text-muted-foreground tabular-nums">
+                  {note.word_count} words
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {hasNextPage && (
+        <Button
+          variant="outline"
+          className="mt-2 w-full"
+          disabled={isFetchingNextPage}
+          onClick={() => fetchNextPage()}
+        >
+          {isFetchingNextPage ? "Loading…" : "Load more notes"}
+        </Button>
+      )}
+    </section>
   );
 }
