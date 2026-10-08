@@ -25,10 +25,18 @@ version history and an audit log written by triggers, ranked full-text search on
 index, graph traversal as a database function, and row level security as the last line of
 defence.
 
-<!--
-  Screenshots: add 2-3 here (dashboard, editor with links, graph view), e.g.
-  ![Graph view](docs/screenshots/graph.png)
--->
+![Dashboard: totals, most-connected notes and recent edits, computed by database views](docs/screenshots/dashboard.png)
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/note.png" alt="A note with tags, typed links and flashcards"><br><sub><b>Note</b>: tags, typed links in both directions, flashcards</sub></td>
+    <td width="50%"><img src="docs/screenshots/graph.png" alt="Graph view with a shortest path highlighted"><br><sub><b>Graph</b>: breadth-first search in PL/pgSQL, shortest path highlighted</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/search.png" alt="Search dialog with highlighted matches"><br><sub><b>Search</b>: ranked full-text search on a GIN index, matches highlighted</sub></td>
+    <td width="50%"><img src="docs/screenshots/review.png" alt="Flashcard review session"><br><sub><b>Review</b>: SM-2 spaced repetition</sub></td>
+  </tr>
+</table>
 
 ## Contents
 
