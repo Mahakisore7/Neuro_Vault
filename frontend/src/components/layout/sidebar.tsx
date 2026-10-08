@@ -22,19 +22,31 @@ import { useFlashcardSummary } from "@/hooks/use-flashcards";
 import { useMe } from "@/hooks/use-user";
 import { supabase } from "@/lib/supabase";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
-  { href: "/workspaces", label: "Workspaces", icon: FolderKanban },
-  { href: "/unfiled", label: "Unfiled", icon: Inbox },
-  { href: "/collections", label: "Collections", icon: Library },
-  { href: "/review", label: "Review", icon: GraduationCap },
-  { href: "/tags", label: "Tags", icon: Tags },
-  { href: "/activity", label: "Activity", icon: History },
-  { href: "/trash", label: "Trash", icon: Trash2 },
-  { href: "/profile", label: "Profile", icon: User },
+// Grouped so twelve destinations scan as four ideas. Profile isn't listed:
+// the account card at the bottom already links there.
+const NAV_GROUPS: { label?: string; items: { href: string; label: string; icon: typeof User }[] }[] = [
+  { items: [{ href: "/dashboard", label: "Home", icon: LayoutDashboard }] },
+  {
+    label: "Library",
+    items: [
+      { href: "/workspaces", label: "Workspaces", icon: FolderKanban },
+      { href: "/unfiled", label: "Unfiled", icon: Inbox },
+      { href: "/collections", label: "Collections", icon: Library },
+      { href: "/tags", label: "Tags", icon: Tags },
+    ],
+  },
+  { label: "Study", items: [{ href: "/review", label: "Review", icon: GraduationCap }] },
+  {
+    label: "History",
+    items: [
+      { href: "/activity", label: "Activity", icon: History },
+      { href: "/trash", label: "Trash", icon: Trash2 },
+    ],
+  },
 ];
 
-export function Sidebar() {
+/** onNavigate lets the mobile drawer close itself once a destination is picked. */
+export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: user } = useMe();
@@ -46,7 +58,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-muted/20">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r bg-sidebar">
       <div className="flex items-center gap-2 border-b px-4 py-4">
         <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Network className="size-4" />
@@ -54,41 +66,56 @@ export function Sidebar() {
         <span className="font-semibold tracking-tight">NeuroVault</span>
       </div>
 
-      <nav className="flex-1 space-y-1 p-3">
-        {NAV_ITEMS.map((item) => {
-          // Subpages (a notebook, a single collection) still highlight their section.
-          const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}
-            >
-              <item.icon className="size-4" />
-              {item.label}
-              {item.href === "/review" && flashcards && flashcards.due > 0 && (
-                <span
-                  aria-label={`${flashcards.due} due`}
-                  className={`ml-auto rounded-full px-1.5 text-xs tabular-nums ${
-                    active ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
+      <nav aria-label="Main" className="flex-1 space-y-4 overflow-y-auto p-3">
+        {NAV_GROUPS.map((group, i) => (
+          <div key={group.label ?? i} className="space-y-0.5">
+            {group.label && (
+              <p className="px-3 pb-1 text-[11px] font-medium tracking-wider text-muted-foreground/80 uppercase">
+                {group.label}
+              </p>
+            )}
+            {group.items.map((item) => {
+              // Subpages (a notebook, a single collection) still highlight their section.
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={onNavigate}
+                  aria-current={active ? "page" : undefined}
+                  className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
+                    active
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  {flashcards.due}
-                </span>
-              )}
-            </Link>
-          );
-        })}
+                  <item.icon className="size-4" />
+                  {item.label}
+                  {item.href === "/review" && flashcards && flashcards.due > 0 && (
+                    <span
+                      aria-label={`${flashcards.due} due`}
+                      className={`ml-auto rounded-full px-1.5 text-xs tabular-nums ${
+                        active ? "bg-primary-foreground/20" : "bg-primary/10 text-primary"
+                      }`}
+                    >
+                      {flashcards.due}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
       </nav>
 
       <div className="border-t p-3">
         <Link
           href="/profile"
-          className="mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted"
+          onClick={onNavigate}
+          aria-current={pathname === "/profile" ? "page" : undefined}
+          className={`mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-muted ${
+            pathname === "/profile" ? "bg-muted" : ""
+          }`}
         >
           <Avatar className="size-7">
             <AvatarImage src={user?.avatar_url ?? undefined} alt={user?.display_name ?? ""} />

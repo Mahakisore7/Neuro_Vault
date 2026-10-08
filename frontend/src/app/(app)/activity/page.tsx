@@ -19,6 +19,7 @@ import Link from "next/link";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useActivityFeed } from "@/hooks/use-notifications";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { timeAgo } from "@/lib/time";
 import type { ActivityEntry } from "@/types/api";
 
@@ -82,6 +83,7 @@ function dayLabel(iso: string) {
 
 export default function ActivityPage() {
   const { data: feed, isLoading, isError, refetch } = useActivityFeed();
+  usePageTitle("Activity");
 
   // Group consecutive entries by calendar day; the feed is already newest-first.
   const days: { label: string; entries: ActivityEntry[] }[] = [];

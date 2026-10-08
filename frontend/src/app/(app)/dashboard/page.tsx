@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboard } from "@/hooks/use-dashboard";
 import { useMe } from "@/hooks/use-user";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { timeAgo } from "@/lib/time";
 import type { DashboardNote } from "@/types/api";
 
@@ -96,6 +97,7 @@ function NoteList({
 export default function DashboardPage() {
   const { data: me } = useMe();
   const { data, isLoading, isError, refetch } = useDashboard();
+  usePageTitle("Home");
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10">

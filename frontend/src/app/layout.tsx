@@ -18,8 +18,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// No `title` here on purpose. A metadata title is streamed into <head> after
+// hydration and overwrites any title a client page sets, and nearly every page
+// is a client component that names its own tab (hooks/use-page-title.ts). The
+// public landing page gets its title from app/(marketing)/layout.tsx.
 export const metadata: Metadata = {
-  title: "NeuroVault",
   description: "A personal knowledge base where notes form a graph.",
 };
 

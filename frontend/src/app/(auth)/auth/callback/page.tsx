@@ -7,8 +7,10 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function AuthCallbackPage() {
+  usePageTitle("Signing in");
   const router = useRouter();
   const [failed, setFailed] = useState(false);
 

@@ -30,7 +30,8 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/error-state";
 import { useNotebook } from "@/hooks/use-notebooks";
-import { useCreateNote, useDeleteNote, useNotes } from "@/hooks/use-notes";
+import { useCreateNote, useDeleteNote, useNotes, useRestoreNote } from "@/hooks/use-notes";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const schema = z.object({
   title: z.string().min(1, "Title is required").max(255),
@@ -42,9 +43,11 @@ export default function NotesPage() {
   const { workspaceId, notebookId } = useParams<{ workspaceId: string; notebookId: string }>();
   const router = useRouter();
   const { data: notebook } = useNotebook(notebookId);
+  usePageTitle(notebook?.name);
   const { data: notes, isLoading, isError, refetch } = useNotes({ notebook_id: notebookId });
   const createNote = useCreateNote();
   const deleteNote = useDeleteNote();
+  const restoreNote = useRestoreNote();
   const [open, setOpen] = useState(false);
 
   const {
@@ -66,12 +69,20 @@ export default function NotesPage() {
   }
 
   async function handleDelete(id: string, title: string) {
-    if (!confirm(`Move "${title}" to Trash? You can restore it from Trash later.`)) return;
+    // Reversible, so no "are you sure?" - act at once and offer Undo instead.
     try {
       await deleteNote.mutateAsync(id);
-      toast.success(`"${title}" moved to Trash`);
+      toast(`"${title}" moved to Trash`, {
+        action: {
+          label: "Undo",
+          onClick: () =>
+            restoreNote.mutate(id, {
+              onError: () => toast.error("Couldn't restore it — it's still in Trash."),
+            }),
+        },
+      });
     } catch {
-      toast.error("Couldn't archive the note.");
+      toast.error("Couldn't move the note to Trash.");
     }
   }
 

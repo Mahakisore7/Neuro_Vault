@@ -17,6 +17,7 @@ import {
   useShortestPath,
 } from "@/hooks/use-links";
 import { useAllNotes, useNote } from "@/hooks/use-notes";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const MAX_DEPTH_CEILING = 6; // mirrors backend settings.graph_max_depth
 
@@ -26,6 +27,7 @@ export default function NoteGraphPage() {
   const [maxDepth, setMaxDepth] = useState(3);
 
   const { data: note, isLoading: noteLoading } = useNote(noteId);
+  usePageTitle(note ? `${note.title} — graph` : undefined);
   const {
     data: graph,
     isLoading: graphLoading,

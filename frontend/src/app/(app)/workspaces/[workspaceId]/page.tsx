@@ -29,8 +29,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/error-state";
+import { useConfirm } from "@/components/confirm-dialog";
 import { useCreateNotebook, useDeleteNotebook, useNotebooks } from "@/hooks/use-notebooks";
 import { useWorkspace } from "@/hooks/use-workspaces";
+import { usePageTitle } from "@/hooks/use-page-title";
 
 const schema = z.object({
   name: z.string().min(1, "Name is required").max(255),
@@ -46,9 +48,11 @@ export default function NotebooksPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const router = useRouter();
   const { data: workspace } = useWorkspace(workspaceId);
+  usePageTitle(workspace?.name);
   const { data: notebooks, isLoading, isError, refetch } = useNotebooks(workspaceId);
   const createNotebook = useCreateNotebook(workspaceId);
   const deleteNotebook = useDeleteNotebook(workspaceId);
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState("#4CAF50");
 
@@ -78,7 +82,13 @@ export default function NotebooksPage() {
   }
 
   async function handleDelete(id: string, name: string) {
-    if (!confirm(`Delete "${name}"? Notes inside become unfiled, not deleted.`)) return;
+    const ok = await confirm({
+      title: `Delete the "${name}" notebook?`,
+      description: "Its notes aren't deleted — they move to Unfiled.",
+      confirmLabel: "Delete notebook",
+      destructive: true,
+    });
+    if (!ok) return;
     try {
       await deleteNotebook.mutateAsync(id);
       toast.success(`Notebook "${name}" deleted`);

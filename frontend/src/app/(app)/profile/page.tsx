@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { useMe, useUpdateMe } from "@/hooks/use-user";
+import { usePageTitle } from "@/hooks/use-page-title";
 import { supabase } from "@/lib/supabase";
 
 const schema = z.object({
@@ -29,6 +30,7 @@ type FormValues = z.infer<typeof schema>;
 export default function ProfilePage() {
   const router = useRouter();
   const { data: user, isLoading, isError, refetch } = useMe();
+  usePageTitle("Profile");
   const updateMe = useUpdateMe();
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
