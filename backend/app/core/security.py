@@ -19,6 +19,13 @@ class TokenError(Exception):
 # (e.g. after Supabase rotates the signing key). One client for the process.
 _jwks_client = PyJWKClient(f"{settings.supabase_url}/auth/v1/.well-known/jwks.json")
 
+# Supabase stamps iat from its own clock. If this server's clock is even a
+# fraction of a second behind, a token used right after sign-in has an iat
+# "in the future" and PyJWT rejects it as not yet valid: the user sees
+# "session expired" on their first page load. A few seconds of tolerance is
+# the standard fix; it also lets exp run that long past, which is harmless.
+CLOCK_SKEW_LEEWAY_SECONDS = 30
+
 
 def decode_access_token(token: str) -> dict:
     """Verify a Supabase-issued JWT.
@@ -41,6 +48,7 @@ def decode_access_token(token: str) -> dict:
             algorithms=["ES256"],
             audience="authenticated",
             options={"require": ["exp", "sub"]},
+            leeway=CLOCK_SKEW_LEEWAY_SECONDS,
         )
     except (InvalidTokenError, PyJWKClientError) as exc:
         raise TokenError("Invalid or expired token") from exc
