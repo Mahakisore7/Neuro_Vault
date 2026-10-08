@@ -73,6 +73,7 @@ defence.
 - **Activity timeline** of what changed, and **notifications** when someone links to your
   public note
 - Email/password or Google/GitHub sign-in, avatar upload, light/dark theme
+- Works on phones (the sidebar becomes a slide-in menu); Move to Trash comes with Undo
 
 ## Database highlights
 
