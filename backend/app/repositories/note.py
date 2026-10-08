@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy import Row, select, text
 
 from app.models.note import Note
+from app.models.tag import NoteTag
 from app.repositories.base import BaseRepository
 
 # docs/phases/New/03-SQL-LAYER.md Q15, with two changes: chr(1)/chr(2)
@@ -68,13 +69,16 @@ class NoteRepository(BaseRepository[Note]):
         notebook_id: UUID | None = None,
         unfiled: bool = False,
         archived: bool = False,
+        tag_id: int | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> Sequence[Note]:
         stmt = (
             select(Note)
             .where(Note.creator_id == user_id, Note.archived == archived)
-            .order_by(Note.pinned.desc(), Note.updated_at.desc())
+            # id breaks ties, so a page boundary can't fall between two notes
+            # with the same updated_at and show one twice (or skip it).
+            .order_by(Note.pinned.desc(), Note.updated_at.desc(), Note.id)
             .limit(limit)
             .offset(offset)
         )
@@ -85,6 +89,15 @@ class NoteRepository(BaseRepository[Note]):
             stmt = stmt.where(Note.notebook_id.is_(None))
         elif notebook_id is not None:
             stmt = stmt.where(Note.notebook_id == notebook_id)
+        if tag_id is not None:
+            # EXISTS, not a JOIN: a semi-join can never return a note twice.
+            # Someone else's tag_id just matches nothing — note_tags rows
+            # carry the note's owner, and the outer query is the caller's notes.
+            stmt = stmt.where(
+                select(NoteTag.note_id)
+                .where(NoteTag.note_id == Note.id, NoteTag.tag_id == tag_id)
+                .exists()
+            )
         return (await self.db.execute(stmt)).scalars().all()
 
     async def search(self, user_id: UUID, q: str, limit: int) -> Sequence[Row]:

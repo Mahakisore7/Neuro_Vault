@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { api } from "@/lib/api";
 import type {
@@ -16,12 +16,41 @@ export const noteKeys = {
   detail: (id: string) => [...noteKeys.all, "detail", id] as const,
 };
 
-export function useNotes(filters: { notebook_id?: string; archived?: boolean } = {}) {
-  return useQuery({
-    queryKey: noteKeys.list(filters),
-    queryFn: async () => (await api.get<NoteSummary[]>("/notes", { params: filters })).data,
-    enabled: Boolean(filters.notebook_id),
+const PAGE_SIZE = 50;
+const MAX_LIMIT = 100; // the API's per-request cap on GET /notes
+
+// Follows offset until a short page, so a list is never silently cut off
+// at the API's per-request cap.
+async function fetchEveryNote(params: Record<string, unknown> = {}) {
+  const notes: NoteSummary[] = [];
+  for (let offset = 0; ; offset += MAX_LIMIT) {
+    const page = (
+      await api.get<NoteSummary[]>("/notes", { params: { ...params, limit: MAX_LIMIT, offset } })
+    ).data;
+    notes.push(...page);
+    if (page.length < MAX_LIMIT) return notes;
+  }
+}
+
+// One notebook's (or one tag's) notes, a page at a time. The API caps each
+// response, so a plain query silently stopped at the first 50 notes;
+// fetchNextPage() asks for the next slice until a short page says there's
+// no more.
+export function useNotes(filters: { notebook_id?: string; tag_id?: number }) {
+  const query = useInfiniteQuery({
+    queryKey: noteKeys.list({ ...filters, paged: true }),
+    queryFn: async ({ pageParam }) =>
+      (
+        await api.get<NoteSummary[]>("/notes", {
+          params: { ...filters, limit: PAGE_SIZE, offset: pageParam },
+        })
+      ).data,
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length * PAGE_SIZE,
+    enabled: Boolean(filters.notebook_id || filters.tag_id),
   });
+  return { ...query, notes: query.data?.pages.flat() };
 }
 
 // Notes left behind when their notebook was deleted (notebook_id set to
@@ -32,18 +61,17 @@ export function useUnfiledNotes() {
   const filters = { unfiled: true };
   return useQuery({
     queryKey: noteKeys.list(filters),
-    queryFn: async () => (await api.get<NoteSummary[]>("/notes", { params: filters })).data,
+    queryFn: () => fetchEveryNote(filters),
   });
 }
 
 // Every note the caller owns, across every notebook and workspace — for
-// pickers (e.g. choosing a target note to link to) that need the whole set
-// rather than one notebook's worth. useNotes() above only fires with a
-// notebook_id because "list everything" was never a UI need until this one.
+// pickers (e.g. choosing a target note to link to) that need the whole set.
+// Stopping at the first 100 used to leave older notes impossible to pick.
 export function useAllNotes(options: { enabled?: boolean } = {}) {
   return useQuery({
-    queryKey: noteKeys.list({}),
-    queryFn: async () => (await api.get<NoteSummary[]>("/notes", { params: { limit: 100 } })).data,
+    queryKey: noteKeys.list({ all: true }),
+    queryFn: () => fetchEveryNote(),
     enabled: options.enabled ?? true,
   });
 }
@@ -65,7 +93,7 @@ export function useArchivedNotes() {
   const filters = { archived: true };
   return useQuery({
     queryKey: noteKeys.list(filters),
-    queryFn: async () => (await api.get<NoteSummary[]>("/notes", { params: filters })).data,
+    queryFn: () => fetchEveryNote(filters),
   });
 }
 

@@ -34,6 +34,7 @@ async def list_notes(
     notebook_id: UUID | None = None,
     unfiled: bool = False,
     archived: bool = False,
+    tag_id: int | None = None,
     limit: int = Query(default=50, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
 ) -> list[NoteSummary]:
@@ -42,6 +43,7 @@ async def list_notes(
         notebook_id=notebook_id,
         unfiled=unfiled,
         archived=archived,
+        tag_id=tag_id,
         limit=limit,
         offset=offset,
     )

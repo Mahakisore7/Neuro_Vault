@@ -146,6 +146,7 @@ class NoteService:
         notebook_id: UUID | None = None,
         unfiled: bool = False,
         archived: bool = False,
+        tag_id: int | None = None,
         limit: int = 50,
         offset: int = 0,
     ) -> list[NoteSummary]:
@@ -154,6 +155,7 @@ class NoteService:
             notebook_id=notebook_id,
             unfiled=unfiled,
             archived=archived,
+            tag_id=tag_id,
             limit=limit,
             offset=offset,
         )
