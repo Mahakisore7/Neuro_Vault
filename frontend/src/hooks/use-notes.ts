@@ -118,6 +118,16 @@ export function usePurgeNote() {
   });
 }
 
+// Every note in Trash, permanently, in one request (one DELETE statement on
+// the server) rather than a purge per note.
+export function useEmptyTrash() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async () => (await api.delete<{ deleted: number }>("/notes/trash")).data,
+    onSuccess: () => qc.invalidateQueries({ queryKey: noteKeys.all }),
+  });
+}
+
 export function useNote(id: string | undefined) {
   return useQuery({
     queryKey: noteKeys.detail(id ?? ""),

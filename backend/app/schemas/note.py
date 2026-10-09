@@ -97,3 +97,7 @@ class NoteVersionSummary(BaseModel):
     title: str
     edited_by: UUID | None
     created_at: datetime
+
+
+class TrashEmptied(BaseModel):
+    deleted: int

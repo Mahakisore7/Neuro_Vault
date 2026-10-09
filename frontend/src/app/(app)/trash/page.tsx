@@ -4,6 +4,7 @@ import { RotateCcw, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { useConfirm } from "@/components/confirm-dialog";
 import { ErrorState } from "@/components/error-state";
 import {
   AlertDialog,
@@ -18,7 +19,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useArchivedNotes, usePurgeNote, useRestoreNote } from "@/hooks/use-notes";
+import { useArchivedNotes, useEmptyTrash, usePurgeNote, useRestoreNote } from "@/hooks/use-notes";
 import { usePageTitle } from "@/hooks/use-page-title";
 
 export default function TrashPage() {
@@ -26,6 +27,8 @@ export default function TrashPage() {
   usePageTitle("Trash");
   const restore = useRestoreNote();
   const purge = usePurgeNote();
+  const emptyTrash = useEmptyTrash();
+  const confirm = useConfirm();
   const [pendingPurge, setPendingPurge] = useState<{ id: string; title: string } | null>(null);
 
   async function handleRestore(id: string, title: string) {
@@ -50,13 +53,44 @@ export default function TrashPage() {
     }
   }
 
+  async function handleEmptyTrash() {
+    const count = notes?.length ?? 0;
+    const ok = await confirm({
+      title: `Delete ${count} ${count === 1 ? "note" : "notes"} forever?`,
+      description:
+        "Everything in Trash is deleted permanently, with its version history, links, tags and flashcards. This can't be undone.",
+      confirmLabel: "Empty Trash",
+      destructive: true,
+    });
+    if (!ok) return;
+    try {
+      const { deleted } = await emptyTrash.mutateAsync();
+      toast.success(`Trash emptied: ${deleted} ${deleted === 1 ? "note" : "notes"} deleted`);
+    } catch {
+      toast.error("Couldn't empty Trash. Nothing was deleted.");
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Trash</h1>
-        <p className="text-sm text-muted-foreground">
-          Archived notes keep their full history and connections until you delete them here.
-        </p>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Trash</h1>
+          <p className="text-sm text-muted-foreground">
+            Archived notes keep their full history and connections until you delete them here.
+          </p>
+        </div>
+        {notes && notes.length > 0 && (
+          <Button
+            variant="outline"
+            className="shrink-0 text-destructive hover:text-destructive"
+            disabled={emptyTrash.isPending}
+            onClick={handleEmptyTrash}
+          >
+            <Trash2 />
+            {emptyTrash.isPending ? "Emptying…" : "Empty Trash"}
+          </Button>
+        )}
       </div>
 
       {isLoading && (
@@ -121,8 +155,8 @@ export default function TrashPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete &ldquo;{pendingPurge?.title}&rdquo; forever?</AlertDialogTitle>
             <AlertDialogDescription>
-              This removes the note, its entire version history, and every link to or from it.
-              It can&apos;t be undone.
+              This removes the note, its entire version history, and every link to or from it. It
+              can&apos;t be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

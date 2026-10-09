@@ -220,6 +220,14 @@ class NoteService:
         note.archived = True
         await self.db.flush()
 
+    async def empty_trash(self, user: User) -> int:
+        """purge() for every archived note the user owns, as one DELETE.
+
+        Only archived notes, only the caller's: the WHERE clause is the whole
+        safety story, so a live note can't be reached through this.
+        """
+        return await self.notes.delete_archived(user.id)
+
     async def purge(self, note_id: UUID, user: User) -> None:
         """The real SQL DELETE that delete() deliberately isn't.
 

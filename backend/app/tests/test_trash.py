@@ -86,3 +86,21 @@ async def test_cannot_purge_someone_elses_note(db, user, make_user):
 
     with pytest.raises(PermissionDeniedError):
         await notes.purge(note.id, stranger)
+
+
+async def test_empty_trash_deletes_only_the_callers_archived_notes(db, user, make_user):
+    notes = NoteService(db)
+    live = await notes.create(NoteCreate(title="Live", content="x"), user)
+    trashed = [await notes.create(NoteCreate(title=f"T{i}", content="x"), user) for i in range(3)]
+    for n in trashed:
+        await notes.delete(n.id, user)
+    stranger = await make_user(display_name="Stranger")
+    theirs = await notes.create(NoteCreate(title="Theirs", content="x"), stranger)
+    await notes.delete(theirs.id, stranger)
+
+    assert await notes.empty_trash(user) == 3
+
+    assert await notes.list(user, archived=True) == []
+    assert [n.id for n in await notes.list(user)] == [live.id]
+    # Someone else's Trash is untouched.
+    assert [n.id for n in await notes.list(stranger, archived=True)] == [theirs.id]

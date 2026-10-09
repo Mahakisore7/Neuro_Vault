@@ -26,7 +26,8 @@ type SaveState = "idle" | "unsaved" | "saving" | "saved" | "error";
 // each keystroke would produce a version row per character.
 const AUTOSAVE_DELAY_MS = 1500;
 
-export function NoteEditor({ note }: { note: Note }) {
+/** readOnly: someone else's public note - viewable, never saved. */
+export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: boolean }) {
   const qc = useQueryClient();
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -52,9 +53,7 @@ export function NoteEditor({ note }: { note: Note }) {
     inFlight.current += 1;
     setSaveState("saving");
 
-    const request = queue.current.then(() =>
-      api.patch<Note>(`/notes/${note.id}`, { content }),
-    );
+    const request = queue.current.then(() => api.patch<Note>(`/notes/${note.id}`, { content }));
     queue.current = request.catch(() => undefined);
     request
       .then(({ data }) => {
@@ -86,6 +85,7 @@ export function NoteEditor({ note }: { note: Note }) {
     // immediatelyRender: false, Tiptap warns about an SSR hydration
     // mismatch, because the editor DOM it produces isn't deterministic.
     immediatelyRender: false,
+    editable: !readOnly,
     extensions: [
       StarterKit,
       Underline,
@@ -158,27 +158,34 @@ export function NoteEditor({ note }: { note: Note }) {
             </>
           )}
         </span>
-        <span aria-live="polite" className="flex items-center gap-2">
-          {saveState === "unsaved" && "Unsaved changes"}
-          {saveState === "saving" && "Saving…"}
-          {saveState === "saved" && "Saved"}
-          {saveState === "error" && (
-            <>
-              <span className="text-destructive">Couldn&rsquo;t save</span>
-              <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={flush}>
-                Retry
-              </Button>
-            </>
-          )}
-          <kbd className="hidden rounded border px-1 font-mono text-[10px] sm:inline" title="Save now">
-            Ctrl S
-          </kbd>
-        </span>
+        {readOnly ? (
+          <span>Read-only: this public note belongs to someone else</span>
+        ) : (
+          <span aria-live="polite" className="flex items-center gap-2">
+            {saveState === "unsaved" && "Unsaved changes"}
+            {saveState === "saving" && "Saving…"}
+            {saveState === "saved" && "Saved"}
+            {saveState === "error" && (
+              <>
+                <span className="text-destructive">Couldn&rsquo;t save</span>
+                <Button variant="outline" size="sm" className="h-6 px-2 text-xs" onClick={flush}>
+                  Retry
+                </Button>
+              </>
+            )}
+            <kbd
+              className="hidden rounded border px-1 font-mono text-[10px] sm:inline"
+              title="Save now"
+            >
+              Ctrl S
+            </kbd>
+          </span>
+        )}
       </div>
 
       <div className="rounded-lg border bg-card ring-1 ring-transparent transition-shadow focus-within:ring-ring/30">
-        {editor && <EditorToolbar editor={editor} />}
-        {editor && <EditorFloatingMenu editor={editor} />}
+        {editor && !readOnly && <EditorToolbar editor={editor} />}
+        {editor && !readOnly && <EditorFloatingMenu editor={editor} />}
         <EditorContent editor={editor} />
       </div>
     </div>

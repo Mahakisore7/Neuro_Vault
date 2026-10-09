@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { ConfirmProvider } from "@/components/confirm-dialog";
+import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
 import { Sidebar } from "@/components/layout/sidebar";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { SearchDialog } from "@/components/search/search-dialog";
@@ -101,6 +102,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
             </Button>
             <div className="min-w-0 flex-1">
               <SearchDialog />
+              <KeyboardShortcuts />
             </div>
             <div className="flex items-center gap-1">
               <NotificationBell />
