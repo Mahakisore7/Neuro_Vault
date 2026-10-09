@@ -100,7 +100,9 @@ export default function NoteDetailPage() {
         {me?.id === note.creator_id && <FlashcardPanel noteId={note.id} />}
       </div>
 
-      <NoteEditor note={note} />
+      {/* Keyed so moving straight to another note remounts the editor,
+          which saves the previous note's outstanding edits on the way out. */}
+      <NoteEditor key={note.id} note={note} />
     </div>
   );
 }
