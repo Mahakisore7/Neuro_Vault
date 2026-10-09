@@ -35,6 +35,8 @@ Services raise domain exceptions, which are mapped to status codes in one place
 |---|---|---|
 | `GET` | `/users/me` | The signed-in user's profile |
 | `PATCH` | `/users/me` | Update display name, bio, or avatar URL |
+| `GET` | `/users/me/export` | Everything you own as one JSON document (a download), built by a single SQL statement |
+| `DELETE` | `/users/me` | Permanently delete the account: the app row (cascading to all your data) and the Supabase login, in one transaction |
 
 ### Dashboard
 

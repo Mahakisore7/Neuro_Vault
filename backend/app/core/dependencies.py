@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.security import TokenError, decode_access_token
 from app.db.session import get_db
 from app.models.user import User
+from app.repositories.account import AccountRepository
 
 bearer_scheme = HTTPBearer(auto_error=True)
 
@@ -44,6 +45,17 @@ async def get_current_user(
     # at signup. This still runs for any row that predates the trigger, or
     # if it's ever missed - so it reads the same OAuth metadata keys the
     # trigger does, to build an equivalent row either way.
+    #
+    # Only for a login that still exists. Access tokens stay valid until they
+    # expire, so after an account is deleted its last token could otherwise
+    # come back within the hour and silently re-create an empty account.
+    if not await AccountRepository(db).login_exists(user_id):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
     metadata = payload.get("user_metadata", {})
     email = payload.get("email") or f"{user_id}@placeholder.local"
     display_name = (
