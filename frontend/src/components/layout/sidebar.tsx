@@ -74,7 +74,7 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         {NAV_GROUPS.map((group, i) => (
           <div key={group.label ?? i} className="space-y-0.5">
             {group.label && (
-              <p className="px-3 pb-1 text-[11px] font-medium tracking-wider text-sidebar-foreground/50 uppercase">
+              <p className="px-3 pb-1 text-[11px] font-medium tracking-wider text-sidebar-foreground/75 uppercase">
                 {group.label}
               </p>
             )}

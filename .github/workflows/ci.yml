@@ -104,3 +104,20 @@ jobs:
 
       - name: Build
         run: pnpm run build
+
+      # Browser tests against the build above, with the API and Supabase
+      # mocked in the test (frontend/e2e/mock-backend.ts): signed-in flows,
+      # the editor's save behaviour, and an axe accessibility scan per page.
+      - name: Install Playwright browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: End-to-end and accessibility tests (Playwright + axe)
+        run: pnpm run test:e2e
+
+      - name: Upload Playwright traces on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: frontend/test-results/
+          retention-days: 7
