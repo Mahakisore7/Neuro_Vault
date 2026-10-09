@@ -58,7 +58,10 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
-    expose_headers=["X-Request-ID", "Retry-After"],
+    # Cross-origin JS can only read headers listed here. Content-Disposition
+    # carries the export's filename; without it the download fell back to a
+    # generic name (caught by the e2e suite).
+    expose_headers=["X-Request-ID", "Retry-After", "Content-Disposition"],
 )
 
 
