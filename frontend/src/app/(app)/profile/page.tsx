@@ -8,6 +8,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 
+import { DataExportCard } from "@/components/account/data-export-card";
+import { DeleteAccountCard } from "@/components/account/delete-account-card";
+import { PasswordCard } from "@/components/account/password-card";
 import { ErrorState } from "@/components/error-state";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -202,6 +205,10 @@ export default function ProfilePage() {
           </Button>
         </CardContent>
       </Card>
+
+      <PasswordCard />
+      <DataExportCard />
+      <DeleteAccountCard email={user.email} />
     </div>
   );
 }

@@ -1,6 +1,9 @@
+from typing import Any
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
+from app.repositories.account import AccountRepository
 from app.schemas.user import UserResponse, UserUpdate
 
 
@@ -19,4 +22,8 @@ class UserService:
         await self.db.refresh(user)
         return UserResponse.model_validate(user)
 
+    async def export(self, user: User) -> dict[str, Any]:
+        return await AccountRepository(self.db).export(user.id)
 
+    async def delete_account(self, user: User) -> None:
+        await AccountRepository(self.db).delete(user.id)

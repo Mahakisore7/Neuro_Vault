@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/lib/supabase";
+import { authRedirect, supabase } from "@/lib/supabase";
 
 const FEATURES = [
   {
@@ -35,6 +35,13 @@ export default function LandingPage() {
   // starts false so nothing renders until we know which case this is —
   // avoids flashing the hero at someone about to be redirected away.
   useEffect(() => {
+    // Supabase sends a reset link here when /reset-password isn't on the
+    // project's redirect allow-list. It still signs the user in, so without
+    // this the link would land on the dashboard and never ask for a password.
+    if (authRedirect.type === "recovery" || authRedirect.errorCode) {
+      router.replace("/reset-password");
+      return;
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         router.replace("/dashboard");
