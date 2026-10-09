@@ -18,6 +18,7 @@ from app.schemas.note import (
     NoteSummary,
     NoteUpdate,
     NoteVersionSummary,
+    TrashEmptied,
 )
 from app.schemas.tag import TagResponse
 from app.services.link import LinkService
@@ -59,6 +60,14 @@ async def search_notes(
     limit: int = Query(default=20, ge=1, le=50),
 ) -> list[NoteSearchResult]:
     return await NoteService(db).search(user, q, limit)
+
+
+# Above the /{note_id} routes for the same reason as /search: "trash" would
+# otherwise be parsed as a note_id.
+@router.delete("/trash", response_model=TrashEmptied)
+async def empty_trash(user: CurrentUser, db: DbSession) -> TrashEmptied:
+    """Permanently delete every note in the caller's Trash, in one statement."""
+    return TrashEmptied(deleted=await NoteService(db).empty_trash(user))
 
 
 @router.post("", response_model=NoteResponse, status_code=status.HTTP_201_CREATED)

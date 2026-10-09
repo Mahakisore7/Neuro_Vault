@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from uuid import UUID
 
-from sqlalchemy import Row, select, text
+from sqlalchemy import Row, delete, select, text
 
 from app.models.note import Note
 from app.models.tag import NoteTag
@@ -99,6 +99,14 @@ class NoteRepository(BaseRepository[Note]):
                 .exists()
             )
         return (await self.db.execute(stmt)).scalars().all()
+
+    async def delete_archived(self, user_id: UUID) -> int:
+        result = await self.db.execute(
+            delete(Note)
+            .where(Note.creator_id == user_id, Note.archived.is_(True))
+            .returning(Note.id)
+        )
+        return len(result.all())
 
     async def search(self, user_id: UUID, q: str, limit: int) -> Sequence[Row]:
         # The visibility predicate is in the SQL, not applied afterwards in

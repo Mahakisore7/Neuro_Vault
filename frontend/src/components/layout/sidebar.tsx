@@ -24,7 +24,8 @@ import { supabase } from "@/lib/supabase";
 
 // Grouped so twelve destinations scan as four ideas. Profile isn't listed:
 // the account card at the bottom already links there.
-const NAV_GROUPS: { label?: string; items: { href: string; label: string; icon: typeof User }[] }[] = [
+// Also the "Go to" list in the command palette, so the two never disagree.
+export const NAV_GROUPS: { label?: string; items: { href: string; label: string; icon: typeof User }[] }[] = [
   { items: [{ href: "/dashboard", label: "Home", icon: LayoutDashboard }] },
   {
     label: "Library",
