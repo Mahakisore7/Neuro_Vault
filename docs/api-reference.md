@@ -19,6 +19,11 @@ generated from the code, so they are always current. This page is the curated ov
 Services raise domain exceptions, which are mapped to status codes in one place
 (`app/main.py`). Every error body has the same shape: `{"detail": "<message>"}`.
 
+Every response carries an `X-Request-ID` header (a well-formed one sent by the caller is
+reused). It is also on each line of the JSON access log, so a reported failure can be
+traced. An unexpected server error returns `500` with `{"detail": ..., "request_id": ...}`
+and never a stack trace.
+
 | Status | Meaning |
 |---|---|
 | `401` | Missing, expired, or invalid token |
@@ -26,6 +31,7 @@ Services raise domain exceptions, which are mapped to status codes in one place
 | `404` | Doesn't exist, **or isn't visible to you**. Private resources answer 404 rather than 403, so an id can't be probed for existence |
 | `409` | Conflicts with existing data (e.g. a duplicate collection name) |
 | `422` | Request validation failed, or a business rule was broken (e.g. permanently deleting a note that isn't in Trash) |
+| `429` | Rate limit: 300 requests/minute per client IP by default, and tighter limits on export (5), account deletion (5) and Empty Trash (10). `Retry-After` gives the seconds to wait. See [ADR-024](adr/0024-in-process-rate-limiting.md) |
 
 ## Endpoints
 
@@ -70,6 +76,7 @@ Services raise domain exceptions, which are mapped to status codes in one place
 | `PATCH` | `/notes/{id}` | A real title or content change is versioned automatically; `archived: false` restores from Trash |
 | `DELETE` | `/notes/{id}` | Moves to Trash |
 | `DELETE` | `/notes/{id}/permanent` | Only for a note already in Trash; cascades to everything attached to it |
+| `DELETE` | `/notes/trash` | Empty Trash: permanently deletes every note of yours in Trash, in one statement. Returns `{"deleted": n}` |
 | `GET` | `/notes/{id}/versions` | Owner only |
 | `POST` | `/notes/{id}/versions/{version_num}/rollback` | Restores a version; the restore is itself versioned |
 | `GET` | `/notes/{id}/tags` | |

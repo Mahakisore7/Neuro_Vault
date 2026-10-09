@@ -50,6 +50,10 @@ class Settings(BaseSettings):
     # value is a self-inflicted denial of service, not just a slow request.
     graph_max_depth: int = Field(default=6, ge=1, le=10)
 
+    # Requests per client IP per minute across the whole API (see
+    # RateLimitMiddleware; a few costly endpoints have tighter budgets).
+    rate_limit_per_minute: int = Field(default=300, ge=1)
+
     @field_validator("allowed_origins", mode="before")
     @classmethod
     def _split_origins(cls, v: str | list[str]) -> list[str]:

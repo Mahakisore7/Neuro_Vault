@@ -31,3 +31,5 @@ New ADRs get added here as they come up during the build — not written all upf
 | [0021](0021-graph-traversal-is-breadth-first.md) | Graph traversal is a breadth-first search, not a per-path recursive CTE |
 | [0022](0022-views-are-security-invoker.md) | Views are created `WITH (security_invoker = true)` |
 | [0023](0023-rls-policies-as-built.md) | Row level security policies: four departures from the design |
+| [0024](0024-in-process-rate-limiting.md) | Rate limiting is per client IP, in process memory |
+| [0025](0025-csp-without-nonces.md) | Content Security Policy without nonces |
