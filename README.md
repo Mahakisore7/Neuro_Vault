@@ -476,6 +476,7 @@ flowchart TD
 | | |
 |---|---|
 | [`docs/api-reference.md`](docs/api-reference.md) | Every endpoint, plus error conventions |
+| [`docs/deployment.md`](docs/deployment.md) | Putting it online: API on Render (`render.yaml`), web app on Vercel, Supabase URL settings |
 | [`docs/adr/`](docs/adr/) | Architecture Decision Records: the problem, the alternatives, what was chosen, and why |
 | [`docs/phases/New/`](docs/phases/New/) | The full design: architecture, schema rationale, SQL layer (indexes, views, triggers, functions, RLS), API, frontend, viva preparation |
 | [`docs/viva-sql-practice.md`](docs/viva-sql-practice.md) | Hands-on SQL against the live schema: insert, query, and watch constraints fire |

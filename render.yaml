@@ -1,0 +1,38 @@
+# Render Blueprint for the API (https://render.com/docs/blueprint-spec).
+# New > Blueprint, pick this repo, then fill in the four "sync: false"
+# values when Render asks. The frontend deploys separately on Vercel;
+# see docs/deployment.md.
+services:
+  - type: web
+    name: neurovault-api
+    runtime: docker
+    # Repo-relative paths; the Dockerfile's last stage is the prod one.
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    # Only redeploy when the API changed, not on frontend or docs commits.
+    buildFilter:
+      paths:
+        - backend/**
+    # Same region as the Supabase database (ap-southeast-1), so every
+    # query doesn't cross an ocean.
+    region: singapore
+    plan: free
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      # Supabase > Connect > "Session pooler" string (IPv4; Render has no
+      # IPv6, which the direct connection needs). The async one adds
+      # +asyncpg after "postgresql".
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_URL_SYNC
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      # The Vercel URL, e.g. https://neurovault.vercel.app (no trailing slash).
+      - key: ALLOWED_ORIGINS
+        sync: false

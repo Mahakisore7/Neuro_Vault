@@ -1,0 +1,15 @@
+# Secrets never go into an image: the host injects them as environment
+# variables at runtime (and docker-compose reads .env via env_file).
+.env
+.env.*
+
+# Rebuilt inside the image by `uv sync`; a host venv is the wrong OS anyway.
+.venv/
+
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
