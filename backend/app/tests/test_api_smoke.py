@@ -42,6 +42,8 @@ async def client(db: AsyncSession, user: User) -> AsyncGenerator[AsyncClient, No
 async def test_health_check(client: AsyncClient):
     response = await client.get("/health")
     assert response.status_code == 200
+    # The middleware stack is wired into the real app, not just unit-tested.
+    assert response.headers["x-request-id"]
 
 
 async def test_create_and_fetch_note_round_trip(client: AsyncClient):

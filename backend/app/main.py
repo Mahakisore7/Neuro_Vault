@@ -1,3 +1,4 @@
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
@@ -19,7 +20,14 @@ from app.core.exceptions import (  # noqa: E402
     PermissionDeniedError,
     ValidationError,
 )
+from app.core.middleware import (  # noqa: E402
+    RateLimitMiddleware,
+    RequestContextMiddleware,
+)
 
+# One JSON object per line from the app's own loggers (access + errors), so
+# a log platform can index fields like request_id without parsing prose.
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -38,12 +46,19 @@ app = FastAPI(
     redoc_url=None,
 )
 
+# Middleware runs outermost-last-added. CORS must wrap everything else so a
+# 429 or 500 still carries CORS headers - otherwise the browser reports an
+# opaque CORS failure instead of the real status. Rate limiting sits inside
+# the request context, so even a rejected request is logged with its id.
+app.add_middleware(RateLimitMiddleware)
+app.add_middleware(RequestContextMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type"],
+    allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
+    expose_headers=["X-Request-ID", "Retry-After"],
 )
 
 
