@@ -349,6 +349,7 @@ Sign up, create a workspace and a notebook, and start writing.
 ```bash
 cd backend && uv run pytest          # backend: unit + database tests
 cd frontend && pnpm lint && pnpm type-check
+cd frontend && pnpm build && pnpm test:e2e   # browser tests (Playwright + axe)
 ```
 
 The backend suite runs against a **real PostgreSQL database**, because most of what it
@@ -360,12 +361,20 @@ checks lives there:
 Each test runs inside a transaction that is always rolled back, so it is safe to point at
 a development database.
 
+The **browser tests** (`frontend/e2e/`) drive the production build in Chromium. The API
+and Supabase are replaced by an in-memory fake, so they need no database or account.
+They cover:
+- the editor's save behaviour, including the two ways edits used to be lost;
+- the command palette, read-only public notes, Empty Trash, and the password-reset and
+  account pages;
+- an **axe** WCAG 2.1 AA accessibility scan of each page, in both themes.
+
 **CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs on every pull request.
 
 | Job | Steps |
 |---|---|
 | Backend | Starts a fresh Postgres 16, loads the Supabase stand-ins, applies every migration, then runs ruff, pyright and pytest |
-| Frontend | ESLint, type-check, production build |
+| Frontend | ESLint, type-check, production build, then the Playwright + axe browser tests (traces uploaded on failure) |
 
 ## API
 
@@ -457,8 +466,10 @@ flowchart TD
   API or UI yet.
 - **`[[wiki-link]]` syntax** from the original design isn't built; links are created from
   the link panel.
-- **No browser end-to-end tests.** UI behaviour is covered by type-checking, lint and the
-  backend tests, not by automated clicks.
+- **Browser tests use a fake backend.** They check the frontend's behaviour, and the
+  backend has its own tests against a real database. Nothing automated yet runs the two
+  together against a live Supabase project, e.g. the real password-reset email
+  round-trip.
 
 ## Documentation
 
