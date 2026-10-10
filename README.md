@@ -43,8 +43,10 @@ defence.
 - [Features](#features)
 - [Database highlights](#database-highlights)
 - [Architecture](#architecture)
+  - [Security and operations](#security-and-operations)
 - [Getting started](#getting-started)
 - [Testing](#testing)
+- [Deployment](#deployment)
 - [API](#api)
 - [Project structure](#project-structure)
 - [Development workflow](#development-workflow)
@@ -106,6 +108,8 @@ row is migrated, tested, and explained in the design docs.
 | **Full-text and fuzzy search** | GIN on `tsvector`, `websearch_to_tsquery`, `ts_rank_cd`; GIN trigram index for typos | Inverted indexes answer "which rows contain this word" — a B-tree can't |
 | **Purpose-built indexes** | Partial (live notes, unread notifications), composite in `ORDER BY` order | Every index serves a named query and has an `EXPLAIN` test; two planned ones were dropped as redundant |
 | **Window functions** | Activity feed collapses autosave bursts (gaps-and-islands with `LAG` + running `SUM`) | Merge at read time, keep the log complete |
+| **Provenance column** | `knowledge_links.origin CHECK IN ('manual','wiki','ai')` | `[[wiki-link]]` sync deletes and inserts only `origin = 'wiki'` rows (one `DELETE`, one `INSERT … SELECT unnest(…)`, titles resolved with `DISTINCT ON`), so links made by hand are never touched |
+| **Set-based export, transactional delete** | Account export is one statement of `jsonb_agg` per table; account delete removes the app rows (cascading) and the login in one transaction | A full backup in one round trip; a delete can't leave a login without data or data without a login |
 | **Exact arithmetic + `CHECK`** | SM-2 `ease_factor NUMERIC(4,2) CHECK (1.30–2.50)` | The algorithm's own bounds, enforced by the table |
 | **Row level security** | Per-user policies on every table, `TO authenticated` | Protects the one path that skips the API: the browser's anon key ([ADR-008](docs/adr/0008-row-level-security.md), [ADR-023](docs/adr/0023-rls-policies-as-built.md)) |
 
@@ -167,6 +171,7 @@ erDiagram
         smallint rel_type_id FK
         uuid created_by FK
         smallint strength "CHECK 1-10"
+        varchar origin "manual | wiki | ai"
     }
     TAGS {
         integer id PK
@@ -283,7 +288,26 @@ flowchart LR
 | Backend | FastAPI, Pydantic v2, SQLAlchemy 2 (async) + asyncpg, Alembic, uv |
 | Database | PostgreSQL 15+ (Supabase in production; Postgres 16 in CI and Docker) |
 | Auth | Supabase Auth; JWTs verified in the backend via JWKS (ES256, [ADR-018](docs/adr/0018-jwt-verification-via-jwks.md)) |
-| Quality | pytest against a real database, ruff, pyright, ESLint, GitHub Actions |
+| Quality | pytest against a real database, Playwright + axe browser tests, ruff, pyright, ESLint, GitHub Actions |
+| Hosting | Docker image on Render (API), Vercel (web app), Supabase (database, auth, storage) |
+
+### Security and operations
+
+Beyond row level security and tenancy enforced by the schema:
+
+- **Rate limiting** per client IP: 300 requests a minute overall, with tighter limits on
+  export, account delete and Empty Trash. Over the limit, the API answers `429` with
+  `Retry-After` ([ADR-024](docs/adr/0024-in-process-rate-limiting.md)).
+- **Request IDs and structured logs.** Every response carries `X-Request-ID`, and every
+  request is logged as one JSON line. An unexpected error returns a JSON `500` with that ID
+  instead of a stack trace.
+- **Security headers.** The API sends `nosniff`, `X-Frame-Options` and a referrer
+  policy, plus HSTS in production. The web app adds a Content Security Policy that allows
+  only itself, the API and Supabase ([ADR-025](docs/adr/0025-csp-without-nonces.md)).
+- **JWT checks** verify signature, audience and expiry, with 30 seconds of leeway for
+  clock skew between Supabase and the server.
+- **Production container**: non-root, no dev dependencies or `.env` inside, applies
+  migrations on start, and hides `/docs` outside development.
 
 ## Getting started
 
@@ -372,6 +396,8 @@ The **browser tests** (`frontend/e2e/`) drive the production build in Chromium. 
 and Supabase are replaced by an in-memory fake, so they need no database or account.
 They cover:
 - the editor's save behaviour, including the two ways edits used to be lost;
+- `[[wiki-link]]` autocomplete, Ctrl+click to create a missing note, and the link-bar
+  badge for links made from the text;
 - the command palette, read-only public notes, Empty Trash, and the password-reset and
   account pages;
 - an **axe** WCAG 2.1 AA accessibility scan of each page, in both themes.
@@ -383,6 +409,14 @@ They cover:
 | Backend | Starts a fresh Postgres 16, loads the Supabase stand-ins, applies every migration, then runs ruff, pyright and pytest |
 | Frontend | ESLint, type-check, production build, then the Playwright + axe browser tests (traces uploaded on failure) |
 
+## Deployment
+
+The API ships as the production stage of [`backend/Dockerfile`](backend/Dockerfile),
+described for Render by [`render.yaml`](render.yaml). It applies pending migrations, then
+starts uvicorn. The web app deploys to Vercel, and Supabase needs the live URLs added to its
+auth settings. Step by step, with the environment variables for each service:
+**[`docs/deployment.md`](docs/deployment.md)**.
+
 ## API
 
 REST over JSON under `/api/v1`, authenticated with the Supabase session token. With
@@ -391,13 +425,15 @@ REST over JSON under `/api/v1`, authenticated with the Supabase session token. W
 
 | Area | Routes |
 |---|---|
-| Notes | CRUD, Trash and permanent delete, search, versions and rollback, tags |
+| Notes | CRUD, Trash, permanent delete and Empty Trash, search, versions and rollback, tags; saving reconciles `[[wiki-links]]` |
 | Graph | links, `/graph`, `/path`, `/stats`, relationship types |
 | Organise | workspaces, notebooks, tags, collections (with reorder) |
 | Study | flashcards, due queue, SM-2 review |
-| Overview | dashboard, activity, notifications, profile |
+| Overview | dashboard, activity, notifications |
+| Account | profile, export everything as JSON, delete account |
 
-Full endpoint list and error conventions: **[`docs/api-reference.md`](docs/api-reference.md)**.
+Errors are JSON with a `detail` field; every response carries `X-Request-ID`. Full
+endpoint list and error conventions: **[`docs/api-reference.md`](docs/api-reference.md)**.
 
 ## Project structure
 
@@ -409,15 +445,19 @@ Full endpoint list and error conventions: **[`docs/api-reference.md`](docs/api-r
 │   │   ├── services/           authorization and business rules
 │   │   ├── repositories/       SQL and SQLAlchemy, nothing else
 │   │   ├── models/ schemas/    ORM models · Pydantic request/response shapes
-│   │   ├── core/               config, JWT verification, exceptions
+│   │   ├── core/               config, JWT verification, middleware, exceptions
 │   │   └── tests/              pytest, against a real database
 │   ├── alembic/versions/       every table, index, view, function, trigger and policy
-│   └── ci/                     Supabase schema stand-ins for plain Postgres
-├── frontend/src/
-│   ├── app/                    App Router pages
-│   ├── components/             editor, graph, search, layout, ui (shadcn)
-│   └── hooks/                  one TanStack Query hook module per resource
-├── docs/                       design docs, ADRs, API reference
+│   ├── ci/                     Supabase schema stand-ins for plain Postgres
+│   └── Dockerfile              dev image, and the production stage Render builds
+├── frontend/
+│   ├── src/app/                App Router pages
+│   ├── src/components/         editor (incl. wiki-links), graph, search, account, ui (shadcn)
+│   ├── src/hooks/              one TanStack Query hook module per resource
+│   └── e2e/                    Playwright + axe tests, with an in-memory fake backend
+├── docs/                       design docs, ADRs, API reference, deployment guide
+├── .github/workflows/ci.yml    backend and frontend jobs on every pull request
+├── render.yaml                 Render blueprint for the API
 └── docker-compose.yml          local Postgres + migrations + backend
 ```
 
@@ -431,13 +471,14 @@ flowchart TD
     Auth --> Home
     Signed -- Yes --> Home["/dashboard"]
     Home --> Workspaces["/workspaces"] --> Notebook["notebook"] --> Editor["editor<br/>autosave → versioned"]
-    Editor --> Links["link notes"] --> Graph["graph · shortest path"]
+    Editor --> Links["link notes<br/>by hand or [[wiki-links]]"] --> Graph["graph · shortest path"]
     Links -. "their public note" .-> Bell["owner notified"]
     Editor --> Cards["flashcards"] --> Review["/review · SM-2"]
     Editor -- delete --> Trash["/trash"]
     Home -.-> Search["Ctrl/⌘+K search"]
     Home -.-> Collections["/collections"]
     Home -.-> Activity["/activity"]
+    Home -.-> Profile["/profile<br/>export · delete account"]
 ```
 
 </details>
@@ -465,12 +506,18 @@ flowchart TD
 | Database connection fails after a week of inactivity | Supabase's free tier pauses idle projects. Restore it from the dashboard |
 | "Email rate limit exceeded" on sign-up | Supabase's built-in mailer allows very few emails per hour. Disable *Confirm email* for development, or configure SMTP |
 | Every request returns 401 | `SUPABASE_URL` in `backend/.env` doesn't match the frontend's project |
+| `429 Too Many Requests` | The per-IP rate limit; wait for the minute in `Retry-After`. Behind a proxy, check that the real client IP is forwarded, or every user shares one limit |
+| Email links (confirm, reset) open "site can't be reached" | Another program holds port 3000, or Supabase's *Site URL* doesn't match where the app runs |
 | `Cannot find name 'LayoutProps'` from `tsc` | Next generates these types; run `pnpm type-check`, which runs `next typegen` first |
 
 ## Known limitations
 
 - **Attachments** (`resources`): the table and its policies exist, but there is no upload
   API or UI yet.
+- **`[[wiki-links]]` resolve when the note containing them is saved.** If the target note
+  is created or renamed later, the link catches up on the source note's next save.
+- **Rate limits are per process.** Counters live in memory, so they reset on restart and
+  aren't shared between instances; the API runs as one worker for that reason (ADR-024).
 - **Browser tests use a fake backend.** They check the frontend's behaviour, and the
   backend has its own tests against a real database. Nothing automated yet runs the two
   together against a live Supabase project, e.g. the real password-reset email
@@ -484,6 +531,8 @@ flowchart TD
 | [`docs/deployment.md`](docs/deployment.md) | Putting it online: API on Render (`render.yaml`), web app on Vercel, Supabase URL settings |
 | [`docs/adr/`](docs/adr/) | Architecture Decision Records: the problem, the alternatives, what was chosen, and why |
 | [`docs/phases/New/`](docs/phases/New/) | The full design: architecture, schema rationale, SQL layer (indexes, views, triggers, functions, RLS), API, frontend, viva preparation |
+| [`docs/why-postgresql-not-neo4j.html`](docs/why-postgresql-not-neo4j.html) | Why the graph lives in PostgreSQL rather than a graph database ([ADR-011](docs/adr/0011-postgresql-not-graph-database.md)) |
+| [`docs/presentation.html`](docs/presentation.html) | Slides for the project review |
 | [`docs/viva-sql-practice.md`](docs/viva-sql-practice.md) | Hands-on SQL against the live schema: insert, query, and watch constraints fire |
 | [`docs/session-log-2026-08-16.md`](docs/session-log-2026-08-16.md) | Build diary: what broke, and how each bug was diagnosed |
 
