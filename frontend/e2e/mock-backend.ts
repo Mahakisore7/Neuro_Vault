@@ -77,6 +77,8 @@ export class MockBackend {
     }),
   ];
   requests: Recorded[] = [];
+  /** GET /notes/{id}/links answers, keyed by note id. */
+  links: Record<string, unknown[]> = {};
   /** Milliseconds to hold each PATCH /notes/{id} before answering. */
   patchDelayMs = 0;
 
@@ -103,10 +105,10 @@ export class MockBackend {
         created_at: ME.created_at,
       },
     };
-    await this.page.addInitScript(
-      ([key, value]) => window.localStorage.setItem(key, value),
-      [`sb-${ref}-auth-token`, JSON.stringify(session)] as const,
-    );
+    await this.page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [
+      `sb-${ref}-auth-token`,
+      JSON.stringify(session),
+    ] as const);
 
     await this.page.route(`${SUPABASE_URL}/**`, (route) => this.supabase(route));
     await this.page.route(`${API_URL}/**`, (route) => this.api(route));
@@ -115,10 +117,15 @@ export class MockBackend {
   private async supabase(route: Route) {
     const url = new URL(route.request().url());
     if (url.pathname === "/auth/v1/user") {
-      return route.fulfill({ json: { id: ME.id, email: ME.email, app_metadata: { providers: ["email"] } } });
+      return route.fulfill({
+        json: { id: ME.id, email: ME.email, app_metadata: { providers: ["email"] } },
+      });
     }
     if (url.pathname === "/auth/v1/logout") return route.fulfill({ status: 204 });
-    return route.fulfill({ status: 404, json: { msg: `e2e: no Supabase mock for ${url.pathname}` } });
+    return route.fulfill({
+      status: 404,
+      json: { msg: `e2e: no Supabase mock for ${url.pathname}` },
+    });
   }
 
   private summary(n: Note) {
@@ -156,7 +163,13 @@ export class MockBackend {
       return route.fulfill({ json: { count: 0 } });
     if (method === "GET" && path === "/dashboard") {
       const live = own.filter((n) => !n.archived);
-      const dn = (n: Note) => ({ id: n.id, title: n.title, updated_at: n.updated_at, word_count: n.word_count, degree: 1 });
+      const dn = (n: Note) => ({
+        id: n.id,
+        title: n.title,
+        updated_at: n.updated_at,
+        word_count: n.word_count,
+        degree: 1,
+      });
       return route.fulfill({
         json: {
           totals: {
@@ -199,6 +212,18 @@ export class MockBackend {
         })),
       });
     }
+    if (method === "POST" && path === "/notes") {
+      const created = note(
+        `30000000-0000-4000-8000-${String(this.notes.length + 100).padStart(12, "0")}`,
+        body.title,
+        {
+          notebook_id: body.notebook_id ?? null,
+          content: body.content ?? null,
+        },
+      );
+      this.notes.push(created);
+      return route.fulfill({ status: 201, json: { ...created, unresolved_wiki_links: [] } });
+    }
     if (method === "DELETE" && path === "/notes/trash") {
       const before = this.notes.length;
       this.notes = this.notes.filter((n) => !(n.creator_id === ME.id && n.archived));
@@ -214,18 +239,44 @@ export class MockBackend {
         return route.fulfill({ json: found });
       }
     }
-    if (method === "GET" && match(/^\/notes\/[^/]+\/(tags|links|versions)$/)) return route.fulfill({ json: [] });
+    if (method === "GET" && (m = match(/^\/notes\/([^/]+)\/links$/)))
+      return route.fulfill({ json: this.links[m[1]] ?? [] });
+    if (method === "GET" && match(/^\/notes\/[^/]+\/(tags|versions)$/))
+      return route.fulfill({ json: [] });
     if (method === "GET" && path === "/flashcards") return route.fulfill({ json: [] });
     if (method === "GET" && path === "/tags") return route.fulfill({ json: [] });
-    if (method === "GET" && path === "/relationship-types") return route.fulfill({ json: [] });
+    if (method === "GET" && path === "/relationship-types") {
+      return route.fulfill({
+        json: [
+          { id: 1, name: "relates_to", description: null, color: "#64748B", is_symmetric: true },
+        ],
+      });
+    }
     if (method === "GET" && path === `/notebooks/${NOTEBOOK_ID}`) {
       return route.fulfill({
-        json: { id: NOTEBOOK_ID, workspace_id: WORKSPACE_ID, owner_id: ME.id, name: "DBMS", description: null, color: "#6366F1", created_at: now, updated_at: now },
+        json: {
+          id: NOTEBOOK_ID,
+          workspace_id: WORKSPACE_ID,
+          owner_id: ME.id,
+          name: "DBMS",
+          description: null,
+          color: "#6366F1",
+          created_at: now,
+          updated_at: now,
+        },
       });
     }
     if (method === "GET" && path === `/workspaces/${WORKSPACE_ID}`) {
       return route.fulfill({
-        json: { id: WORKSPACE_ID, owner_id: ME.id, name: "Semester 5", slug: "semester-5", description: null, created_at: now, updated_at: now },
+        json: {
+          id: WORKSPACE_ID,
+          owner_id: ME.id,
+          name: "Semester 5",
+          slug: "semester-5",
+          description: null,
+          created_at: now,
+          updated_at: now,
+        },
       });
     }
 
@@ -237,7 +288,12 @@ export class MockBackend {
   /** The content of the most recent PATCH to a note, as the server received it. */
   lastSavedContent(noteId: string): string | undefined {
     const patches = this.requests.filter(
-      (r) => r.method === "PATCH" && r.path === `/notes/${noteId}` && r.body && typeof r.body === "object" && "content" in r.body,
+      (r) =>
+        r.method === "PATCH" &&
+        r.path === `/notes/${noteId}` &&
+        r.body &&
+        typeof r.body === "object" &&
+        "content" in r.body,
     );
     return (patches.at(-1)?.body as { content?: string } | undefined)?.content;
   }

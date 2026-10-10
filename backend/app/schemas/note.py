@@ -46,6 +46,9 @@ class NoteResponse(BaseModel):
     word_count: int  # generated column — readable here, never accepted as input above
     created_at: datetime
     updated_at: datetime
+    # Set on create/update only: [[titles]] in the content that matched none
+    # of the author's notes, so the editor can mark them.
+    unresolved_wiki_links: list[str] = []
 
 
 class NoteSummary(BaseModel):

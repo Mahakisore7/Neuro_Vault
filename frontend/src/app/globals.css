@@ -135,3 +135,17 @@
     @apply font-sans;
   }
 }
+/* [[wiki-links]] in the editor (components/editor/wiki-link-extension.ts).
+   A note that exists reads as a link; a missing one gets a dashed underline,
+   the usual "this page doesn't exist yet" convention. */
+@layer components {
+  .wiki-link {
+    @apply rounded-sm bg-primary/10 px-0.5 text-primary decoration-primary/40 underline-offset-2;
+  }
+  .wiki-link:hover {
+    @apply underline;
+  }
+  .wiki-link-missing {
+    @apply bg-transparent text-muted-foreground underline decoration-dashed decoration-muted-foreground/60;
+  }
+}

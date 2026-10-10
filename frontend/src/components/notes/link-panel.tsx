@@ -8,7 +8,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useCreateLink, useDeleteLink, useNoteLinks, useRelationshipTypes } from "@/hooks/use-links";
+import {
+  useCreateLink,
+  useDeleteLink,
+  useNoteLinks,
+  useRelationshipTypes,
+} from "@/hooks/use-links";
 import { useAllNotes } from "@/hooks/use-notes";
 
 export function LinkPanel({ noteId }: { noteId: string }) {
@@ -78,16 +83,31 @@ export function LinkPanel({ noteId }: { noteId: string }) {
         const outgoing = link.source_note_id === noteId;
         const otherId = outgoing ? link.target_note_id : link.source_note_id;
         const relType = relTypeById.get(link.rel_type_id);
+        // Made by a [[title]] in the text: the next save would re-create it,
+        // so it's removed by editing the text, not from here.
+        const fromText = link.origin === "wiki";
         return (
           <span
             key={link.id}
-            title={`Strength ${link.strength}/10`}
+            title={
+              fromText
+                ? "Created by a [[link]] in the text. Delete the [[…]] to remove it."
+                : `Strength ${link.strength}/10`
+            }
             className="flex items-center gap-1.5 rounded-full border border-border py-0.5 pr-1 pl-2.5 text-xs"
           >
             <span
               className="size-2 shrink-0 rounded-full"
               style={{ backgroundColor: relType?.color ?? "#888888" }}
             />
+            {fromText && (
+              <span
+                className="font-mono text-[10px] text-muted-foreground"
+                aria-label="from the text"
+              >
+                [[ ]]
+              </span>
+            )}
             <span className="text-muted-foreground">{relType?.name ?? "relates_to"}</span>
             {!outgoing && <span className="text-muted-foreground">from</span>}
             <Link href={`/notes/${otherId}`} className="font-medium hover:underline">
@@ -97,7 +117,7 @@ export function LinkPanel({ noteId }: { noteId: string }) {
                 /notes/{note_id}/links/{link_id} requires note_id to be the
                 link's source (ADR-007: an edge originates from a note you
                 own). An incoming link is deleted from the OTHER note's page. */}
-            {outgoing && (
+            {outgoing && !fromText && (
               <button
                 type="button"
                 onClick={() => handleDelete(link.id)}
