@@ -18,6 +18,7 @@ from app.schemas.note import (
     NoteUpdate,
     NoteVersionSummary,
 )
+from app.services.wiki_link import WikiLinkService
 
 
 class NoteService:
@@ -26,6 +27,7 @@ class NoteService:
         self.notes = NoteRepository(db)
         self.notebooks = NotebookRepository(db)
         self.versions = NoteVersionRepository(db)
+        self.wiki_links = WikiLinkService(db)
 
     # ── Authorization — the only place these two rules are written ────────
 
@@ -98,7 +100,10 @@ class NoteService:
         # The procedure's UPDATE didn't go through this ORM object, so its
         # in-memory attributes are now stale relative to what's in Postgres.
         await self.db.refresh(note)
-        return NoteResponse.model_validate(note)
+        response = NoteResponse.model_validate(note)
+        # The old text has its own [[links]]; the graph follows the text.
+        response.unresolved_wiki_links = await self.wiki_links.reconcile(note)
+        return response
 
     async def search(self, user: User, q: str, limit: int = 20) -> list[NoteSearchResult]:
         if not q.strip():
@@ -174,7 +179,9 @@ class NoteService:
             notebook_id=payload.notebook_id,
             is_public=payload.is_public,
         )
-        return NoteResponse.model_validate(note)
+        response = NoteResponse.model_validate(note)
+        response.unresolved_wiki_links = await self.wiki_links.reconcile(note)
+        return response
 
     async def update(self, note_id: UUID, payload: NoteUpdate, user: User) -> NoteResponse:
         note = await self.notes.get(note_id)
@@ -197,7 +204,12 @@ class NoteService:
         # Postgres from the new content on this UPDATE, and Python has no
         # way to know the new value without asking the database for it.
         await self.db.refresh(note)
-        return NoteResponse.model_validate(note)
+        response = NoteResponse.model_validate(note)
+        # Only when the text changed: a pin or rename leaves the [[links]]
+        # in the body exactly as they were.
+        if "content" in changes:
+            response.unresolved_wiki_links = await self.wiki_links.reconcile(note)
+        return response
 
     async def delete(self, note_id: UUID, user: User) -> None:
         """Archives, does not hard-delete.

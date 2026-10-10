@@ -64,14 +64,18 @@ defence.
 - **Trash**: deleting moves a note to Trash; nothing is gone until you delete it forever
 
 **Connect**
-- Typed links between notes, including to other people's public notes
+- **`[[wiki-links]]`**: type `[[` to pick a note, and the link appears in the graph when
+  the note saves. Ctrl+click opens it, or creates it if it doesn't exist yet. Deleting
+  the text removes the link, but never one you made by hand
+- Typed links between notes, with a strength, including to other people's public notes
 - **Graph view** of everything within 1–6 hops, with a **shortest-path finder** that
   highlights the route between two notes
 - Per-note stats: links in and out, versions, distance to the farthest connected note
 
 **Find and learn**
-- **Search** (Ctrl/⌘+K) with phrase and exclusion syntax, ranked and highlighted
-  results, and a similar-titles fallback when you mistype
+- **Command palette** (Ctrl/⌘+K): search notes, with phrase and exclusion syntax, ranked
+  and highlighted results and a similar-titles fallback when you mistype, or jump
+  anywhere, create a note, or switch theme. Press `?` for every keyboard shortcut
 - **Flashcards** on any note, scheduled with the SM-2 spaced-repetition algorithm, and a
   keyboard-first review screen
 
@@ -80,7 +84,10 @@ defence.
   and recent edits
 - **Activity timeline** of what changed, and **notifications** when someone links to your
   public note
-- Email/password or Google/GitHub sign-in, avatar upload, light/dark theme
+- Email/password or Google/GitHub sign-in, password reset by email, avatar upload,
+  light/dark theme
+- **Your data is yours**: export everything as one JSON file, or delete the account and
+  all of it permanently
 - Works on phones (the sidebar becomes a slide-in menu); Move to Trash comes with Undo
 
 ## Database highlights
@@ -464,8 +471,6 @@ flowchart TD
 
 - **Attachments** (`resources`): the table and its policies exist, but there is no upload
   API or UI yet.
-- **`[[wiki-link]]` syntax** from the original design isn't built; links are created from
-  the link panel.
 - **Browser tests use a fake backend.** They check the frontend's behaviour, and the
   backend has its own tests against a real database. Nothing automated yet runs the two
   together against a live Supabase project, e.g. the real password-reset email

@@ -71,9 +71,9 @@ and never a stack trace.
 |---|---|---|
 | `GET` | `/notes?notebook_id=&unfiled=&archived=&tag_id=&limit=&offset=` | Your notes; `archived=true` lists Trash, `tag_id` keeps notes carrying that tag. Pages of up to 100 (`limit`, default 50) |
 | `GET` | `/notes/search?q=&limit=` | Full-text search over your notes and public ones: ranked and highlighted, with a similar-titles fallback for typos (`fuzzy: true`) |
-| `POST` | `/notes` | |
+| `POST` | `/notes` | Syncs `[[wiki-links]]` in the content (below) |
 | `GET` | `/notes/{id}` | |
-| `PATCH` | `/notes/{id}` | A real title or content change is versioned automatically; `archived: false` restores from Trash |
+| `PATCH` | `/notes/{id}` | A real title or content change is versioned automatically; `archived: false` restores from Trash. A content change also syncs `[[wiki-links]]` (below) |
 | `DELETE` | `/notes/{id}` | Moves to Trash |
 | `DELETE` | `/notes/{id}/permanent` | Only for a note already in Trash; cascades to everything attached to it |
 | `DELETE` | `/notes/trash` | Empty Trash: permanently deletes every note of yours in Trash, in one statement. Returns `{"deleted": n}` |
@@ -138,3 +138,18 @@ and never a stack trace.
 | `GET` | `/notifications/unread-count` | The bell badge |
 | `POST` | `/notifications/{id}/read` | |
 | `POST` | `/notifications/read-all` | |
+
+## `[[wiki-links]]`
+
+A note's content can reference another note as `[[Title]]` or `[[Title|shown text]]`.
+On create, on any update that changes `content`, and on a version rollback, the server
+reconciles the note's links with its text (`app/services/wiki_link.py`):
+
+- Titles resolve case-insensitively against **your own notes that aren't in Trash**. When
+  two notes share a title, the most recently edited one wins.
+- Each resolved title becomes a `relates_to` link with `origin: "wiki"`. A title you've
+  already linked to by hand gets no duplicate.
+- Titles no longer in the text lose their `wiki` links. Links with `origin: "manual"` are
+  never touched.
+- The response's `unresolved_wiki_links` lists the titles that matched no note.
+

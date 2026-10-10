@@ -18,6 +18,7 @@ const editor = (page: import("@playwright/test").Page) => page.locator(".ProseMi
 test.describe("accessibility", () => {
   for (const scheme of ["light", "dark"] as const) {
     test(`dashboard and a note pass axe in ${scheme} theme`, async ({ page }) => {
+      test.slow(); // two full axe scans; a busy runner can exceed the default timeout
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto("/dashboard");
       await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
@@ -153,8 +154,78 @@ test.describe("profile", () => {
   });
 
   test("profile page passes axe", async ({ page }) => {
+    test.slow();
     await page.goto("/profile");
     await expect(page.getByRole("button", { name: "Export data" })).toBeVisible();
     await expectAccessible(page);
+  });
+});
+
+test.describe("[[wiki-links]]", () => {
+  test("typing [[ suggests notes and Enter completes the link", async ({ page }) => {
+    await page.goto(`/notes/${NOTE_IDS.normalization}`);
+    await editor(page).click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" see [[jo");
+    const list = page.getByRole("listbox", { name: "Link to a note" });
+    await expect(list.getByRole("option", { name: "SQL Joins" })).toBeVisible();
+    await page.keyboard.press("Enter");
+
+    await expect(list).toHaveCount(0);
+    await expect(editor(page)).toContainText("see [[SQL Joins]]");
+    // A title that exists is drawn as a link.
+    await expect(editor(page).locator(".wiki-link", { hasText: "[[SQL Joins]]" })).not.toHaveClass(
+      /wiki-link-missing/,
+    );
+    // Enter picked the suggestion; it didn't also start a new paragraph.
+    await expect(editor(page).locator("p")).toHaveCount(1);
+  });
+
+  test("Ctrl+click on a missing title creates that note in the same notebook", async ({ page }) => {
+    await page.goto(`/notes/${NOTE_IDS.normalization}`);
+    await editor(page).click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" [[Boyce Codd]]");
+    const missing = editor(page).locator(".wiki-link-missing", { hasText: "[[Boyce Codd]]" });
+    await expect(missing).toBeVisible();
+
+    await missing.click({ modifiers: ["Control"] });
+
+    await expect
+      .poll(() => backend.requests.some((r) => r.method === "POST" && r.path === "/notes"))
+      .toBe(true);
+    expect(
+      backend.requests.find((r) => r.method === "POST" && r.path === "/notes")?.body,
+    ).toMatchObject({
+      title: "Boyce Codd",
+      notebook_id: "20000000-0000-4000-8000-000000000001",
+    });
+    await expect(page).not.toHaveURL(new RegExp(`/notes/${NOTE_IDS.normalization}$`));
+    // The source note was saved again, so the server can link it to the new one.
+    await expect
+      .poll(() => backend.lastSavedContent(NOTE_IDS.normalization))
+      .toContain("[[Boyce Codd]]");
+  });
+
+  test("links made from the text are marked and can't be removed from the link bar", async ({
+    page,
+  }) => {
+    backend.links[NOTE_IDS.normalization] = [
+      {
+        id: "40000000-0000-4000-8000-000000000001",
+        source_note_id: NOTE_IDS.normalization,
+        target_note_id: NOTE_IDS.joins,
+        rel_type_id: 1,
+        strength: 5,
+        description: null,
+        origin: "wiki",
+        created_at: "2026-10-09T09:00:00Z",
+      },
+    ];
+    await page.goto(`/notes/${NOTE_IDS.normalization}`);
+    const chip = page.locator("span", { hasText: "SQL Joins" }).filter({ hasText: "relates_to" });
+    await expect(chip).toBeVisible();
+    await expect(chip.getByLabel("from the text")).toBeVisible();
+    await expect(chip.getByRole("button", { name: "Remove link" })).toHaveCount(0);
   });
 });

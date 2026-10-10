@@ -10,15 +10,20 @@ import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { noteKeys } from "@/hooks/use-notes";
+import { linkKeys } from "@/hooks/use-links";
+import { noteKeys, useAllNotes, useCreateNote } from "@/hooks/use-notes";
 import { api } from "@/lib/api";
 import type { Note } from "@/types/api";
 
 import { EditorFloatingMenu } from "./editor-floating-menu";
 import { EditorToolbar } from "./editor-toolbar";
+import { REFRESH_WIKI_LINKS, WikiLink, wikiLinkStorage } from "./wiki-link-extension";
+import { WikiLinkSuggest } from "./wiki-link-suggest";
 
 type SaveState = "idle" | "unsaved" | "saving" | "saved" | "error";
 
@@ -29,6 +34,9 @@ const AUTOSAVE_DELAY_MS = 1500;
 /** readOnly: someone else's public note - viewable, never saved. */
 export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: boolean }) {
   const qc = useQueryClient();
+  const router = useRouter();
+  // mutateAsync is stable across renders; the mutation object itself isn't.
+  const { mutateAsync: createNoteAsync } = useCreateNote();
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Edited content not sent yet. null = nothing outstanding.
@@ -61,6 +69,9 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
         // Lists only: refetching this note's detail mid-typing is exactly
         // what used to overwrite newer keystrokes.
         qc.invalidateQueries({ queryKey: [...noteKeys.all, "list"] });
+        // The server reconciled [[wiki-links]] on this save, so the link bar
+        // and graph may have changed.
+        qc.invalidateQueries({ queryKey: linkKeys.forNote(note.id) });
         inFlight.current -= 1;
         if (pending.current === null && inFlight.current === 0) setSaveState("saved");
       })
@@ -80,6 +91,15 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
     flushRef.current = flush;
   }, [flush]);
 
+  // The author's notes, for [[wiki-link]] highlighting and autocomplete.
+  // Not for someone else's public note: their links resolve against their
+  // notes, which this viewer can't see.
+  const { data: allNotes } = useAllNotes({ enabled: !readOnly });
+  const candidates = useMemo(
+    () =>
+      (allNotes ?? []).filter((n) => n.id !== note.id).map((n) => ({ id: n.id, title: n.title })),
+    [allNotes, note.id],
+  );
   const editor = useEditor({
     // Next.js renders this on the server during `next build`. Without
     // immediatelyRender: false, Tiptap warns about an SSR hydration
@@ -95,6 +115,7 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
       Link.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: "Start writing…" }),
       CharacterCount,
+      ...(readOnly ? [] : [WikiLink]),
     ],
     content: note.content ?? "",
     onUpdate: ({ editor }) => {
@@ -133,6 +154,35 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
       flushRef.current();
     };
   }, []);
+
+  // Hand the [[wiki-link]] extension the current note list, and redraw the
+  // highlights whenever it changes (a note created or renamed).
+  useEffect(() => {
+    if (!editor || editor.isDestroyed || readOnly) return;
+    const byTitle = new Map(candidates.map((n) => [n.title.toLowerCase(), n.id]));
+    const storage = wikiLinkStorage(editor);
+    storage.isResolved = (title) => byTitle.has(title.toLowerCase());
+    // Ctrl+click on a [[title]]: open that note, or create it if none exists.
+    storage.onOpen = async (title) => {
+      const id = byTitle.get(title.toLowerCase());
+      if (id) {
+        router.push(`/notes/${id}`);
+        return;
+      }
+      try {
+        const created = await createNoteAsync({ title, notebook_id: note.notebook_id });
+        // Save this note again so the server links it to the new one: its
+        // text hasn't changed, so no save would otherwise happen.
+        pending.current = editor.getHTML();
+        flushRef.current();
+        toast.success(`Created "${title}"`);
+        router.push(`/notes/${created.id}`);
+      } catch {
+        toast.error(`Couldn't create "${title}".`);
+      }
+    };
+    editor.view.dispatch(editor.state.tr.setMeta(REFRESH_WIKI_LINKS, true));
+  }, [candidates, editor, readOnly, router, createNoteAsync, note.notebook_id]);
 
   // Tiptap's `content` option only seeds the editor at creation - it does
   // not react to prop changes. This applies a change that came from outside
@@ -186,6 +236,7 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
       <div className="rounded-lg border bg-card ring-1 ring-transparent transition-shadow focus-within:ring-ring/30">
         {editor && !readOnly && <EditorToolbar editor={editor} />}
         {editor && !readOnly && <EditorFloatingMenu editor={editor} />}
+        {editor && !readOnly && <WikiLinkSuggest editor={editor} notes={candidates} />}
         <EditorContent editor={editor} />
       </div>
     </div>
