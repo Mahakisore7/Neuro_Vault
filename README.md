@@ -25,18 +25,21 @@ version history and an audit log written by triggers, ranked full-text search on
 index, graph traversal as a database function, and row level security as the last line of
 defence.
 
-![Dashboard: totals, most-connected notes and recent edits, computed by database views](docs/screenshots/dashboard.png)
+![Home: a summary strip, hub notes ranked by links, unlinked notes and recent edits, computed by database views](docs/screenshots/dashboard.png)
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/screenshots/note.png" alt="A note with tags, typed links and flashcards"><br><sub><b>Note</b>: tags, typed links in both directions, flashcards</sub></td>
+    <td width="50%"><img src="docs/screenshots/note.png" alt="A note with tags, typed links, a wiki-link and flashcards"><br><sub><b>Note</b>: tags, typed links in both directions, a <code>[[wiki-link]]</code>, flashcards</sub></td>
     <td width="50%"><img src="docs/screenshots/graph.png" alt="Graph view with a shortest path highlighted"><br><sub><b>Graph</b>: breadth-first search in PL/pgSQL, shortest path highlighted</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/screenshots/search.png" alt="Search dialog with highlighted matches"><br><sub><b>Search</b>: ranked full-text search on a GIN index, matches highlighted</sub></td>
+    <td width="50%"><img src="docs/screenshots/search.png" alt="Command palette with highlighted search matches"><br><sub><b>Command palette</b>: ranked full-text search on a GIN index, matches highlighted</sub></td>
     <td width="50%"><img src="docs/screenshots/review.png" alt="Flashcard review session"><br><sub><b>Review</b>: SM-2 spaced repetition</sub></td>
   </tr>
 </table>
+
+<sub>Screenshots are the production build with sample DBMS notes, light theme. Every screen
+also has a dark theme.</sub>
 
 ## Contents
 
@@ -58,7 +61,11 @@ defence.
 ## Features
 
 **Write and organise**
-- Rich-text editor (Tiptap) with autosave, pinning, and a public/private toggle per note
+- Rich-text editor (Tiptap) in a distraction-free document layout: a toolbar that stays in
+  view, autosave with a visible saved/unsaved state, Ctrl+S, pinning, and a public/private
+  toggle per note
+- **New note** from the sidebar, the home page or the command palette: one click to a
+  blank page, filed later
 - Workspaces → notebooks → notes, plus tags and **collections** (hand-picked, ordered
   lists that can span notebooks)
 - **Version history** for every real edit, with one-click restore — and restores are
@@ -82,12 +89,15 @@ defence.
   keyboard-first review screen
 
 **Stay oriented**
-- **Home dashboard**: totals, your most-connected notes, notes not linked to anything yet,
-  and recent edits
+- **Home dashboard**: a summary strip, your most-connected notes (with how linked each one
+  is), notes not linked to anything yet, recent edits, and a one-click way into today's
+  review
 - **Activity timeline** of what changed, and **notifications** when someone links to your
   public note
-- Email/password or Google/GitHub sign-in, password reset by email, avatar upload,
-  light/dark theme
+- Email/password or Google/GitHub sign-in, password reset by email, avatar upload
+- **Designed light and dark themes**, following the system setting or your choice; a
+  consistent design system (tokens for colour, spacing and elevation) across every screen,
+  checked for WCAG 2.1 AA contrast
 - **Your data is yours**: export everything as one JSON file, or delete the account and
   all of it permanently
 - Works on phones (the sidebar becomes a slide-in menu); Move to Trash comes with Undo
@@ -452,7 +462,8 @@ endpoint list and error conventions: **[`docs/api-reference.md`](docs/api-refere
 │   └── Dockerfile              dev image, and the production stage Render builds
 ├── frontend/
 │   ├── src/app/                App Router pages
-│   ├── src/components/         editor (incl. wiki-links), graph, search, account, ui (shadcn)
+│   ├── src/app/globals.css     design tokens: colour, radius, elevation, both themes
+│   ├── src/components/         editor (incl. wiki-links), graph, search, account, logo, ui (shadcn)
 │   ├── src/hooks/              one TanStack Query hook module per resource
 │   └── e2e/                    Playwright + axe tests, with an in-memory fake backend
 ├── docs/                       design docs, ADRs, API reference, deployment guide
