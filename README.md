@@ -538,6 +538,7 @@ flowchart TD
 
 | | |
 |---|---|
+| [`docs/PROJECT-OVERVIEW.md`](docs/PROJECT-OVERVIEW.md) | **Start here**: the whole project in one document, with architecture, ER, UML and user-flow diagrams, a slide-by-slide presentation outline and viva questions |
 | [`docs/api-reference.md`](docs/api-reference.md) | Every endpoint, plus error conventions |
 | [`docs/deployment.md`](docs/deployment.md) | Putting it online: API on Render (`render.yaml`), web app on Vercel, Supabase URL settings |
 | [`docs/adr/`](docs/adr/) | Architecture Decision Records: the problem, the alternatives, what was chosen, and why |
