@@ -15,15 +15,32 @@ test.beforeEach(async ({ page }) => {
 
 const editor = (page: import("@playwright/test").Page) => page.locator(".ProseMirror");
 
+const greeting = (page: import("@playwright/test").Page) =>
+  page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), Test$/ });
+
+/**
+ * Opens the command palette from the dashboard. The Ctrl+K listener is
+ * registered once the app has hydrated; a key press before that is simply
+ * lost, which made this flaky on slower CI runners. So: wait for the
+ * signed-in page, then press until the palette's input is there.
+ */
+async function openPalette(page: import("@playwright/test").Page) {
+  await page.goto("/dashboard");
+  await expect(greeting(page)).toBeVisible();
+  await expect(async () => {
+    if (!(await page.getByRole("combobox").isVisible())) await page.keyboard.press("Control+k");
+    await expect(page.getByRole("combobox")).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
+  return page.getByRole("combobox");
+}
+
 test.describe("accessibility", () => {
   for (const scheme of ["light", "dark"] as const) {
     test(`dashboard and a note pass axe in ${scheme} theme`, async ({ page }) => {
       test.slow(); // two full axe scans; a busy runner can exceed the default timeout
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto("/dashboard");
-      await expect(
-        page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), Test$/ }),
-      ).toBeVisible();
+      await expect(greeting(page)).toBeVisible();
       await expectAccessible(page);
 
       await page.goto(`/notes/${NOTE_IDS.normalization}`);
@@ -96,17 +113,13 @@ test("note page shows where the note lives", async ({ page }) => {
 
 test.describe("command palette", () => {
   test("Ctrl+K finds a note and opens it", async ({ page }) => {
-    await page.goto("/dashboard");
-    await page.keyboard.press("Control+k");
-    await page.getByRole("combobox").fill("joins");
+    await (await openPalette(page)).fill("joins");
     await page.getByRole("option", { name: /SQL Joins/ }).click();
     await expect(page).toHaveURL(new RegExp(`/notes/${NOTE_IDS.joins}$`));
   });
 
   test("typing a command and pressing Enter runs it", async ({ page }) => {
-    await page.goto("/dashboard");
-    await page.keyboard.press("Control+k");
-    await page.getByRole("combobox").fill("go trash");
+    await (await openPalette(page)).fill("go trash");
     await expect(page.getByRole("option", { name: "Go to Trash" })).toBeVisible();
     await page.keyboard.press("Enter");
     await expect(page).toHaveURL(/\/trash$/);
@@ -114,9 +127,7 @@ test.describe("command palette", () => {
 
   test("? opens the keyboard shortcuts", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(
-      page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), Test$/ }),
-    ).toBeVisible();
+    await expect(greeting(page)).toBeVisible();
     await page.keyboard.press("?");
     await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeVisible();
     await expectAccessible(page);
