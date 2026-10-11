@@ -83,10 +83,10 @@ export default function UnfiledNotesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 sm:px-8">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Unfiled notes</h1>
+          <h1 className="text-[1.375rem] leading-8 font-semibold tracking-[-0.02em]">Unfiled notes</h1>
           <p className="text-sm text-muted-foreground">
             Notes with no notebook — either created here directly, or left behind when their
             notebook was deleted.

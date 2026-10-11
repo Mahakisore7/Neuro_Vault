@@ -98,7 +98,7 @@ export default function NotebooksPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10">
+    <div className="mx-auto max-w-5xl px-4 pt-8 pb-16 sm:px-8">
       <Link
         href="/workspaces"
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -109,7 +109,7 @@ export default function NotebooksPage() {
 
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
+          <h1 className="text-[1.375rem] leading-8 font-semibold tracking-[-0.02em]">
             {workspace?.name ?? <Skeleton className="h-8 w-48" />}
           </h1>
           <p className="text-sm text-muted-foreground">Notebooks in this workspace.</p>

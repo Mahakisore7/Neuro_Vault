@@ -17,20 +17,22 @@ export default function Icon() {
           // understands hex/rgb/hsl/named colors, not oklch() — this is the
           // same indigo as --primary in globals.css, just in a syntax it
           // can parse.
-          background: "#4F3DC6",
+          background: "#4157D6",
           borderRadius: 7,
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <circle cx="6" cy="6" r="2.5" fill="white" />
-          <circle cx="18" cy="6" r="2.5" fill="white" />
-          <circle cx="12" cy="18" r="2.5" fill="white" />
+        <svg width="23" height="23" viewBox="0 0 24 24" fill="none">
+          {/* Same glyph as components/logo.tsx. */}
           <path
-            d="M8 7 L11 16 M16 7 L13 16 M8.5 6 L15.5 6"
+            d="M6.5 8 L17.5 6.5 M6.5 8 L12 18 M17.5 6.5 L12 18"
             stroke="white"
-            strokeWidth="1.6"
+            strokeOpacity="0.6"
+            strokeWidth="1.8"
             strokeLinecap="round"
           />
+          <circle cx="6.5" cy="8" r="2.6" fill="white" />
+          <circle cx="17.5" cy="6.5" r="2.2" fill="white" />
+          <circle cx="12" cy="18" r="3" fill="white" />
         </svg>
       </div>
     ),

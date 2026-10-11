@@ -67,7 +67,12 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         </div>
 
         {menuOpen && (
-          <div className="fixed inset-0 z-40 md:hidden" role="dialog" aria-modal="true" aria-label="Menu">
+          <div
+            className="fixed inset-0 z-40 md:hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu"
+          >
             <button
               type="button"
               aria-label="Close menu"
@@ -80,7 +85,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
                 variant="ghost"
                 size="icon-sm"
                 aria-label="Close menu"
-                className="absolute top-4 right-2"
+                className="absolute top-2 right-2"
                 onClick={() => setMenuOpen(false)}
               >
                 <X />
@@ -90,10 +95,10 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         )}
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="flex h-14 shrink-0 items-center gap-2 border-b px-3 sm:px-4">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/70 sm:px-4">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-sm"
               aria-label="Open menu"
               className="md:hidden"
               onClick={() => setMenuOpen(true)}
@@ -104,7 +109,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
               <SearchDialog />
               <KeyboardShortcuts />
             </div>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5 text-muted-foreground">
               <NotificationBell />
               <ThemeToggle />
             </div>

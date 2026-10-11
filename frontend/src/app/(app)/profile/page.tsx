@@ -99,7 +99,7 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-2xl px-6 py-10">
+      <div className="mx-auto max-w-2xl px-4 pt-8 pb-16 sm:px-8">
         <Skeleton className="mb-8 h-8 w-40" />
         <Skeleton className="h-64 rounded-xl" />
       </div>
@@ -108,16 +108,16 @@ export default function ProfilePage() {
 
   if (isError || !user) {
     return (
-      <div className="mx-auto max-w-2xl px-6 py-10">
+      <div className="mx-auto max-w-2xl px-4 pt-8 pb-16 sm:px-8">
         <ErrorState onRetry={() => refetch()} />
       </div>
     );
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-10">
+    <div className="mx-auto max-w-2xl px-4 pt-8 pb-16 sm:px-8">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Profile</h1>
+        <h1 className="text-[1.375rem] leading-8 font-semibold tracking-[-0.02em]">Profile</h1>
         <p className="text-sm text-muted-foreground">Manage how you appear across NeuroVault.</p>
       </div>
 

@@ -72,10 +72,10 @@ export default function TrashPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 sm:px-8">
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Trash</h1>
+          <h1 className="text-[1.375rem] leading-8 font-semibold tracking-[-0.02em]">Trash</h1>
           <p className="text-sm text-muted-foreground">
             Archived notes keep their full history and connections until you delete them here.
           </p>

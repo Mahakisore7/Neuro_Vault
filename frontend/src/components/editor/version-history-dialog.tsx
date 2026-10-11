@@ -42,7 +42,13 @@ export function VersionHistoryDialog({ noteId }: { noteId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" title="Version history">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          title="Version history"
+          aria-label="Version history"
+          className="hover:text-foreground"
+        >
           <History className="size-4" />
         </Button>
       </DialogTrigger>

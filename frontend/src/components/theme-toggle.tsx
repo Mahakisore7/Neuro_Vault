@@ -22,10 +22,10 @@ export function ThemeToggle() {
   return (
     <Button
       variant="ghost"
-      size="icon"
+      size="icon-sm"
       aria-label="Toggle theme"
       onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-      className="text-muted-foreground"
+      className="text-muted-foreground hover:text-foreground"
     >
       {mounted && resolvedTheme === "dark" ? (
         <Sun className="size-4" />

@@ -127,7 +127,7 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
     editorProps: {
       attributes: {
         class:
-          "prose dark:prose-invert max-w-none min-h-[32rem] focus:outline-none px-6 py-6 [&_ul[data-type=taskList]]:list-none [&_ul[data-type=taskList]]:pl-0 [&_ul[data-type=taskList]_li]:flex [&_ul[data-type=taskList]_li]:items-start [&_ul[data-type=taskList]_li]:gap-2",
+          "prose prose-neutral dark:prose-invert max-w-none min-h-[28rem] focus:outline-none px-1 py-6 prose-headings:tracking-[-0.02em] prose-headings:font-semibold prose-p:leading-7 prose-a:text-primary prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:font-normal prose-code:before:content-none prose-code:after:content-none prose-pre:bg-muted prose-pre:text-foreground prose-blockquote:border-l-primary/40 prose-blockquote:font-normal prose-blockquote:not-italic [&_ul[data-type=taskList]]:list-none [&_ul[data-type=taskList]]:pl-0 [&_ul[data-type=taskList]_li]:flex [&_ul[data-type=taskList]_li]:items-start [&_ul[data-type=taskList]_li]:gap-2",
       },
     },
   });
@@ -199,8 +199,8 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>
+      <div className="flex items-center justify-between text-xs text-muted-foreground">
+        <span className="tabular-nums">
           {editor && (
             <>
               {editor.storage.characterCount.words()} words ·{" "}
@@ -212,9 +212,19 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
           <span>Read-only: this public note belongs to someone else</span>
         ) : (
           <span aria-live="polite" className="flex items-center gap-2">
-            {saveState === "unsaved" && "Unsaved changes"}
+            {saveState === "unsaved" && (
+              <span className="flex items-center gap-1">
+                <span aria-hidden className="size-1.5 rounded-full bg-amber-500" />
+                Unsaved changes
+              </span>
+            )}
             {saveState === "saving" && "Saving…"}
-            {saveState === "saved" && "Saved"}
+            {saveState === "saved" && (
+              <span className="flex items-center gap-1">
+                <span aria-hidden className="size-1.5 rounded-full bg-success" />
+                Saved
+              </span>
+            )}
             {saveState === "error" && (
               <>
                 <span className="text-destructive">Couldn&rsquo;t save</span>
@@ -233,8 +243,13 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
         )}
       </div>
 
-      <div className="rounded-lg border bg-card ring-1 ring-transparent transition-shadow focus-within:ring-ring/30">
-        {editor && !readOnly && <EditorToolbar editor={editor} />}
+      <div>
+        {editor && !readOnly && (
+          // Sticks under the app header while scrolling a long note.
+          <div className="sticky top-0 z-10 -mx-2 bg-background/85 px-2 pt-1 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+            <EditorToolbar editor={editor} />
+          </div>
+        )}
         {editor && !readOnly && <EditorFloatingMenu editor={editor} />}
         {editor && !readOnly && <WikiLinkSuggest editor={editor} notes={candidates} />}
         <EditorContent editor={editor} />

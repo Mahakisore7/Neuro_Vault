@@ -8,7 +8,6 @@ import {
   LayoutDashboard,
   Library,
   LogOut,
-  Network,
   Tags,
   Trash2,
   User,
@@ -17,7 +16,10 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Logo } from "@/components/logo";
+import { NewNoteButton } from "@/components/notes/new-note-button";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useFlashcardSummary } from "@/hooks/use-flashcards";
 import { useMe } from "@/hooks/use-user";
 import { supabase } from "@/lib/supabase";
@@ -25,7 +27,10 @@ import { supabase } from "@/lib/supabase";
 // Grouped so twelve destinations scan as four ideas. Profile isn't listed:
 // the account card at the bottom already links there.
 // Also the "Go to" list in the command palette, so the two never disagree.
-export const NAV_GROUPS: { label?: string; items: { href: string; label: string; icon: typeof User }[] }[] = [
+export const NAV_GROUPS: {
+  label?: string;
+  items: { href: string; label: string; icon: typeof User }[];
+}[] = [
   { items: [{ href: "/dashboard", label: "Home", icon: LayoutDashboard }] },
   {
     label: "Library",
@@ -60,21 +65,29 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <aside className="flex h-full w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground">
-      {/* The sidebar is dark in both themes, so everything inside takes the
-          sidebar-* tokens. The page-level ones (foreground, muted, border) are
-          dark in light mode and made the wordmark and name near-invisible. */}
-      <div className="flex items-center gap-2 border-b border-sidebar-border px-4 py-4">
-        <div className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-          <Network className="size-4" />
-        </div>
-        <span className="font-semibold tracking-tight">NeuroVault</span>
+      <div className="flex h-12 items-center px-4">
+        <Link
+          href="/dashboard"
+          onClick={onNavigate}
+          className="rounded-md text-sidebar-accent-foreground focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none"
+        >
+          <Logo markClassName="size-6" />
+        </Link>
       </div>
 
-      <nav aria-label="Main" className="flex-1 space-y-4 overflow-y-auto p-3">
+      <div className="px-2 pt-1 pb-2">
+        <NewNoteButton
+          variant="outline"
+          onCreated={onNavigate}
+          className="h-8 w-full justify-start gap-2 bg-background px-2.5 text-[13px] dark:bg-sidebar-accent/40"
+        />
+      </div>
+
+      <nav aria-label="Main" className="flex-1 space-y-5 overflow-y-auto px-2 pt-1 pb-4">
         {NAV_GROUPS.map((group, i) => (
-          <div key={group.label ?? i} className="space-y-0.5">
+          <div key={group.label ?? i} className="space-y-px">
             {group.label && (
-              <p className="px-3 pb-1 text-[11px] font-medium tracking-wider text-sidebar-foreground/75 uppercase">
+              <p className="px-2.5 pb-1.5 text-[11px] font-medium tracking-[0.06em] text-sidebar-foreground/70 uppercase">
                 {group.label}
               </p>
             )}
@@ -87,20 +100,22 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   href={item.href}
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
-                  className={`flex items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none ${
+                  className={`group flex h-8 items-center gap-2.5 rounded-md px-2.5 text-[13px] font-medium transition-colors focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none ${
                     active
-                      ? "bg-primary text-primary-foreground"
-                      : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"
                   }`}
                 >
-                  <item.icon className="size-4" />
+                  <item.icon
+                    className={`size-4 shrink-0 ${
+                      active ? "text-sidebar-primary" : "opacity-70 group-hover:opacity-100"
+                    }`}
+                  />
                   {item.label}
                   {item.href === "/review" && flashcards && flashcards.due > 0 && (
                     <span
                       aria-label={`${flashcards.due} due`}
-                      className={`ml-auto rounded-full px-1.5 text-xs tabular-nums ${
-                        active ? "bg-primary-foreground/20" : "bg-sidebar-primary/25 text-sidebar-accent-foreground"
-                      }`}
+                      className="ml-auto min-w-5 rounded-full bg-sidebar-primary px-1.5 text-center text-[11px] leading-[18px] font-semibold text-sidebar-primary-foreground tabular-nums"
                     >
                       {flashcards.due}
                     </span>
@@ -112,40 +127,53 @@ export function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
 
-      <div className="border-t border-sidebar-border p-3">
+      <div className="flex items-center gap-1 border-t border-sidebar-border p-2">
         <Link
           href="/profile"
           onClick={onNavigate}
           aria-current={pathname === "/profile" ? "page" : undefined}
-          className={`mb-1 flex items-center gap-2 rounded-md px-2 py-1.5 hover:bg-sidebar-accent ${
+          className={`flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors hover:bg-sidebar-accent/60 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:outline-none ${
             pathname === "/profile" ? "bg-sidebar-accent" : ""
           }`}
         >
           <Avatar className="size-7">
             <AvatarImage src={user?.avatar_url ?? undefined} alt={user?.display_name ?? ""} />
-            <AvatarFallback>
-              {user ? user.display_name.slice(0, 2).toUpperCase() : <User className="size-3.5" />}
+            <AvatarFallback className="bg-accent text-[11px] font-semibold text-accent-foreground">
+              {user ? initials(user.display_name) : <User className="size-3.5" />}
             </AvatarFallback>
           </Avatar>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-medium">
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className="block truncate text-[13px] font-medium text-sidebar-accent-foreground">
               {user?.display_name ?? "Loading…"}
             </span>
             {user?.email && (
-              <span className="block truncate text-xs text-sidebar-foreground/60">{user.email}</span>
+              <span className="block truncate text-[11px] text-sidebar-foreground">
+                {user.email}
+              </span>
             )}
           </span>
         </Link>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full justify-start gap-2 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent"
-          onClick={handleSignOut}
-        >
-          <LogOut className="size-4" />
-          Sign out
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Sign out"
+              className="shrink-0 text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground dark:hover:bg-sidebar-accent"
+              onClick={handleSignOut}
+            >
+              <LogOut className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="top">Sign out</TooltipContent>
+        </Tooltip>
       </div>
     </aside>
   );
+}
+
+/** "Demo Student" -> "DS"; a single name gives its first two letters. */
+function initials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return (parts.length > 1 ? parts[0][0] + parts.at(-1)![0] : name.slice(0, 2)).toUpperCase();
 }

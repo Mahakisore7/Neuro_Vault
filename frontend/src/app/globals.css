@@ -31,6 +31,7 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -53,75 +54,81 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.16 0.02 275);
+  /* Neutrals carry a faint blue-violet bias toward the brand hue, so greys
+     read as chosen rather than default. One accent (indigo), used for
+     primary actions, focus and the active location - nothing else. */
+  --background: oklch(0.995 0.002 265);
+  --foreground: oklch(0.2 0.015 265);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.16 0.02 275);
+  --card-foreground: oklch(0.2 0.015 265);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.16 0.02 275);
-  /* Brand indigo — the one deliberate hue in an otherwise neutral palette.
-     Everything else stays near-grayscale so this carries all the accent
-     weight: primary buttons, active nav, links, focus rings. */
-  --primary: oklch(0.5 0.21 275);
-  --primary-foreground: oklch(0.98 0.005 275);
-  --secondary: oklch(0.96 0.005 275);
-  --secondary-foreground: oklch(0.22 0.02 275);
-  --muted: oklch(0.96 0.005 275);
-  --muted-foreground: oklch(0.5 0.02 275);
-  --accent: oklch(0.94 0.03 275);
-  --accent-foreground: oklch(0.3 0.1 275);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.91 0.008 275);
-  --input: oklch(0.91 0.008 275);
-  --ring: oklch(0.6 0.18 275);
-  --chart-1: oklch(0.5 0.21 275);
-  --chart-2: oklch(0.65 0.17 200);
-  --chart-3: oklch(0.7 0.19 150);
-  --chart-4: oklch(0.75 0.18 70);
-  --chart-5: oklch(0.6 0.22 20);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.18 0.025 275);
-  --sidebar-foreground: oklch(0.92 0.01 275);
-  --sidebar-primary: oklch(0.58 0.2 275);
-  --sidebar-primary-foreground: oklch(0.98 0.005 275);
-  --sidebar-accent: oklch(0.26 0.03 275);
-  --sidebar-accent-foreground: oklch(0.95 0.01 275);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.6 0.18 275);
+  --popover-foreground: oklch(0.2 0.015 265);
+  --primary: oklch(0.52 0.19 268);
+  --primary-foreground: oklch(0.985 0.004 268);
+  --secondary: oklch(0.965 0.004 265);
+  --secondary-foreground: oklch(0.25 0.015 265);
+  --muted: oklch(0.965 0.004 265);
+  --muted-foreground: oklch(0.5 0.015 265);
+  --accent: oklch(0.955 0.012 268);
+  --accent-foreground: oklch(0.3 0.06 268);
+  --destructive: oklch(0.56 0.2 25);
+  --success: oklch(0.56 0.13 155);
+  --border: oklch(0.915 0.005 265);
+  --input: oklch(0.89 0.006 265);
+  --ring: oklch(0.6 0.16 268);
+  --chart-1: oklch(0.52 0.19 268);
+  --chart-2: oklch(0.65 0.13 205);
+  --chart-3: oklch(0.66 0.14 155);
+  --chart-4: oklch(0.75 0.14 75);
+  --chart-5: oklch(0.6 0.19 20);
+  --radius: 0.5rem;
+  /* The sidebar sits one step below the canvas: a quiet tinted rail, not a
+     dark slab competing with the content. */
+  --sidebar: oklch(0.975 0.004 265);
+  --sidebar-foreground: oklch(0.32 0.015 265);
+  --sidebar-primary: oklch(0.52 0.19 268);
+  --sidebar-primary-foreground: oklch(0.985 0.004 268);
+  --sidebar-accent: oklch(0.93 0.008 265);
+  --sidebar-accent-foreground: oklch(0.18 0.015 265);
+  --sidebar-border: oklch(0.915 0.005 265);
+  --sidebar-ring: oklch(0.6 0.16 268);
+  --shadow-color: 265 30% 20%;
 }
 
 .dark {
-  --background: oklch(0.15 0.015 275);
-  --foreground: oklch(0.95 0.01 275);
-  --card: oklch(0.2 0.02 275);
-  --card-foreground: oklch(0.95 0.01 275);
-  --popover: oklch(0.2 0.02 275);
-  --popover-foreground: oklch(0.95 0.01 275);
-  --primary: oklch(0.65 0.19 275);
-  --primary-foreground: oklch(0.15 0.02 275);
-  --secondary: oklch(0.27 0.02 275);
-  --secondary-foreground: oklch(0.95 0.01 275);
-  --muted: oklch(0.27 0.02 275);
-  --muted-foreground: oklch(0.68 0.02 275);
-  --accent: oklch(0.3 0.05 275);
-  --accent-foreground: oklch(0.95 0.01 275);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.19 275);
-  --chart-1: oklch(0.65 0.19 275);
-  --chart-2: oklch(0.7 0.15 200);
-  --chart-3: oklch(0.75 0.17 150);
-  --chart-4: oklch(0.78 0.16 70);
-  --chart-5: oklch(0.65 0.2 20);
-  --sidebar: oklch(0.12 0.02 275);
-  --sidebar-foreground: oklch(0.92 0.01 275);
-  --sidebar-primary: oklch(0.65 0.19 275);
-  --sidebar-primary-foreground: oklch(0.15 0.02 275);
-  --sidebar-accent: oklch(0.24 0.03 275);
-  --sidebar-accent-foreground: oklch(0.95 0.01 275);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.65 0.19 275);
+  --background: oklch(0.165 0.008 265);
+  --foreground: oklch(0.94 0.006 265);
+  --card: oklch(0.195 0.009 265);
+  --card-foreground: oklch(0.94 0.006 265);
+  --popover: oklch(0.21 0.01 265);
+  --popover-foreground: oklch(0.94 0.006 265);
+  --primary: oklch(0.68 0.15 270);
+  --primary-foreground: oklch(0.16 0.02 270);
+  --secondary: oklch(0.25 0.01 265);
+  --secondary-foreground: oklch(0.94 0.006 265);
+  --muted: oklch(0.24 0.009 265);
+  --muted-foreground: oklch(0.68 0.012 265);
+  --accent: oklch(0.27 0.025 268);
+  --accent-foreground: oklch(0.94 0.006 265);
+  --destructive: oklch(0.68 0.18 22);
+  --success: oklch(0.7 0.13 155);
+  --border: oklch(1 0 0 / 9%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.68 0.15 270);
+  --chart-1: oklch(0.68 0.15 270);
+  --chart-2: oklch(0.72 0.11 205);
+  --chart-3: oklch(0.74 0.13 155);
+  --chart-4: oklch(0.8 0.13 75);
+  --chart-5: oklch(0.68 0.17 20);
+  --sidebar: oklch(0.145 0.008 265);
+  --sidebar-foreground: oklch(0.8 0.008 265);
+  --sidebar-primary: oklch(0.68 0.15 270);
+  --sidebar-primary-foreground: oklch(0.16 0.02 270);
+  --sidebar-accent: oklch(0.23 0.01 265);
+  --sidebar-accent-foreground: oklch(0.96 0.006 265);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.68 0.15 270);
+  --shadow-color: 265 40% 2%;
 }
 
 @layer base {
@@ -133,7 +140,31 @@
   }
   html {
     @apply font-sans;
+    font-feature-settings: "ss01", "cv11";
+    text-rendering: optimizeLegibility;
   }
+  h1, h2, h3 {
+    text-wrap: balance;
+  }
+  ::selection {
+    background: color-mix(in oklch, var(--primary) 22%, transparent);
+  }
+  /* Thin, quiet scrollbars, so the sidebar and panels don't wear OS chrome. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklch, var(--foreground) 18%, transparent) transparent;
+  }
+}
+
+@utility shadow-soft {
+  box-shadow:
+    0 1px 2px hsl(var(--shadow-color) / 0.05),
+    0 1px 1px hsl(var(--shadow-color) / 0.03);
+}
+@utility shadow-raised {
+  box-shadow:
+    0 1px 2px hsl(var(--shadow-color) / 0.06),
+    0 4px 12px -2px hsl(var(--shadow-color) / 0.08);
 }
 /* [[wiki-links]] in the editor (components/editor/wiki-link-extension.ts).
    A note that exists reads as a link; a missing one gets a dashed underline,
