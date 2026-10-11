@@ -34,13 +34,13 @@ export function NotificationBell() {
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className="relative"
+          size="icon-sm"
+          className="relative text-muted-foreground hover:text-foreground"
           aria-label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
         >
           <Bell className="size-4" />
           {unread > 0 && (
-            <span className="absolute top-1 right-1 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 font-medium text-primary-foreground tabular-nums">
+            <span className="absolute -top-0.5 -right-0.5 flex min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-4 font-medium text-primary-foreground tabular-nums">
               {unread > 9 ? "9+" : unread}
             </span>
           )}

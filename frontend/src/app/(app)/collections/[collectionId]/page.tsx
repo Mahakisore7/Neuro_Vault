@@ -68,7 +68,7 @@ export default function CollectionDetailPage() {
 
   if (isError) {
     return (
-      <div className="mx-auto max-w-3xl px-6 py-10">
+      <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 sm:px-8">
         <ErrorState onRetry={() => refetch()} />
       </div>
     );
@@ -76,7 +76,7 @@ export default function CollectionDetailPage() {
 
   if (isLoading || !collection) {
     return (
-      <div className="mx-auto max-w-3xl space-y-4 px-6 py-10">
+      <div className="mx-auto max-w-3xl space-y-4 px-4 pt-8 pb-16 sm:px-8">
         <Skeleton className="h-8 w-48" />
         {[1, 2, 3].map((i) => (
           <Skeleton key={i} className="h-12 rounded-lg" />
@@ -86,7 +86,7 @@ export default function CollectionDetailPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10">
+    <div className="mx-auto max-w-3xl px-4 pt-8 pb-16 sm:px-8">
       <button
         onClick={() => router.push("/collections")}
         className="mb-4 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -97,7 +97,7 @@ export default function CollectionDetailPage() {
 
       <div className="mb-6 flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="truncate text-2xl font-semibold tracking-tight">{collection.name}</h1>
+          <h1 className="truncate text-[1.375rem] leading-8 font-semibold tracking-[-0.02em]">{collection.name}</h1>
           {collection.description && (
             <p className="text-sm text-muted-foreground">{collection.description}</p>
           )}

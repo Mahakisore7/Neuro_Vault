@@ -21,7 +21,9 @@ test.describe("accessibility", () => {
       test.slow(); // two full axe scans; a busy runner can exceed the default timeout
       await page.emulateMedia({ colorScheme: scheme });
       await page.goto("/dashboard");
-      await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
+      await expect(
+        page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), Test$/ }),
+      ).toBeVisible();
       await expectAccessible(page);
 
       await page.goto(`/notes/${NOTE_IDS.normalization}`);
@@ -112,7 +114,9 @@ test.describe("command palette", () => {
 
   test("? opens the keyboard shortcuts", async ({ page }) => {
     await page.goto("/dashboard");
-    await expect(page.getByRole("heading", { name: /welcome back/i })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { level: 1, name: /^Good (morning|afternoon|evening), Test$/ }),
+    ).toBeVisible();
     await page.keyboard.press("?");
     await expect(page.getByRole("dialog", { name: "Keyboard shortcuts" })).toBeVisible();
     await expectAccessible(page);

@@ -183,11 +183,11 @@ export function SearchDialog() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex h-8 w-full max-w-64 items-center gap-2 rounded-md border border-border bg-background px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted"
+        className="flex h-8 w-full max-w-72 items-center gap-2 rounded-md border border-border bg-muted/50 px-2.5 text-[13px] text-muted-foreground shadow-soft transition-colors hover:bg-muted hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <Search className="size-3.5" />
         <span className="flex-1 truncate text-left">Search or jump to…</span>
-        <kbd className="hidden rounded border border-border px-1.5 font-mono text-[10px] sm:inline">
+        <kbd className="hidden rounded border border-border bg-background px-1.5 font-mono text-[10px] leading-4 sm:inline">
           Ctrl K
         </kbd>
       </button>
@@ -195,7 +195,7 @@ export function SearchDialog() {
       <Dialog open={open} onOpenChange={(o) => (o ? setOpen(true) : close())}>
         <DialogContent
           showCloseButton={false}
-          className="top-[20%] translate-y-0 gap-0 p-0 sm:max-w-xl"
+          className="top-[18%] translate-y-0 gap-0 overflow-hidden p-0 shadow-raised sm:max-w-xl"
         >
           <DialogTitle className="sr-only">Search notes and commands</DialogTitle>
           <div className="flex items-center gap-2 border-b px-3">
