@@ -4,6 +4,11 @@
 
 **A knowledge base where notes form a graph — and PostgreSQL does the heavy lifting.**
 
+**[Live app](https://neurovault-ten.vercel.app)** · [API health](https://neurovault-api-gkuh.onrender.com/health) · [Project overview](docs/PROJECT-OVERVIEW.md)
+
+<sub>The API runs on Render's free plan and sleeps when idle, so the first request after a
+quiet spell can take up to a minute.</sub>
+
 [![CI](https://github.com/Mahakisore7/Neuro_Vault/actions/workflows/ci.yml/badge.svg)](https://github.com/Mahakisore7/Neuro_Vault/actions/workflows/ci.yml)
 [![License: Apache 2.0](https://img.shields.io/badge/license-Apache%202.0-blue.svg)](LICENSE)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python&logoColor=white)
@@ -420,6 +425,10 @@ They cover:
 | Frontend | ESLint, type-check, production build, then the Playwright + axe browser tests (traces uploaded on failure) |
 
 ## Deployment
+
+Deployed: the web app on [Vercel](https://neurovault-ten.vercel.app), the API on
+[Render](https://neurovault-api-gkuh.onrender.com/health) (Singapore, next to the Supabase
+database).
 
 The API ships as the production stage of [`backend/Dockerfile`](backend/Dockerfile),
 described for Render by [`render.yaml`](render.yaml). It applies pending migrations, then
