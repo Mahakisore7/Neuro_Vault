@@ -1,10 +1,10 @@
 flowchart TB
-    R["Request"] --> L1["1. Rate limit per IP<br/>300/min, stricter on export, delete, Empty Trash"]
-    L1 --> L2["2. JWT verification<br/>ES256 via JWKS, audience, expiry"]
-    L2 --> L3["3. Service authorization<br/>owner checks, 404 for others' data"]
-    L3 --> L4["4. Composite foreign keys<br/>cross-user rows can't be stored"]
-    L4 --> L5["5. CHECK and UNIQUE constraints"]
-    B["Browser with anon key"] --> L6["6. Row level security<br/>per-user policies on every table"]
+    R["Request"] --> L1["1 · Rate limit per IP<br/>300/min, stricter on export, delete, Empty Trash"]
+    L1 --> L2["2 · JWT verification<br/>ES256 via JWKS, audience, expiry"]
+    L2 --> L3["3 · Service authorization<br/>owner checks, 404 for others' data"]
+    L3 --> L4["4 · Composite foreign keys<br/>cross-user rows can't be stored"]
+    L4 --> L5["5 · CHECK and UNIQUE constraints"]
+    B["Browser with anon key"] --> L6["6 · Row level security<br/>per-user policies on every table"]
 
     classDef web fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF,stroke-width:1.5px
     classDef api fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF,stroke-width:1.5px
