@@ -41,7 +41,8 @@ one on a slide, paste it into [mermaid.live](https://mermaid.live) and export PN
 | **Stack** | PostgreSQL (Supabase) · FastAPI (Python 3.12, async SQLAlchemy) · Next.js 16 / React 19 · Supabase Auth |
 | **Size** | 15 tables · 12 migrations · 4 views · 3 graph functions · 1 stored procedure · 5 triggers · 60 API endpoints |
 | **Quality** | 176 backend tests against a real PostgreSQL database · 33 browser tests with WCAG 2.1 AA accessibility scans · CI on every pull request |
-| **Decisions** | 25 Architecture Decision Records (ADRs) in [`docs/adr/`](adr/) |
+| **Decisions** | 26 Architecture Decision Records (ADRs) in [`docs/adr/`](adr/) |
+| **Interface** | A token-based design system with light and dark themes, a shared motion system that respects reduced motion, and accessibility checks on every pull request ([design-system.md](design-system.md)) |
 
 ![Home screen](screenshots/dashboard.png)
 
@@ -121,6 +122,7 @@ mindmap
 | **Flashcards** | Add cards to any note; review due cards with four buttons | SM-2: `ease_factor NUMERIC(4,2) CHECK (1.30–2.50)`; `(owner_id, due_at)` index for the due queue |
 | **Dashboard** | Totals, hub notes, unlinked notes, recent edits | `v_user_dashboard`, `v_note_graph_stats`, `v_orphan_notes` |
 | **Activity and notifications** | Timeline of changes; a bell when someone links to your public note | `AFTER` triggers on notes and links write `activity_logs` and `notifications`; a window-function query collapses autosave bursts |
+| **Interface** | Collapsible sidebar (`Ctrl \`) with Pinned and Recent notes; a home page that opens on "Continue writing"; palette that opens on recent notes; sans or serif writing font; animated light/dark theme switch; entrance, hover and loading motion that stops for reduced-motion users | Nothing: this is the front end's job. See [design-system.md](design-system.md) |
 | **Account** | Email/password or Google/GitHub; password reset; export everything as JSON; delete the account | Export is one SQL statement of `jsonb_agg`; delete removes app data (cascading) and the login in one transaction |
 
 ---
@@ -216,7 +218,8 @@ The JWT is the only handoff: FastAPI never sees a password, and Supabase never s
 | `src/app/(marketing)` | Public landing page |
 | `src/app/(auth)` | Sign in, sign up, forgot and reset password, OAuth callback |
 | `src/app/(app)` | Signed-in pages: dashboard, workspaces, notebooks, notes, graph, tags, collections, review, activity, trash, profile |
-| `src/components` | Editor (Tiptap + wiki-links), graph canvas, command palette, layout, account cards, shadcn/ui primitives |
+| `src/components` | Editor (Tiptap + wiki-links), graph canvas, command palette, layout (collapsible sidebar), account cards, motion helpers, landing-page previews, shadcn/ui primitives |
+| `src/app/(app)/template.tsx` | Eases each page in on navigation, while the sidebar and header stay still |
 | `src/hooks` | One TanStack Query module per resource (`use-notes`, `use-links`, …) |
 | `src/app/globals.css` | Design tokens: colour, radius, elevation, light and dark themes |
 | `e2e/` | Playwright browser tests with an in-memory fake backend |
@@ -233,7 +236,9 @@ The JWT is the only handoff: FastAPI never sees a password, and Supabase never s
 | Data access | **SQLAlchemy 2 (async) + asyncpg** | ORM for simple CRUD, raw SQL where PostgreSQL features matter |
 | Auth | **Supabase Auth** | Email + OAuth + reset emails handled; JWTs verified in the backend via JWKS (ES256) |
 | Frontend | **Next.js 16** (App Router), React 19, TypeScript | Routing, production builds, security headers |
-| UI | Tailwind CSS v4, shadcn/ui, lucide icons | Accessible primitives and a token-based design system |
+| UI | Tailwind CSS v4, shadcn/ui, lucide icons | Accessible primitives and a token-based design system ([design-system.md](design-system.md)) |
+| Motion | **motion** (the Framer Motion successor) plus CSS keyframes | Layout animations (the sliding sidebar pill), staggered entrances, drawing graph links; all stop under reduced motion |
+| Type | Geist Sans and Mono; Newsreader as an optional writing font | A modern interface face, with a serif for long-form reading |
 | Editor | **Tiptap 3** (ProseMirror) | Rich text, custom extensions (the wiki-link decorations and autocomplete) |
 | Server state | **TanStack Query** | Caching, background refetch, optimistic updates |
 | Tests | pytest, Playwright, axe-core | Backend against a real database; browser tests with accessibility scans |
@@ -1048,7 +1053,7 @@ Step-by-step guide: [`deployment.md`](deployment.md).
 
 ## 13. Key design decisions
 
-25 ADRs record the problem, the options, the choice, and why. The ones most worth
+26 ADRs record the problem, the options, the choice, and why. The ones most worth
 presenting:
 
 | ADR | Decision | Why it matters |
@@ -1065,6 +1070,7 @@ presenting:
 | [022](adr/0022-views-are-security-invoker.md) | Views are `security_invoker` | Views can't bypass RLS |
 | [024](adr/0024-in-process-rate-limiting.md) | In-process rate limiting | Simple, no extra infrastructure, one worker |
 | [025](adr/0025-csp-without-nonces.md) | CSP without nonces | Keeps static rendering; documented trade-off |
+| [026](adr/0026-design-tokens-and-restrained-motion.md) | Design tokens and restrained motion | Every screen looks like one product; the accessibility scan keeps it that way |
 
 ---
 
@@ -1119,7 +1125,7 @@ A 15–20 minute talk, 14 slides. Each row: what goes on the slide, and what to 
 | 10 | **The database computes** | Diagram 6.4 + trigger/function table | Versions and audit by triggers; BFS and shortest path as functions; views for the dashboard. |
 | 11 | **One feature end to end** | Sequence 7.4 (saving a note) or 7.10 (wiki-links) | Follow one keystroke to a version row and a reconciled link. |
 | 12 | **Security** | Diagram from section 10 | Six layers; RLS protects the path that skips the API. |
-| 13 | **Quality** | CI diagram from section 11, test counts | 176 database-backed tests, 33 browser tests, accessibility scans, CI on every PR, 25 ADRs. |
+| 13 | **Quality** | CI diagram from section 11, test counts | 176 database-backed tests, 33 browser tests, accessibility scans, CI on every PR, 26 ADRs. |
 | 14 | **Learnings and future** | Challenges table + future work | What broke and how we fixed it; attachments, workspace graph, AI links. Q&A. |
 
 **Live demo script (3 minutes):**

@@ -167,12 +167,12 @@ export default function ProfilePage() {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div className="space-y-2">
+            <div className="space-y-2 stagger">
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={user.email} disabled />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 stagger">
               <Label htmlFor="display_name">Display name</Label>
               <Input id="display_name" {...register("display_name")} />
               {errors.display_name && (
@@ -180,7 +180,7 @@ export default function ProfilePage() {
               )}
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-2 stagger">
               <Label htmlFor="bio">Bio</Label>
               <Textarea id="bio" rows={3} placeholder="A short intro…" {...register("bio")} />
               {errors.bio && <p className="text-sm text-destructive">{errors.bio.message}</p>}

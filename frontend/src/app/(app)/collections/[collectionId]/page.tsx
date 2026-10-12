@@ -148,12 +148,12 @@ export default function CollectionDetailPage() {
       </div>
 
       {collection.items.length === 0 ? (
-        <div className="rounded-xl border border-dashed py-16 text-center">
+        <div className="empty-state">
           <p className="font-medium">This collection is empty</p>
           <p className="text-sm text-muted-foreground">Use &ldquo;Add note&rdquo; to start it.</p>
         </div>
       ) : (
-        <ol className="space-y-2">
+        <ol className="space-y-2 stagger">
           {collection.items.map((item, index) => (
             <li
               key={item.note_id}

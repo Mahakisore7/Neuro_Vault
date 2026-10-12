@@ -94,7 +94,7 @@ export default function TrashPage() {
       </div>
 
       {isLoading && (
-        <div className="space-y-2">
+        <div className="space-y-2 stagger">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-14 rounded-lg" />
           ))}
@@ -104,15 +104,15 @@ export default function TrashPage() {
       {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
 
       {!isLoading && !isError && notes?.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
-          <Trash2 className="mb-3 size-8 text-muted-foreground" />
+        <div className="empty-state">
+          <Trash2 className="empty-icon" />
           <p className="font-medium">Trash is empty</p>
           <p className="text-sm text-muted-foreground">Archived notes will show up here.</p>
         </div>
       )}
 
       {!isLoading && notes && notes.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 stagger">
           {notes.map((note) => (
             <Card key={note.id}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3">

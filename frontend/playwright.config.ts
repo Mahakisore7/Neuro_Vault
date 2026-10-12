@@ -14,6 +14,10 @@ export default defineConfig({
   use: {
     baseURL: `http://localhost:${PORT}`,
     trace: "retain-on-failure",
+    // Tests run with reduced motion: nothing is mid-animation when an element is
+    // clicked or axe measures contrast, and it exercises the same path people
+    // who ask their OS for less motion get.
+    reducedMotion: "reduce",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: {

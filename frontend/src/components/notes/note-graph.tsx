@@ -1,15 +1,17 @@
 "use client";
 
+import { motion, useReducedMotion } from "motion/react";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
+import { EASE_OUT } from "@/components/motion";
 import type { NoteGraph as NoteGraphData, RelationshipType } from "@/types/api";
 
 const VIEWBOX = 640;
 const CENTER = VIEWBOX / 2;
 const MAX_RADIUS = 260;
-const NODE_RADIUS = 8;
-const ROOT_RADIUS = 13;
+const NODE_RADIUS = 9;
+const ROOT_RADIUS = 14;
 
 interface PositionedNode {
   id: string;
@@ -64,12 +66,26 @@ export function NoteGraph({
   highlightPath?: string[];
 }) {
   const router = useRouter();
+  const reduce = useReducedMotion();
+  // The note under the pointer (or keyboard focus): it and its direct
+  // neighbours stay lit while the rest of the graph recedes.
+  const [hovered, setHovered] = useState<string | null>(null);
   const positioned = useMemo(() => layoutNodes(graph.nodes, rootId), [graph.nodes, rootId]);
   const byId = useMemo(() => new Map(positioned.map((n) => [n.id, n])), [positioned]);
   const relTypeById = useMemo(
     () => new Map(relationshipTypes.map((t) => [t.id, t])),
     [relationshipTypes],
   );
+  const neighbours = useMemo(() => {
+    const map = new Map<string, Set<string>>();
+    for (const e of graph.edges) {
+      if (!map.has(e.source_note_id)) map.set(e.source_note_id, new Set());
+      if (!map.has(e.target_note_id)) map.set(e.target_note_id, new Set());
+      map.get(e.source_note_id)!.add(e.target_note_id);
+      map.get(e.target_note_id)!.add(e.source_note_id);
+    }
+    return map;
+  }, [graph.edges]);
 
   const usedRelTypeIds = [...new Set(graph.edges.map((e) => e.rel_type_id))];
 
@@ -81,6 +97,8 @@ export function NoteGraph({
       .flatMap((id, i) => [`${highlightPath[i]}>${id}`, `${id}>${highlightPath[i]}`]),
   );
   const dimming = highlightPath.length > 1;
+  const focusing = hovered !== null && !dimming;
+  const lit = (id: string) => !focusing || id === hovered || neighbours.get(hovered!)?.has(id);
 
   return (
     <svg
@@ -130,48 +148,101 @@ export function NoteGraph({
         if (!source || !target) return null;
         const relType = relTypeById.get(edge.rel_type_id);
         const isPathEdge = pathEdges.has(`${edge.source_note_id}>${edge.target_note_id}`);
+        const touchesFocus =
+          focusing && (edge.source_note_id === hovered || edge.target_note_id === hovered);
+        const opacity = dimming
+          ? isPathEdge
+            ? 0.9
+            : 0.15
+          : focusing
+            ? touchesFocus
+              ? 0.95
+              : 0.1
+            : 0.7;
         return (
-          <line
+          <motion.line
             key={edge.id}
             x1={source.x}
             y1={source.y}
             x2={target.x}
             y2={target.y}
             stroke={isPathEdge ? "var(--primary)" : (relType?.color ?? "#888888")}
-            strokeWidth={isPathEdge ? 3 : 0.8 + edge.strength * 0.25}
-            strokeOpacity={dimming && !isPathEdge ? 0.15 : 0.7}
+            strokeWidth={isPathEdge || touchesFocus ? 3 : 0.8 + edge.strength * 0.25}
+            strokeLinecap="round"
             markerEnd={relType?.is_symmetric ? undefined : `url(#nv-arrow-${edge.rel_type_id})`}
+            // The links draw themselves outward, a ring at a time.
+            initial={reduce ? false : { pathLength: 0, strokeOpacity: 0 }}
+            animate={{ pathLength: 1, strokeOpacity: opacity }}
+            transition={{
+              pathLength: {
+                duration: 0.7,
+                ease: EASE_OUT,
+                delay: 0.15 * Math.max(source.depth, target.depth),
+              },
+              strokeOpacity: { duration: 0.25 },
+            }}
           />
         );
       })}
 
       {positioned.map((node) => {
         const isRoot = node.id === rootId;
-        const faded = dimming && !onPath.has(node.id);
+        const pathFaded = dimming && !onPath.has(node.id);
+        const dimmed = pathFaded || (focusing && !lit(node.id));
+        const r = isRoot ? ROOT_RADIUS : NODE_RADIUS;
         return (
-          <g
-            key={node.id}
-            transform={`translate(${node.x}, ${node.y})`}
-            opacity={faded ? 0.35 : 1}
-            className="cursor-pointer"
-            onClick={() => !isRoot && router.push(`/notes/${node.id}`)}
-          >
-            <title>{node.title}</title>
-            <circle
-              r={isRoot ? ROOT_RADIUS : NODE_RADIUS}
-              fill={isRoot ? "var(--primary)" : "var(--card)"}
-              stroke={isRoot || (dimming && onPath.has(node.id)) ? "var(--primary)" : "var(--border)"}
-              strokeWidth={dimming && onPath.has(node.id) ? 3 : 1.5}
-            />
-            <text
-              y={isRoot ? ROOT_RADIUS + 16 : NODE_RADIUS + 14}
-              textAnchor="middle"
-              fontSize={isRoot ? 13 : 11}
-              fontWeight={isRoot ? 600 : 400}
-              fill="var(--foreground)"
+          <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
+            <motion.g
+              initial={reduce ? false : { opacity: 0, y: 6 }}
+              animate={{ opacity: dimmed ? 0.3 : 1, y: 0 }}
+              transition={{
+                opacity: {
+                  duration: 0.25,
+                  delay: reduce || hovered !== null ? 0 : 0.12 * node.depth,
+                },
+                y: { duration: 0.5, ease: EASE_OUT, delay: 0.12 * node.depth },
+              }}
+              className="cursor-pointer outline-none"
+              tabIndex={isRoot ? undefined : 0}
+              role={isRoot ? undefined : "link"}
+              aria-label={isRoot ? undefined : node.title}
+              onClick={() => !isRoot && router.push(`/notes/${node.id}`)}
+              onKeyDown={(e: React.KeyboardEvent) => {
+                if (!isRoot && e.key === "Enter") router.push(`/notes/${node.id}`);
+              }}
+              onMouseEnter={() => setHovered(node.id)}
+              onMouseLeave={() => setHovered(null)}
+              onFocus={() => setHovered(node.id)}
+              onBlur={() => setHovered(null)}
             >
-              {node.title.length > 20 ? `${node.title.slice(0, 19)}…` : node.title}
-            </text>
+              <title>{node.title}</title>
+              {isRoot && <circle r={r + 9} fill="var(--primary)" opacity={0.14} />}
+              <circle
+                r={r}
+                fill={isRoot ? "var(--primary)" : "var(--card)"}
+                stroke={
+                  isRoot || node.id === hovered || (dimming && onPath.has(node.id))
+                    ? "var(--primary)"
+                    : "var(--border)"
+                }
+                strokeWidth={dimming && onPath.has(node.id) ? 3 : node.id === hovered ? 2.5 : 1.5}
+              />
+              <text
+                y={r + 17}
+                textAnchor="middle"
+                fontSize={isRoot ? 13 : 11.5}
+                fontWeight={isRoot || node.id === hovered ? 600 : 500}
+                fill="var(--foreground)"
+                // A halo in the page colour keeps labels readable where
+                // they cross a link.
+                stroke="var(--background)"
+                strokeWidth={4}
+                strokeLinejoin="round"
+                paintOrder="stroke"
+              >
+                {node.title.length > 22 ? `${node.title.slice(0, 21)}…` : node.title}
+              </text>
+            </motion.g>
           </g>
         );
       })}

@@ -10,7 +10,7 @@ export function LogoMark({ className }: { className?: string }) {
     <span
       aria-hidden
       className={cn(
-        "inline-flex size-7 shrink-0 items-center justify-center rounded-[28%] bg-gradient-to-b from-primary to-[color-mix(in_oklch,var(--primary)_78%,black)] text-primary-foreground shadow-soft ring-1 ring-inset ring-white/15",
+        "inline-flex size-7 shrink-0 items-center justify-center rounded-[28%] bg-linear-to-b from-primary to-[color-mix(in_oklch,var(--primary)_78%,black)] text-primary-foreground shadow-soft ring-1 ring-inset ring-white/15",
         className,
       )}
     >

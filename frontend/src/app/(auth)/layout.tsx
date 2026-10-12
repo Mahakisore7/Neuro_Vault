@@ -24,7 +24,7 @@ export default function AuthLayout({ children }: LayoutProps<"/">) {
         <div className="flex flex-1 items-center justify-center py-10">
           {/* The auth pages are Cards; on this split layout the panel already frames
               them, so they render flat: no border, no inner padding. */}
-          <div className="w-full max-w-sm [&_[data-slot=card]]:border-0 [&_[data-slot=card]]:bg-transparent [&_[data-slot=card]]:py-0 [&_[data-slot=card]]:shadow-none [&_[data-slot=card-content]]:px-0 [&_[data-slot=card-description]]:text-sm [&_[data-slot=card-footer]]:border-0 [&_[data-slot=card-footer]]:bg-transparent [&_[data-slot=card-footer]]:px-0 [&_[data-slot=card-header]]:mb-2 [&_[data-slot=card-header]]:px-0 [&_[data-slot=card-title]]:text-2xl [&_[data-slot=card-title]]:font-semibold [&_[data-slot=card-title]]:tracking-[-0.025em]">
+          <div className="w-full max-w-sm animate-rise [&_[data-slot=card]]:border-0 [&_[data-slot=card]]:bg-transparent [&_[data-slot=card]]:py-0 [&_[data-slot=card]]:shadow-none [&_[data-slot=card-content]]:px-0 [&_[data-slot=card-description]]:text-sm [&_[data-slot=card-footer]]:border-0 [&_[data-slot=card-footer]]:bg-transparent [&_[data-slot=card-footer]]:px-0 [&_[data-slot=card-header]]:mb-2 [&_[data-slot=card-header]]:px-0 [&_[data-slot=card-title]]:text-2xl [&_[data-slot=card-title]]:font-semibold [&_[data-slot=card-title]]:tracking-[-0.025em]">
             {children}
           </div>
         </div>

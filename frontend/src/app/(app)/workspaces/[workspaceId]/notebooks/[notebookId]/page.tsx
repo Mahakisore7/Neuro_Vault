@@ -124,7 +124,7 @@ export default function NotesPage() {
               <DialogTitle>Create a note</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="title">Title</Label>
                 <Input id="title" autoFocus {...register("title")} />
                 {errors.title && (
@@ -142,7 +142,7 @@ export default function NotesPage() {
       </div>
 
       {isLoading && (
-        <div className="space-y-2">
+        <div className="space-y-2 stagger">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-14 rounded-lg" />
           ))}
@@ -152,15 +152,15 @@ export default function NotesPage() {
       {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
 
       {!isLoading && !isError && notes?.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
-          <FileText className="mb-3 size-8 text-muted-foreground" />
+        <div className="empty-state">
+          <FileText className="empty-icon" />
           <p className="font-medium">No notes yet</p>
           <p className="text-sm text-muted-foreground">Create one to start writing.</p>
         </div>
       )}
 
       {!isLoading && notes && notes.length > 0 && (
-        <div className="space-y-2">
+        <div className="space-y-2 stagger">
           {notes.map((note) => (
             <Card
               key={note.id}
@@ -173,7 +173,7 @@ export default function NotesPage() {
                   router.push(`/notes/${note.id}`);
                 }
               }}
-              className="cursor-pointer transition-all hover:shadow-sm hover:ring-primary/25"
+              className="card-interactive"
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 py-3">
                 <div className="flex min-w-0 flex-1 items-center gap-2">

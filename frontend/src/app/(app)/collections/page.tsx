@@ -115,12 +115,12 @@ export default function CollectionsPage() {
               <DialogTitle>Create a collection</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="name">Name</Label>
                 <Input id="name" autoFocus placeholder="Exam revision" {...register("name")} />
                 {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="description">Description (optional)</Label>
                 <Textarea id="description" rows={2} {...register("description")} />
               </div>
@@ -145,8 +145,8 @@ export default function CollectionsPage() {
       {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
 
       {!isLoading && !isError && collections?.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
-          <Library className="mb-3 size-8 text-muted-foreground" />
+        <div className="empty-state">
+          <Library className="empty-icon" />
           <p className="font-medium">No collections yet</p>
           <p className="text-sm text-muted-foreground">
             Group notes for a topic, an exam, or a reading list.
@@ -168,7 +168,7 @@ export default function CollectionsPage() {
                   router.push(`/collections/${c.id}`);
                 }
               }}
-              className="cursor-pointer transition-all hover:shadow-sm hover:ring-primary/25"
+              className="card-interactive"
             >
               <CardHeader className="flex flex-row items-start justify-between space-y-0">
                 <div className="min-w-0 flex-1 space-y-1">

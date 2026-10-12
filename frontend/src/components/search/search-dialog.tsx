@@ -20,7 +20,7 @@ import { NAV_GROUPS } from "@/components/layout/sidebar";
 import { OPEN_SHORTCUTS_EVENT } from "@/components/keyboard-shortcuts";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useDebouncedValue } from "@/hooks/use-debounced-value";
-import { useCreateNote, useNoteSearch } from "@/hooks/use-notes";
+import { useAllNotes, useCreateNote, useNoteSearch } from "@/hooks/use-notes";
 import type { NoteSearchResult } from "@/types/api";
 
 const START = "\u0001";
@@ -77,6 +77,8 @@ export function SearchDialog() {
 
   const debounced = useDebouncedValue(query, 200);
   const { data: results = [], isFetching } = useNoteSearch(debounced);
+  // With nothing typed, the palette opens on the notes you touched last.
+  const { data: allNotes } = useAllNotes({ enabled: open });
 
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
@@ -154,7 +156,28 @@ export function SearchDialog() {
     : [];
   // While searching, notes are what you're most likely after; commands that
   // also match follow them. With nothing typed, the palette is all commands.
-  const items = hasQuery ? [...noteItems, ...matchingCommands] : matchingCommands;
+  const recentItems: Item[] = trimmed
+    ? []
+    : [...(allNotes ?? [])]
+        .sort((a, b) => b.updated_at.localeCompare(a.updated_at))
+        .slice(0, 4)
+        .map((n) => ({
+          kind: "note",
+          id: n.id,
+          note: {
+            id: n.id,
+            title: n.title,
+            title_highlight: n.title,
+            snippet: "",
+            rank: 0,
+            is_own: true,
+            updated_at: n.updated_at,
+            fuzzy: false,
+          },
+        }));
+  const items = hasQuery
+    ? [...noteItems, ...matchingCommands]
+    : [...recentItems, ...matchingCommands];
   const active = Math.min(activeIndex, Math.max(items.length - 1, 0));
 
   function choose(item: Item) {
@@ -252,30 +275,38 @@ export function SearchDialog() {
               if (item.kind === "note") {
                 const r = item.note;
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    {...common}
-                    className={`flex w-full gap-2.5 rounded-md px-3 py-2 text-left ${selected ? "bg-muted" : ""}`}
-                  >
-                    <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                    <span className="flex min-w-0 flex-col gap-0.5">
-                      <span className="flex items-center gap-1.5 text-sm font-medium">
-                        <Highlighted text={r.title_highlight} />
-                        {!r.is_own && (
-                          <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
-                            <Globe className="size-3" />
-                            public
+                  <Fragment key={item.id}>
+                    {idx === 0 && !hasQuery && (
+                      <p className="px-3 pt-1 pb-1 text-[11px] font-medium tracking-wider text-muted-foreground uppercase">
+                        Recent notes
+                      </p>
+                    )}
+                    <button
+                      type="button"
+                      {...common}
+                      className={`flex w-full gap-2.5 rounded-md px-3 py-2 text-left transition-colors duration-100 ${selected ? "bg-muted" : ""}`}
+                    >
+                      <FileText className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <span className="flex items-center gap-1.5 text-sm font-medium">
+                          <span>
+                            <Highlighted text={r.title_highlight} />
+                          </span>
+                          {!r.is_own && (
+                            <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                              <Globe className="size-3" />
+                              public
+                            </span>
+                          )}
+                        </span>
+                        {r.snippet && (
+                          <span className="line-clamp-2 text-xs text-muted-foreground">
+                            <Highlighted text={r.snippet} />
                           </span>
                         )}
                       </span>
-                      {r.snippet && (
-                        <span className="line-clamp-2 text-xs text-muted-foreground">
-                          <Highlighted text={r.snippet} />
-                        </span>
-                      )}
-                    </span>
-                  </button>
+                    </button>
+                  </Fragment>
                 );
               }
 

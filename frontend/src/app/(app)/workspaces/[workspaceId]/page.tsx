@@ -127,16 +127,16 @@ export default function NotebooksPage() {
               <DialogTitle>Create a notebook</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="name">Name</Label>
                 <Input id="name" {...register("name")} />
                 {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="description">Description (optional)</Label>
                 <Input id="description" {...register("description")} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label>Color</Label>
                 <div className="flex gap-2">
                   {COLORS.map((c) => (
@@ -164,7 +164,7 @@ export default function NotebooksPage() {
       </div>
 
       {isLoading && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-28 rounded-xl" />
           ))}
@@ -174,15 +174,15 @@ export default function NotebooksPage() {
       {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
 
       {!isLoading && !isError && notebooks?.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
-          <BookOpen className="mb-3 size-8 text-muted-foreground" />
+        <div className="empty-state">
+          <BookOpen className="empty-icon" />
           <p className="font-medium">No notebooks yet</p>
           <p className="text-sm text-muted-foreground">Create one to start writing notes.</p>
         </div>
       )}
 
       {!isLoading && notebooks && notebooks.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
           {notebooks.map((nb) => (
             <Card
               key={nb.id}
@@ -195,7 +195,7 @@ export default function NotebooksPage() {
                   router.push(`/workspaces/${workspaceId}/notebooks/${nb.id}`);
                 }
               }}
-              className="cursor-pointer transition-all hover:shadow-md hover:ring-primary/25"
+              className="card-interactive"
             >
               <CardHeader>
                 <div

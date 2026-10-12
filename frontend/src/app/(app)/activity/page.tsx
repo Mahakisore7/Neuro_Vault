@@ -115,8 +115,8 @@ export default function ActivityPage() {
       )}
 
       {feed && feed.length === 0 && (
-        <div className="flex flex-col items-center rounded-xl border border-dashed py-16 text-center">
-          <History className="mb-3 size-8 text-muted-foreground" />
+        <div className="empty-state">
+          <History className="empty-icon" />
           <p className="font-medium">No activity yet</p>
           <p className="text-sm text-muted-foreground">Create or edit a note and it shows up here.</p>
         </div>

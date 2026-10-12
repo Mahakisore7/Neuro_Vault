@@ -30,7 +30,12 @@ version history and an audit log written by triggers, ranked full-text search on
 index, graph traversal as a database function, and row level security as the last line of
 defence.
 
-![Home: a summary strip, hub notes ranked by links, unlinked notes and recent edits, computed by database views](docs/screenshots/dashboard.png)
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/dashboard.png" alt="Home in the light theme: a Continue writing card, a summary strip, hub notes ranked by links, unlinked notes and recent edits"><br><sub><b>Home, light</b>: continue writing, a summary strip, hub notes, recent edits, all from database views</sub></td>
+    <td width="50%"><img src="docs/screenshots/dashboard-dark.png" alt="The same home screen in the dark theme"><br><sub><b>Home, dark</b>: every screen is designed for both themes</sub></td>
+  </tr>
+</table>
 
 <table>
   <tr>
@@ -100,9 +105,16 @@ also has a dark theme.</sub>
 - **Activity timeline** of what changed, and **notifications** when someone links to your
   public note
 - Email/password or Google/GitHub sign-in, password reset by email, avatar upload
-- **Designed light and dark themes**, following the system setting or your choice; a
-  consistent design system (tokens for colour, spacing and elevation) across every screen,
-  checked for WCAG 2.1 AA contrast
+- **A considered interface**: a collapsible sidebar (`Ctrl \`) that keeps your **Pinned**
+  and **Recent** notes one click away, a home page that opens on "Continue writing", a
+  command palette that opens on your recent notes, and a sans or serif writing font
+- **Designed light and dark themes**, following the system setting or your choice, with
+  a circular-reveal switch; one design system (tokens for colour, type and elevation)
+  across every screen, checked for WCAG 2.1 AA contrast on every pull request
+- **Motion that explains**: pages ease in, lists stagger, the sidebar's active marker
+  slides, graph links draw outward ring by ring, loading uses shimmering placeholders.
+  It all stops for anyone whose system asks for reduced motion
+  ([design system](docs/design-system.md))
 - **Your data is yours**: export everything as one JSON file, or delete the account and
   all of it permanently
 - Works on phones (the sidebar becomes a slide-in menu); Move to Trash comes with Undo
@@ -299,7 +311,7 @@ flowchart LR
 
 | Layer | Stack |
 |---|---|
-| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Tiptap 3, TanStack Query |
+| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4, shadcn/ui, Tiptap 3, TanStack Query, motion |
 | Backend | FastAPI, Pydantic v2, SQLAlchemy 2 (async) + asyncpg, Alembic, uv |
 | Database | PostgreSQL 15+ (Supabase in production; Postgres 16 in CI and Docker) |
 | Auth | Supabase Auth; JWTs verified in the backend via JWKS (ES256, [ADR-018](docs/adr/0018-jwt-verification-via-jwks.md)) |
@@ -471,8 +483,8 @@ endpoint list and error conventions: **[`docs/api-reference.md`](docs/api-refere
 │   └── Dockerfile              dev image, and the production stage Render builds
 ├── frontend/
 │   ├── src/app/                App Router pages
-│   ├── src/app/globals.css     design tokens: colour, radius, elevation, both themes
-│   ├── src/components/         editor (incl. wiki-links), graph, search, account, logo, ui (shadcn)
+│   ├── src/app/globals.css     design tokens, motion curves and shared utilities, both themes
+│   ├── src/components/         editor (incl. wiki-links), graph, search, layout, account, motion, ui (shadcn)
 │   ├── src/hooks/              one TanStack Query hook module per resource
 │   └── e2e/                    Playwright + axe tests, with an in-memory fake backend
 ├── docs/                       design docs, ADRs, API reference, deployment guide
@@ -548,6 +560,7 @@ flowchart TD
 | | |
 |---|---|
 | [`docs/PROJECT-OVERVIEW.md`](docs/PROJECT-OVERVIEW.md) | **Start here**: the whole project in one document, with architecture, ER, UML and user-flow diagrams, a slide-by-slide presentation outline and viva questions |
+| [`docs/design-system.md`](docs/design-system.md) | The interface's principles, colour and type tokens, elevation, the motion system, layout, and a checklist for adding a screen |
 | [`docs/api-reference.md`](docs/api-reference.md) | Every endpoint, plus error conventions |
 | [`docs/deployment.md`](docs/deployment.md) | Putting it online: API on Render (`render.yaml`), web app on Vercel, Supabase URL settings |
 | [`docs/adr/`](docs/adr/) | Architecture Decision Records: the problem, the alternatives, what was chosen, and why |
