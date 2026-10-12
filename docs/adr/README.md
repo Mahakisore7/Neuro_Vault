@@ -33,3 +33,4 @@ New ADRs get added here as they come up during the build — not written all upf
 | [0023](0023-rls-policies-as-built.md) | Row level security policies: four departures from the design |
 | [0024](0024-in-process-rate-limiting.md) | Rate limiting is per client IP, in process memory |
 | [0025](0025-csp-without-nonces.md) | Content Security Policy without nonces |
+| [0026](0026-design-tokens-and-restrained-motion.md) | Design tokens, a shared motion system, and reduced motion honoured twice |
