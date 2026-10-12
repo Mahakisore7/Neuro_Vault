@@ -1,0 +1,106 @@
+classDiagram
+    direction LR
+    class User {
+        +UUID id
+        +string email
+        +string displayName
+        +string avatarUrl
+        +export() JSON
+        +deleteAccount()
+    }
+    class Workspace {
+        +UUID id
+        +string name
+        +string slug
+    }
+    class Notebook {
+        +UUID id
+        +string name
+        +string color
+    }
+    class Note {
+        +UUID id
+        +string title
+        +string content
+        +bool isPublic
+        +bool pinned
+        +bool archived
+        +int wordCount
+        +moveToTrash()
+        +restore()
+        +rollback(versionNum)
+    }
+    class NoteVersion {
+        +int versionNum
+        +string title
+        +string content
+    }
+    class KnowledgeLink {
+        +UUID id
+        +int strength
+        +Origin origin
+    }
+    class RelationshipType {
+        +int id
+        +string name
+        +bool isSymmetric
+    }
+    class Tag {
+        +int id
+        +string name
+        +string color
+    }
+    class Collection {
+        +UUID id
+        +string name
+        +reorder(noteIds)
+    }
+    class Flashcard {
+        +string question
+        +string answer
+        +decimal easeFactor
+        +int intervalDays
+        +datetime dueAt
+        +review(quality)
+    }
+    class ActivityLog {
+        +string actionType
+        +json metadata
+    }
+    class Notification {
+        +string type
+        +bool isRead
+    }
+    class Origin {
+        <<enumeration>>
+        manual
+        wiki
+        ai
+    }
+
+    User "1" --> "*" Workspace : owns
+    Workspace "1" *-- "*" Notebook : contains
+    Notebook "0..1" o-- "*" Note : files
+    User "1" --> "*" Note : creates
+    Note "1" *-- "*" NoteVersion : history
+    Note "1" *-- "*" Flashcard : has
+    Note "1" --> "*" KnowledgeLink : source
+    KnowledgeLink "*" --> "1" Note : target
+    KnowledgeLink "*" --> "1" RelationshipType : typed by
+    KnowledgeLink --> Origin
+    Note "*" -- "*" Tag : tagged
+    Collection "*" o-- "*" Note : ordered items
+    User "1" --> "*" Tag : owns
+    User "1" --> "*" Collection : owns
+    User "1" --> "*" ActivityLog : acted
+    User "1" --> "*" Notification : receives
+    classDef identity fill:#5B1F3F,stroke:#F472B6,color:#FDF2F8
+    classDef structure fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF
+    classDef content fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF
+    classDef study fill:#0B4A38,stroke:#34D399,color:#ECFDF5
+    classDef system fill:#5A3A08,stroke:#FBBF24,color:#FFFBEB
+    cssClass "User" identity
+    cssClass "Workspace,Notebook,Collection,Tag" structure
+    cssClass "Note,NoteVersion,KnowledgeLink,RelationshipType,Origin" content
+    cssClass "Flashcard" study
+    cssClass "ActivityLog,Notification" system

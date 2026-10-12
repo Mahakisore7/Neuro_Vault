@@ -1,0 +1,14 @@
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant W as Graph page
+    participant API as FastAPI
+    participant DB as PostgreSQL
+
+    U->>W: "Find path to…" Deadlocks
+    W->>API: GET /notes/{from}/path?to={target}
+    API->>DB: SELECT * FROM fn_shortest_path(from, target, me)
+    Note over DB: BFS over knowledge_links<br/>each note visited once<br/>parent pointers rebuild the route
+    DB-->>API: ordered steps (step, note_id, title)
+    API-->>W: JSON array
+    W-->>U: highlighted route on the canvas

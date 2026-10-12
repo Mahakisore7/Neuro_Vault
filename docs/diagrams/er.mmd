@@ -1,0 +1,125 @@
+erDiagram
+    USERS {
+        uuid id PK "= Supabase auth user id"
+        citext email UK
+        varchar display_name
+        text avatar_url
+        text bio
+    }
+    WORKSPACES {
+        uuid id PK
+        uuid owner_id FK
+        varchar name
+        varchar slug "UNIQUE (owner_id, slug)"
+    }
+    NOTEBOOKS {
+        uuid id PK
+        uuid workspace_id FK "composite with owner_id"
+        uuid owner_id FK
+        varchar name
+        varchar color
+    }
+    NOTES {
+        uuid id PK
+        uuid creator_id FK
+        uuid notebook_id FK "nullable = unfiled"
+        varchar title
+        text content
+        boolean is_public
+        boolean pinned
+        boolean archived "true = in Trash"
+        integer word_count "GENERATED"
+        tsvector search_vector "GENERATED, GIN index"
+    }
+    NOTE_VERSIONS {
+        uuid id PK
+        uuid note_id FK
+        integer version_num "UNIQUE (note_id, version_num)"
+        varchar title
+        text content
+    }
+    RELATIONSHIP_TYPES {
+        smallint id PK
+        varchar name UK "seeded vocabulary"
+        varchar color
+        boolean is_symmetric
+    }
+    KNOWLEDGE_LINKS {
+        uuid id PK
+        uuid source_note_id FK "composite with created_by"
+        uuid target_note_id FK "any readable note"
+        smallint rel_type_id FK
+        uuid created_by FK
+        smallint strength "CHECK 1-10"
+        varchar origin "manual | wiki | ai"
+    }
+    TAGS {
+        integer id PK
+        uuid user_id FK
+        varchar name
+        varchar slug "UNIQUE (user_id, slug)"
+        varchar color
+    }
+    NOTE_TAGS {
+        uuid note_id PK
+        integer tag_id PK
+        uuid owner_id FK "checked on both sides"
+    }
+    COLLECTIONS {
+        uuid id PK
+        uuid user_id FK
+        varchar name "UNIQUE (user_id, name)"
+    }
+    COLLECTION_ITEMS {
+        uuid collection_id PK
+        uuid note_id PK
+        uuid owner_id FK
+        integer position
+    }
+    FLASHCARDS {
+        uuid id PK
+        uuid note_id FK "composite with owner_id"
+        text question
+        text answer
+        numeric ease_factor "CHECK 1.30-2.50"
+        integer interval_days
+        integer repetitions
+        timestamptz due_at
+    }
+    RESOURCES {
+        uuid id PK
+        uuid note_id FK
+        varchar resource_type
+        text url
+    }
+    ACTIVITY_LOGS {
+        bigint id PK "append-only"
+        uuid user_id FK "ON DELETE SET NULL"
+        varchar action_type
+        jsonb metadata
+    }
+    NOTIFICATIONS {
+        bigint id PK
+        uuid user_id FK
+        varchar type
+        boolean is_read
+    }
+
+    USERS ||--o{ WORKSPACES : owns
+    USERS ||--o{ NOTES : creates
+    USERS ||--o{ TAGS : owns
+    USERS ||--o{ COLLECTIONS : owns
+    USERS ||--o{ ACTIVITY_LOGS : "acted"
+    USERS ||--o{ NOTIFICATIONS : receives
+    WORKSPACES ||--o{ NOTEBOOKS : contains
+    NOTEBOOKS |o--o{ NOTES : files
+    NOTES ||--o{ NOTE_VERSIONS : "history of"
+    NOTES ||--o{ FLASHCARDS : has
+    NOTES ||--o{ RESOURCES : attaches
+    NOTES ||--o{ KNOWLEDGE_LINKS : "source of"
+    NOTES ||--o{ KNOWLEDGE_LINKS : "target of"
+    RELATIONSHIP_TYPES ||--o{ KNOWLEDGE_LINKS : classifies
+    NOTES ||--o{ NOTE_TAGS : "tagged via"
+    TAGS ||--o{ NOTE_TAGS : "labels via"
+    NOTES ||--o{ COLLECTION_ITEMS : "grouped via"
+    COLLECTIONS ||--o{ COLLECTION_ITEMS : contains

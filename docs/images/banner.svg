@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="NeuroVault: a knowledge base where notes form a graph">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0B1020"/><stop offset="0.55" stop-color="#121646"/><stop offset="1" stop-color="#1E1B6B"/></linearGradient>
+<radialGradient id="glow" cx="0.78" cy="0.45" r="0.55"><stop offset="0" stop-color="#6366F1" stop-opacity="0.45"/><stop offset="1" stop-color="#6366F1" stop-opacity="0"/></radialGradient>
+<radialGradient id="glow2" cx="0.1" cy="1.05" r="0.5"><stop offset="0" stop-color="#06B6D4" stop-opacity="0.22"/><stop offset="1" stop-color="#06B6D4" stop-opacity="0"/></radialGradient>
+<linearGradient id="word" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#C7D2FE"/></linearGradient>
+<linearGradient id="logo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#818CF8"/><stop offset="1" stop-color="#4338CA"/></linearGradient>
+<linearGradient id="edge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A5B4FC" stop-opacity="0.75"/><stop offset="1" stop-color="#22D3EE" stop-opacity="0.55"/></linearGradient>
+<filter id="blur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse"><circle cx="1.5" cy="1.5" r="1.1" fill="#A5B4FC" fill-opacity="0.13"/></pattern>
+<clipPath id="r"><rect width="1280" height="420" rx="22"/></clipPath>
+</defs>
+<g clip-path="url(#r)">
+<rect width="1280" height="420" fill="url(#bg)"/>
+<rect width="1280" height="420" fill="url(#dots)"/>
+<rect width="1280" height="420" fill="url(#glow)"/>
+<rect width="1280" height="420" fill="url(#glow2)"/>
+<line x1="930" y1="95" x2="1010" y2="200" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="1010" y1="200" x2="880" y2="230" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="1010" y1="200" x2="1110" y2="120" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="1010" y1="200" x2="1150" y2="260" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="880" y1="230" x2="980" y2="330" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="1150" y1="260" x2="980" y2="330" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="930" y1="95" x2="820" y2="120" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="1110" y1="120" x2="1210" y2="170" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="930" y1="95" x2="1060" y2="50" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="980" y1="330" x2="900" y2="350" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="1150" y1="260" x2="1190" y2="350" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="880" y1="230" x2="780" y2="260" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="820" y1="120" x2="880" y2="230" stroke="url(#edge)" stroke-width="1.6"/>
+<line x1="1110" y1="120" x2="1060" y2="50" stroke="url(#edge)" stroke-width="1.6"/>
+<circle cx="930" cy="95" r="16.8" fill="#A5B4FC" opacity="0.28" filter="url(#blur)"/>
+<circle cx="930" cy="95" r="7" fill="#A5B4FC" stroke="#0B1020" stroke-width="2"/>
+<circle cx="1010" cy="200" r="24.0" fill="#A5B4FC" opacity="0.28" filter="url(#blur)"/>
+<circle cx="1010" cy="200" r="10" fill="#fff" stroke="#0B1020" stroke-width="2"/>
+<circle cx="1010" cy="200" r="19" fill="none" stroke="#818CF8" stroke-opacity="0.55" stroke-width="1.5"/>
+<circle cx="880" cy="230" r="14.399999999999999" fill="#A5B4FC" opacity="0.28" filter="url(#blur)"/>
+<circle cx="880" cy="230" r="6" fill="#A5B4FC" stroke="#0B1020" stroke-width="2"/>
+<circle cx="1110" cy="120" r="14.399999999999999" fill="#A5B4FC" opacity="0.28" filter="url(#blur)"/>
+<circle cx="1110" cy="120" r="6" fill="#A5B4FC" stroke="#0B1020" stroke-width="2"/>
+<circle cx="1150" cy="260" r="19.2" fill="#A5B4FC" opacity="0.28" filter="url(#blur)"/>
+<circle cx="1150" cy="260" r="8" fill="#A5B4FC" stroke="#0B1020" stroke-width="2"/>
+<circle cx="980" cy="330" r="14.399999999999999" fill="#22D3EE" opacity="0.28" filter="url(#blur)"/>
+<circle cx="980" cy="330" r="6" fill="#22D3EE" stroke="#0B1020" stroke-width="2"/>
+<circle cx="820" cy="120" r="12.0" fill="#A5B4FC" opacity="0.28" filter="url(#blur)"/>
+<circle cx="820" cy="120" r="5" fill="#A5B4FC" stroke="#0B1020" stroke-width="2"/>
+<circle cx="1210" cy="170" r="9.6" fill="#F472B6" opacity="0.28" filter="url(#blur)"/>
+<circle cx="1210" cy="170" r="4" fill="#F472B6" stroke="#0B1020" stroke-width="2"/>
+<circle cx="1060" cy="50" r="9.6" fill="#F472B6" opacity="0.28" filter="url(#blur)"/>
+<circle cx="1060" cy="50" r="4" fill="#F472B6" stroke="#0B1020" stroke-width="2"/>
+<circle cx="900" cy="350" r="9.6" fill="#22D3EE" opacity="0.28" filter="url(#blur)"/>
+<circle cx="900" cy="350" r="4" fill="#22D3EE" stroke="#0B1020" stroke-width="2"/>
+<circle cx="1190" cy="350" r="12.0" fill="#22D3EE" opacity="0.28" filter="url(#blur)"/>
+<circle cx="1190" cy="350" r="5" fill="#22D3EE" stroke="#0B1020" stroke-width="2"/>
+<circle cx="780" cy="260" r="9.6" fill="#A5B4FC" opacity="0.28" filter="url(#blur)"/>
+<circle cx="780" cy="260" r="4" fill="#A5B4FC" stroke="#0B1020" stroke-width="2"/>
+<g transform="translate(76,96)">
+<rect width="64" height="64" rx="16" fill="url(#logo)"/>
+<rect width="64" height="64" rx="16" fill="none" stroke="#fff" stroke-opacity="0.22"/>
+<g stroke="#fff" stroke-width="3.2" stroke-linecap="round" fill="none"><line x1="32" y1="44" x2="32" y2="30"/><line x1="32" y1="30" x2="19" y2="19"/><line x1="32" y1="30" x2="45" y2="19"/></g>
+<circle cx="19" cy="19" r="5.5" fill="#fff"/><circle cx="45" cy="19" r="5.5" fill="#fff"/><circle cx="32" cy="46" r="5.5" fill="#fff"/>
+</g>
+<text x="160" y="145" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="6" fill="#A5B4FC">NEUROVAULT</text>
+<text x="74" y="238" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="66" font-weight="800" letter-spacing="-2.2" fill="url(#word)">Notes that form</text>
+<text x="74" y="310" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="66" font-weight="800" letter-spacing="-2.2" fill="url(#word)">a graph<tspan fill="#818CF8">.</tspan></text>
+<text x="76" y="352" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="21" fill="#A8B3D6">PostgreSQL does the heavy lifting: typed links, versions, search and shortest paths.</text>
+<g transform="translate(76,378)"><rect width="126" height="26" rx="13" fill="#34D399" fill-opacity="0.12" stroke="#34D399" stroke-opacity="0.55"/><circle cx="14" cy="13" r="3.4" fill="#34D399"/><text x="26" y="18" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#34D399">PostgreSQL</text></g>
+<g transform="translate(212,378)"><rect width="100" height="26" rx="13" fill="#22D3EE" fill-opacity="0.12" stroke="#22D3EE" stroke-opacity="0.55"/><circle cx="14" cy="13" r="3.4" fill="#22D3EE"/><text x="26" y="18" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#22D3EE">FastAPI</text></g>
+<g transform="translate(322,378)"><rect width="126" height="26" rx="13" fill="#A5B4FC" fill-opacity="0.12" stroke="#A5B4FC" stroke-opacity="0.55"/><circle cx="14" cy="13" r="3.4" fill="#A5B4FC"/><text x="26" y="18" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#A5B4FC">Next.js 16</text></g>
+<g transform="translate(458,378)"><rect width="109" height="26" rx="13" fill="#FBBF24" fill-opacity="0.12" stroke="#FBBF24" stroke-opacity="0.55"/><circle cx="14" cy="13" r="3.4" fill="#FBBF24"/><text x="26" y="18" font-family="Segoe UI, -apple-system, Helvetica, Arial, sans-serif" font-size="13" font-weight="600" fill="#FBBF24">Supabase</text></g>
+</g></svg>

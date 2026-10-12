@@ -1,0 +1,17 @@
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant W as Review page
+    participant API as FastAPI
+    participant S as FlashcardService
+    participant DB as PostgreSQL
+
+    W->>API: GET /flashcards/due
+    API->>DB: SELECT … WHERE owner_id = me AND due_at <= now()<br/>ORDER BY due_at (indexed)
+    DB-->>W: cards, most overdue first
+    U->>W: Show answer, then "Good"
+    W->>API: POST /flashcards/{id}/review { quality: 4 }
+    API->>S: SM-2(ease, interval, repetitions, quality)
+    S->>DB: UPDATE flashcards SET ease_factor, interval_days, due_at
+    DB->>DB: CHECK ease_factor BETWEEN 1.30 AND 2.50
+    DB-->>W: next card

@@ -1,0 +1,18 @@
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant W as Web app
+    participant A as Supabase Auth
+    participant API as FastAPI
+    participant DB as PostgreSQL
+
+    U->>W: email + password (or Google/GitHub)
+    W->>A: sign in
+    A-->>W: session (ES256 access token + refresh token)
+    W->>API: GET /api/v1/dashboard<br/>Authorization: Bearer token
+    API->>A: fetch signing keys (JWKS, cached)
+    API->>API: verify signature, audience, expiry (30 s leeway)
+    API->>DB: SELECT … FROM v_user_dashboard WHERE user_id = sub
+    DB-->>API: totals, hubs, orphans, recent
+    API-->>W: 200 JSON + X-Request-ID
+    W-->>U: render dashboard

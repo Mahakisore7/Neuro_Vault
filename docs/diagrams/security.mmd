@@ -1,0 +1,20 @@
+flowchart TB
+    R["Request"] --> L1["1. Rate limit per IP<br/>300/min, stricter on export, delete, Empty Trash"]
+    L1 --> L2["2. JWT verification<br/>ES256 via JWKS, audience, expiry"]
+    L2 --> L3["3. Service authorization<br/>owner checks, 404 for others' data"]
+    L3 --> L4["4. Composite foreign keys<br/>cross-user rows can't be stored"]
+    L4 --> L5["5. CHECK and UNIQUE constraints"]
+    B["Browser with anon key"] --> L6["6. Row level security<br/>per-user policies on every table"]
+
+    classDef web fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF,stroke-width:1.5px
+    classDef api fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF,stroke-width:1.5px
+    classDef data fill:#0B4A38,stroke:#34D399,color:#ECFDF5,stroke-width:1.5px
+    classDef ext fill:#5A3A08,stroke:#FBBF24,color:#FFFBEB,stroke-width:1.5px
+    classDef actor fill:#5B1F3F,stroke:#F472B6,color:#FDF2F8,stroke-width:1.5px
+    classDef good fill:#14532D,stroke:#4ADE80,color:#F0FDF4,stroke-width:1.5px
+    classDef bad fill:#5B1A25,stroke:#FB7185,color:#FFF1F2,stroke-width:1.5px
+    linkStyle default stroke:#8B9BC4,stroke-width:1.6px
+    class R,B actor
+    class L1,L2,L3 api
+    class L4,L5 data
+    class L6 ext

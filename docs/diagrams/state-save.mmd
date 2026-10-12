@@ -1,0 +1,10 @@
+stateDiagram-v2
+    [*] --> Idle
+    Idle --> Unsaved: keystroke
+    Unsaved --> Unsaved: more typing (timer restarts)
+    Unsaved --> Saving: 1.5 s quiet, Ctrl+S, or leaving
+    Saving --> Saved: 200 OK and nothing pending
+    Saving --> Unsaved: typed during the request
+    Saving --> Error: request failed
+    Error --> Saving: Retry
+    Saved --> Unsaved: keystroke

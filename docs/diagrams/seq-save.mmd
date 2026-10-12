@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    actor U as User
+    participant E as Editor
+    participant Q as Save queue
+    participant API as FastAPI
+    participant S as NoteService
+    participant DB as PostgreSQL
+
+    U->>E: types
+    E->>Q: pending = latest HTML
+    Note over Q: waits 1.5 s of quiet<br/>(or Ctrl+S, or leaving the page)
+    Q->>API: PATCH /notes/{id} { content }
+    API->>S: update(note, content)
+    S->>DB: UPDATE notes SET content = …
+    DB->>DB: trg_notes_create_version<br/>writes old version row
+    DB->>DB: trg_notes_activity_log<br/>appends activity
+    S->>DB: reconcile wiki links<br/>DELETE stale + INSERT new (origin = wiki)
+    S->>DB: COMMIT
+    API-->>Q: 200 note + unresolved_wiki_links
+    Q-->>E: mark Saved
+    Note over Q,E: saves run one at a time, and a response never<br/>overwrites text typed while it was in flight

@@ -529,6 +529,10 @@ SELECT jsonb_build_object(
 
 ## 7. UML diagrams
 
+The diagrams below are Mermaid, so they render on GitHub and diff as text. Colour-themed
+SVG versions of the main ones, as used in the README, are in
+[`docs/diagrams/`](diagrams/).
+
 ### 7.1 Use case diagram
 
 ```mermaid
