@@ -132,10 +132,10 @@ export default function ReviewPage() {
       )}
 
       {!card && (
-        <div className="flex flex-col items-center rounded-xl border border-dashed px-6 py-16 text-center">
+        <div className="empty-state">
           {summary && summary.total === 0 ? (
             <>
-              <GraduationCap className="mb-3 size-8 text-muted-foreground" />
+              <GraduationCap className="empty-icon" />
               <p className="font-medium">No flashcards yet</p>
               <p className="max-w-sm text-sm text-muted-foreground">
                 Open one of your notes and use <span className="font-medium">Flashcards</span> to

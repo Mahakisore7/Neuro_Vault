@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
+import { flushSync } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import { useMounted } from "@/hooks/use-mounted";
@@ -19,12 +20,38 @@ export function ThemeToggle() {
   // unavoidable flash instead of a hydration error.
   const mounted = useMounted();
 
+  function toggle(event: React.MouseEvent<HTMLButtonElement>) {
+    const next = resolvedTheme === "dark" ? "light" : "dark";
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!("startViewTransition" in document) || reduceMotion) {
+      setTheme(next);
+      return;
+    }
+    // The new theme grows out of the button as a circle that covers the
+    // page (View Transitions API), instead of every colour snapping at once.
+    const { clientX: x, clientY: y } = event;
+    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
+    const transition = document.startViewTransition(() => {
+      flushSync(() => setTheme(next));
+    });
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${radius}px at ${x}px ${y}px)`] },
+        {
+          duration: 550,
+          easing: "cubic-bezier(0.16, 1, 0.3, 1)",
+          pseudoElement: "::view-transition-new(root)",
+        },
+      );
+    });
+  }
+
   return (
     <Button
       variant="ghost"
       size="icon-sm"
       aria-label="Toggle theme"
-      onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+      onClick={toggle}
       className="text-muted-foreground hover:text-foreground"
     >
       {mounted && resolvedTheme === "dark" ? (

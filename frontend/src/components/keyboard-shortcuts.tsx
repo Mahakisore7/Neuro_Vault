@@ -18,6 +18,7 @@ const GROUPS: { title: string; shortcuts: { keys: string[]; label: string }[] }[
     title: "Anywhere",
     shortcuts: [
       { keys: ["Ctrl", "K"], label: "Search notes and run commands" },
+      { keys: ["Ctrl", "\\"], label: "Collapse or expand the sidebar" },
       { keys: ["?"], label: "Show these shortcuts" },
       { keys: ["Esc"], label: "Close a dialog or menu" },
     ],

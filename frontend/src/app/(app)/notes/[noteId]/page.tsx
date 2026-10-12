@@ -1,11 +1,19 @@
 "use client";
 
-import { ChevronRight, Globe, Lock, Pin, PinOff } from "lucide-react";
+import { ChevronRight, Globe, Lock, Pin, PinOff, Type } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VersionHistoryDialog } from "@/components/editor/version-history-dialog";
@@ -13,6 +21,7 @@ import { NoteEditor } from "@/components/editor/note-editor";
 import { FlashcardPanel } from "@/components/notes/flashcard-panel";
 import { LinkPanel } from "@/components/notes/link-panel";
 import { TagPicker } from "@/components/notes/tag-picker";
+import { useEditorFont, type EditorFont } from "@/hooks/use-editor-font";
 import { useNotebook } from "@/hooks/use-notebooks";
 import { useNote, useUpdateNote } from "@/hooks/use-notes";
 import { useWorkspace } from "@/hooks/use-workspaces";
@@ -80,6 +89,7 @@ export default function NoteDetailPage() {
         {isOwner && (
           <div className="flex shrink-0 items-center gap-0.5 pt-1.5 text-muted-foreground">
             <VersionHistoryDialog noteId={note.id} />
+            <TypographyMenu />
             <IconAction
               label={note.pinned ? "Unpin" : "Pin to top"}
               onClick={() => updateNote.mutate({ pinned: !note.pinned })}
@@ -117,6 +127,40 @@ export default function NoteDetailPage() {
           which saves the previous note's outstanding edits on the way out. */}
       <NoteEditor key={note.id} note={note} readOnly={!isOwner} />
     </div>
+  );
+}
+
+function TypographyMenu() {
+  const [font, setFont] = useEditorFont();
+  return (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Text style"
+              className="hover:text-foreground"
+            >
+              <Type />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Text style</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+          Writing font
+        </DropdownMenuLabel>
+        <DropdownMenuRadioGroup value={font} onValueChange={(v) => setFont(v as EditorFont)}>
+          <DropdownMenuRadioItem value="sans">Sans</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="serif" className="font-serif">
+            Serif
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 

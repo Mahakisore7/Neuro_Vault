@@ -119,7 +119,7 @@ export default function WorkspacesPage() {
               <DialogTitle>Create a workspace</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
@@ -129,12 +129,12 @@ export default function WorkspacesPage() {
                 />
                 {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="slug">Slug</Label>
                 <Input id="slug" {...register("slug")} />
                 {errors.slug && <p className="text-sm text-destructive">{errors.slug.message}</p>}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="description">Description (optional)</Label>
                 <Input id="description" {...register("description")} />
               </div>
@@ -149,7 +149,7 @@ export default function WorkspacesPage() {
       </div>
 
       {isLoading && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-32 rounded-xl" />
           ))}
@@ -159,15 +159,15 @@ export default function WorkspacesPage() {
       {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
 
       {!isLoading && !isError && workspaces?.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
-          <FolderKanban className="mb-3 size-8 text-muted-foreground" />
+        <div className="empty-state">
+          <FolderKanban className="empty-icon" />
           <p className="font-medium">No workspaces yet</p>
           <p className="text-sm text-muted-foreground">Create one to start organizing notes.</p>
         </div>
       )}
 
       {!isLoading && workspaces && workspaces.length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 stagger">
           {workspaces.map((ws) => (
             <Card
               key={ws.id}
@@ -180,7 +180,7 @@ export default function WorkspacesPage() {
                   router.push(`/workspaces/${ws.id}`);
                 }
               }}
-              className="cursor-pointer transition-all hover:shadow-md hover:ring-primary/25"
+              className="card-interactive"
             >
               <CardHeader>
                 <div className="mb-1 flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">

@@ -16,6 +16,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { linkKeys } from "@/hooks/use-links";
+import { useEditorFont } from "@/hooks/use-editor-font";
 import { noteKeys, useAllNotes, useCreateNote } from "@/hooks/use-notes";
 import { api } from "@/lib/api";
 import type { Note } from "@/types/api";
@@ -34,6 +35,7 @@ const AUTOSAVE_DELAY_MS = 1500;
 /** readOnly: someone else's public note - viewable, never saved. */
 export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: boolean }) {
   const qc = useQueryClient();
+  const [font] = useEditorFont();
   const router = useRouter();
   // mutateAsync is stable across renders; the mutation object itself isn't.
   const { mutateAsync: createNoteAsync } = useCreateNote();
@@ -246,13 +248,17 @@ export function NoteEditor({ note, readOnly = false }: { note: Note; readOnly?: 
       <div>
         {editor && !readOnly && (
           // Sticks under the app header while scrolling a long note.
-          <div className="sticky top-0 z-10 -mx-2 bg-background/85 px-2 pt-1 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+          <div className="sticky top-0 z-10 -mx-2 bg-background/85 px-2 pt-1 backdrop-blur supports-backdrop-filter:bg-background/70">
             <EditorToolbar editor={editor} />
           </div>
         )}
         {editor && !readOnly && <EditorFloatingMenu editor={editor} />}
         {editor && !readOnly && <WikiLinkSuggest editor={editor} notes={candidates} />}
-        <EditorContent editor={editor} />
+        {/* The reading typeface (Aa menu on the note) applies to the text only,
+            not the toolbar. */}
+        <div className={font === "serif" ? "font-serif text-[1.0625rem]" : ""}>
+          <EditorContent editor={editor} />
+        </div>
       </div>
     </div>
   );

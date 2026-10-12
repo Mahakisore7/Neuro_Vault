@@ -1,6 +1,7 @@
 "use client";
 
 import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MotionConfig } from "motion/react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -42,5 +43,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }),
   );
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  // reducedMotion="user": people who ask their OS for less motion get
+  // instant transforms and layout changes from every motion component.
+  return (
+    <QueryClientProvider client={queryClient}>
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+    </QueryClientProvider>
+  );
 }

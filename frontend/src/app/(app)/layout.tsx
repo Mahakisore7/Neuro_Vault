@@ -2,7 +2,7 @@
 
 import { Menu, X } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { ConfirmProvider } from "@/components/confirm-dialog";
 import { KeyboardShortcuts } from "@/components/keyboard-shortcuts";
@@ -18,6 +18,35 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
   const [checked, setChecked] = useState(false);
   // Below md the sidebar is an off-canvas drawer instead of a fixed column.
   const [menuOpen, setMenuOpen] = useState(false);
+  // Desktop: collapse the sidebar to an icon rail. Remembered across visits.
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return window.localStorage.getItem("neurovault:sidebar") === "collapsed";
+    } catch {
+      return false;
+    }
+  });
+  const toggleSidebar = useCallback(() => {
+    setCollapsed((c) => {
+      try {
+        window.localStorage.setItem("neurovault:sidebar", c ? "expanded" : "collapsed");
+      } catch {
+        /* private mode: the toggle still works for this visit */
+      }
+      return !c;
+    });
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "\\") {
+        e.preventDefault();
+        toggleSidebar();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggleSidebar]);
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -63,7 +92,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         </a>
 
         <div className="hidden md:flex">
-          <Sidebar />
+          <Sidebar collapsed={collapsed} onToggle={toggleSidebar} />
         </div>
 
         {menuOpen && (
@@ -95,7 +124,7 @@ export default function AppLayout({ children }: LayoutProps<"/">) {
         )}
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/70 sm:px-4">
+          <header className="flex h-12 shrink-0 items-center gap-2 border-b bg-background/80 px-3 backdrop-blur supports-backdrop-filter:bg-background/70 sm:px-4">
             <Button
               variant="ghost"
               size="icon-sm"

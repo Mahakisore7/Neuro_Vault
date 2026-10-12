@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRight,
   ArrowUpRight,
   CheckCircle2,
   CircleDashed,
@@ -10,16 +11,19 @@ import {
   Link2,
   type LucideIcon,
   Network,
+  PenLine,
   Trash2,
   Type,
 } from "lucide-react";
 import Link from "next/link";
 
 import { ErrorState } from "@/components/error-state";
+import { CountUp } from "@/components/motion";
 import { NewNoteButton } from "@/components/notes/new-note-button";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDashboard } from "@/hooks/use-dashboard";
+import { useNote } from "@/hooks/use-notes";
 import { useMe } from "@/hooks/use-user";
 import { usePageTitle } from "@/hooks/use-page-title";
 import { timeAgo } from "@/lib/time";
@@ -56,7 +60,7 @@ function Stat({
           highlight ? "text-primary" : ""
         }`}
       >
-        {fmt.format(value)}
+        <CountUp value={value} />
       </p>
       <p className="mt-1.5 min-h-4 text-xs text-muted-foreground">{detail}</p>
     </>
@@ -159,6 +163,54 @@ function NoteRows({
   );
 }
 
+/** Plain text of a note's HTML, for a two-line preview. */
+function excerpt(html: string | null | undefined, max = 180) {
+  const text = (html ?? "")
+    .replace(/<\/(p|li|h[1-6]|blockquote)>/g, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/\s+/g, " ")
+    .trim();
+  return text.length > max ? `${text.slice(0, max).trimEnd()}…` : text;
+}
+
+/** The note you edited last, with a preview: the most likely next click. */
+function ContinueCard({ note }: { note: DashboardNote }) {
+  const { data: full } = useNote(note.id);
+  const preview = excerpt(full?.content);
+  return (
+    <Link
+      href={`/notes/${note.id}`}
+      className="card-interactive group relative block overflow-hidden rounded-xl border bg-card p-5 shadow-soft"
+    >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-16 -right-16 size-48 rounded-full bg-primary/10 blur-3xl transition-opacity duration-500 group-hover:opacity-100 sm:opacity-70"
+      />
+      <div className="relative flex items-start gap-4">
+        <div className="min-w-0 flex-1">
+          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+            <PenLine className="size-3.5 text-primary" />
+            Continue writing · {timeAgo(note.updated_at)}
+          </p>
+          <h2 className="mt-1.5 truncate text-lg font-semibold tracking-[-0.015em]">
+            {note.title}
+          </h2>
+          <p className="mt-1 line-clamp-2 min-h-10 text-sm leading-5 text-muted-foreground">
+            {preview || "No text yet."}
+          </p>
+        </div>
+        <span className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-full border bg-background text-muted-foreground transition-all duration-300 group-hover:translate-x-0.5 group-hover:border-primary/40 group-hover:text-primary">
+          <ArrowRight className="size-4" />
+        </span>
+      </div>
+    </Link>
+  );
+}
+
 function greeting(hour: number) {
   if (hour >= 5 && hour < 12) return "Good morning";
   if (hour >= 12 && hour < 18) return "Good afternoon";
@@ -243,6 +295,8 @@ export default function DashboardPage() {
 
       {data && (data.totals.total_notes > 0 || data.totals.archived_notes > 0) && (
         <div className="space-y-6">
+          {data.recent[0] && <ContinueCard note={data.recent[0]} />}
+
           {/* One strip with dividers rather than four floating boxes: the
               numbers read as a single summary line. */}
           <div className="grid grid-cols-2 overflow-hidden rounded-xl border bg-card shadow-soft md:grid-cols-4 [&>*]:border-border max-md:[&>*:nth-child(-n+2)]:border-b max-md:[&>*:nth-child(odd)]:border-r md:[&>*:not(:last-child)]:border-r">
@@ -276,7 +330,7 @@ export default function DashboardPage() {
             />
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-3">
+          <div className="stagger grid gap-4 lg:grid-cols-3">
             <Panel
               icon={Network}
               title="Most connected"

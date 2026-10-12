@@ -13,6 +13,7 @@
      serif. next/font sets --font-geist-sans on <html>; bridge to that. */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-newsreader), ui-serif, Georgia, serif;
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -51,30 +52,88 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Motion. Entering things decelerate (ease-out), leaving things accelerate
+     (ease-in); nothing bounces. Feedback ~150ms, state changes ~250ms,
+     layout-level moves ~350ms. */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-in-quick: cubic-bezier(0.4, 0, 1, 1);
+  --animate-rise: rise 0.45s var(--ease-out-expo) both;
+  --animate-fade: fade 0.3s var(--ease-standard) both;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-pulse-soft: pulse-soft 3.2s ease-in-out infinite;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes fade {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-5px);
+    }
+  }
+  @keyframes pulse-soft {
+    0%,
+    100% {
+      opacity: 0.55;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+  @keyframes shimmer {
+    from {
+      background-position: 200% 0;
+    }
+    to {
+      background-position: -200% 0;
+    }
+  }
 }
 
 :root {
-  /* Neutrals carry a faint blue-violet bias toward the brand hue, so greys
-     read as chosen rather than default. One accent (indigo), used for
-     primary actions, focus and the active location - nothing else. */
-  --background: oklch(0.995 0.002 265);
-  --foreground: oklch(0.2 0.015 265);
+  /* Warm "paper" neutrals (hue ~80, almost no chroma): content is the
+     brightest surface, the sidebar a notch dimmer, so navigation recedes and
+     the note stays in focus. One accent (indigo) for primary actions, focus
+     and the current location, and nothing else. */
+  --background: oklch(0.988 0.003 85);
+  --foreground: oklch(0.2 0.01 80);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0.015 265);
+  --card-foreground: oklch(0.2 0.01 80);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0.015 265);
+  --popover-foreground: oklch(0.2 0.01 80);
   --primary: oklch(0.52 0.19 268);
   --primary-foreground: oklch(0.985 0.004 268);
-  --secondary: oklch(0.965 0.004 265);
-  --secondary-foreground: oklch(0.25 0.015 265);
-  --muted: oklch(0.965 0.004 265);
-  --muted-foreground: oklch(0.5 0.015 265);
-  --accent: oklch(0.955 0.012 268);
+  --secondary: oklch(0.962 0.004 85);
+  --secondary-foreground: oklch(0.25 0.01 80);
+  --muted: oklch(0.962 0.004 85);
+  --muted-foreground: oklch(0.5 0.01 80);
+  --accent: oklch(0.955 0.014 268);
   --accent-foreground: oklch(0.3 0.06 268);
-  --destructive: oklch(0.56 0.2 25);
+  --destructive: oklch(0.52 0.2 25);
   --success: oklch(0.56 0.13 155);
-  --border: oklch(0.915 0.005 265);
-  --input: oklch(0.89 0.006 265);
+  --border: oklch(0.92 0.004 85);
+  --input: oklch(0.9 0.005 85);
   --ring: oklch(0.6 0.16 268);
   --chart-1: oklch(0.52 0.19 268);
   --chart-2: oklch(0.65 0.13 205);
@@ -82,34 +141,32 @@
   --chart-4: oklch(0.75 0.14 75);
   --chart-5: oklch(0.6 0.19 20);
   --radius: 0.5rem;
-  /* The sidebar sits one step below the canvas: a quiet tinted rail, not a
-     dark slab competing with the content. */
-  --sidebar: oklch(0.975 0.004 265);
-  --sidebar-foreground: oklch(0.32 0.015 265);
+  --sidebar: oklch(0.968 0.004 85);
+  --sidebar-foreground: oklch(0.34 0.01 80);
   --sidebar-primary: oklch(0.52 0.19 268);
   --sidebar-primary-foreground: oklch(0.985 0.004 268);
-  --sidebar-accent: oklch(0.93 0.008 265);
-  --sidebar-accent-foreground: oklch(0.18 0.015 265);
-  --sidebar-border: oklch(0.915 0.005 265);
+  --sidebar-accent: oklch(0.93 0.006 85);
+  --sidebar-accent-foreground: oklch(0.18 0.01 80);
+  --sidebar-border: oklch(0.92 0.004 85);
   --sidebar-ring: oklch(0.6 0.16 268);
-  --shadow-color: 265 30% 20%;
+  --shadow-color: 80 20% 20%;
 }
 
 .dark {
-  --background: oklch(0.165 0.008 265);
-  --foreground: oklch(0.94 0.006 265);
-  --card: oklch(0.195 0.009 265);
-  --card-foreground: oklch(0.94 0.006 265);
-  --popover: oklch(0.21 0.01 265);
-  --popover-foreground: oklch(0.94 0.006 265);
+  --background: oklch(0.172 0.007 265);
+  --foreground: oklch(0.94 0.005 85);
+  --card: oklch(0.2 0.007 265);
+  --card-foreground: oklch(0.94 0.005 85);
+  --popover: oklch(0.215 0.007 265);
+  --popover-foreground: oklch(0.94 0.005 85);
   --primary: oklch(0.68 0.15 270);
   --primary-foreground: oklch(0.16 0.02 270);
-  --secondary: oklch(0.25 0.01 265);
-  --secondary-foreground: oklch(0.94 0.006 265);
-  --muted: oklch(0.24 0.009 265);
-  --muted-foreground: oklch(0.68 0.012 265);
-  --accent: oklch(0.27 0.025 268);
-  --accent-foreground: oklch(0.94 0.006 265);
+  --secondary: oklch(0.255 0.007 265);
+  --secondary-foreground: oklch(0.94 0.005 85);
+  --muted: oklch(0.245 0.007 265);
+  --muted-foreground: oklch(0.69 0.007 265);
+  --accent: oklch(0.275 0.025 268);
+  --accent-foreground: oklch(0.94 0.005 85);
   --destructive: oklch(0.68 0.18 22);
   --success: oklch(0.7 0.13 155);
   --border: oklch(1 0 0 / 9%);
@@ -120,15 +177,15 @@
   --chart-3: oklch(0.74 0.13 155);
   --chart-4: oklch(0.8 0.13 75);
   --chart-5: oklch(0.68 0.17 20);
-  --sidebar: oklch(0.145 0.008 265);
-  --sidebar-foreground: oklch(0.8 0.008 265);
+  --sidebar: oklch(0.145 0.007 265);
+  --sidebar-foreground: oklch(0.8 0.007 265);
   --sidebar-primary: oklch(0.68 0.15 270);
   --sidebar-primary-foreground: oklch(0.16 0.02 270);
-  --sidebar-accent: oklch(0.23 0.01 265);
-  --sidebar-accent-foreground: oklch(0.96 0.006 265);
+  --sidebar-accent: oklch(0.23 0.007 265);
+  --sidebar-accent-foreground: oklch(0.96 0.005 85);
   --sidebar-border: oklch(1 0 0 / 8%);
   --sidebar-ring: oklch(0.68 0.15 270);
-  --shadow-color: 265 40% 2%;
+  --shadow-color: 265 30% 2%;
 }
 
 @layer base {
@@ -142,8 +199,11 @@
     @apply font-sans;
     font-feature-settings: "ss01", "cv11";
     text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3 {
+  h1,
+  h2,
+  h3 {
     text-wrap: balance;
   }
   ::selection {
@@ -166,6 +226,150 @@
     0 1px 2px hsl(var(--shadow-color) / 0.06),
     0 4px 12px -2px hsl(var(--shadow-color) / 0.08);
 }
+@utility shadow-floating {
+  box-shadow:
+    0 2px 4px hsl(var(--shadow-color) / 0.05),
+    0 12px 32px -6px hsl(var(--shadow-color) / 0.16);
+}
+
+/* Cards that act as links or buttons: a small lift and a soft shadow on
+   hover, and a firm press. The border brightens toward the accent. */
+@utility card-interactive {
+  cursor: pointer;
+  transition:
+    transform 0.25s var(--ease-out-expo),
+    box-shadow 0.25s var(--ease-out-expo),
+    border-color 0.2s var(--ease-standard);
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in oklch, var(--primary) 35%, var(--border));
+    box-shadow:
+      0 2px 4px hsl(var(--shadow-color) / 0.05),
+      0 10px 24px -8px hsl(var(--shadow-color) / 0.16);
+  }
+  &:active {
+    transform: translateY(0) scale(0.995);
+    transition-duration: 0.08s;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+}
+
+/* Loading placeholder: a light sweep across the block instead of a flat pulse. */
+@utility skeleton-shimmer {
+  background-color: var(--muted);
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in oklch, var(--foreground) 6%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  animation: var(--animate-shimmer);
+}
+
+/* Children rise in one after another (first twelve; the rest arrive with the
+   twelfth). A CSS-only stagger, so any list can opt in with one class. */
+@utility stagger {
+  & > * {
+    animation: var(--animate-rise);
+  }
+  & > :nth-child(2) {
+    animation-delay: 40ms;
+  }
+  & > :nth-child(3) {
+    animation-delay: 80ms;
+  }
+  & > :nth-child(4) {
+    animation-delay: 120ms;
+  }
+  & > :nth-child(5) {
+    animation-delay: 160ms;
+  }
+  & > :nth-child(6) {
+    animation-delay: 200ms;
+  }
+  & > :nth-child(7) {
+    animation-delay: 240ms;
+  }
+  & > :nth-child(8) {
+    animation-delay: 280ms;
+  }
+  & > :nth-child(9) {
+    animation-delay: 320ms;
+  }
+  & > :nth-child(10) {
+    animation-delay: 360ms;
+  }
+  & > :nth-child(11) {
+    animation-delay: 400ms;
+  }
+  & > :nth-child(n + 12) {
+    animation-delay: 440ms;
+  }
+}
+
+/* Empty lists: a soft tinted icon tile and a faint wash instead of a bare
+   dashed box. The first <svg> child becomes the tile. */
+@layer components {
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 1.5rem;
+    text-align: center;
+    border-radius: var(--radius-xl);
+    border: 1px dashed color-mix(in oklch, var(--foreground) 16%, transparent);
+    background: radial-gradient(
+      60% 100% at 50% 0%,
+      color-mix(in oklch, var(--primary) 5%, transparent),
+      transparent 70%
+    );
+    animation: var(--animate-fade);
+  }
+  .empty-state > p:first-of-type {
+    font-weight: 600;
+  }
+  .empty-state > p {
+    max-width: 24rem;
+  }
+  .empty-icon {
+    box-sizing: content-box;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 0.875rem;
+    color: var(--primary);
+    background: color-mix(in oklch, var(--primary) 9%, var(--card));
+    box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 16%, transparent);
+  }
+}
+
+/* Anything that animates on its own stands still for people who ask. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* The theme switch cross-fades through the View Transitions API
+   (components/theme-toggle.tsx); these keep the old and new frames from
+   being animated by the browser's default blend on top of that. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 /* [[wiki-links]] in the editor (components/editor/wiki-link-extension.ts).
    A note that exists reads as a link; a missing one gets a dashed underline,
    the usual "this page doesn't exist yet" convention. */

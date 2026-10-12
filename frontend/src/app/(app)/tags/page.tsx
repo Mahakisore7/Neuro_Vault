@@ -128,7 +128,7 @@ export default function TagsPage() {
               <DialogTitle>Create a tag</DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="name">Name</Label>
                 <Input
                   id="name"
@@ -139,12 +139,12 @@ export default function TagsPage() {
                 />
                 {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label htmlFor="slug">Slug</Label>
                 <Input id="slug" {...register("slug")} />
                 {errors.slug && <p className="text-sm text-destructive">{errors.slug.message}</p>}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2 stagger">
                 <Label>Color</Label>
                 <div className="flex gap-2">
                   {COLORS.map((c) => (
@@ -182,8 +182,8 @@ export default function TagsPage() {
       {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
 
       {!isLoading && !isError && tags?.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-20 text-center">
-          <TagIcon className="mb-3 size-8 text-muted-foreground" />
+        <div className="empty-state">
+          <TagIcon className="empty-icon" />
           <p className="font-medium">No tags yet</p>
           <p className="text-sm text-muted-foreground">Create one to start labeling notes.</p>
         </div>
@@ -252,7 +252,7 @@ function TaggedNotes({ tagId, tagName }: { tagId: number; tagName: string }) {
       </h2>
 
       {isLoading && (
-        <div className="space-y-2">
+        <div className="space-y-2 stagger">
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-11 rounded-lg" />
           ))}
@@ -262,7 +262,7 @@ function TaggedNotes({ tagId, tagName }: { tagId: number; tagName: string }) {
       {isError && !isLoading && <ErrorState onRetry={() => refetch()} />}
 
       {notes?.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed py-12 text-center">
+        <div className="empty-state">
           <FileText className="mb-2 size-6 text-muted-foreground" />
           <p className="text-sm text-muted-foreground">
             No notes carry this tag yet. Add it from a note&rsquo;s tag bar.
