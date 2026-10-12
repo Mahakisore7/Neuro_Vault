@@ -1,0 +1,12 @@
+stateDiagram-v2
+    [*] --> Draft: New note ("Untitled", unfiled)
+    Draft --> Filed: move to a notebook
+    Draft --> Active: edit
+    Filed --> Active: edit
+    Active --> Active: save (new version row)
+    Active --> Public: make public
+    Public --> Active: make private
+    Active --> Trash: move to Trash
+    Public --> Trash: move to Trash
+    Trash --> Active: restore
+    Trash --> [*]: delete forever / Empty Trash<br/>(cascades to versions, links, cards)

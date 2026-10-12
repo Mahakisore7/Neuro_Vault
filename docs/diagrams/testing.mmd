@@ -1,0 +1,23 @@
+flowchart LR
+    PR["Pull request"] --> CI{"GitHub Actions"}
+    CI --> BE["Backend job"]
+    CI --> FE["Frontend job"]
+    BE --> B1["Fresh Postgres 16"] --> B2["Supabase stand-ins"] --> B3["alembic upgrade head"] --> B4["ruff + pyright"] --> B5["pytest (176)"]
+    FE --> F1["ESLint + type-check"] --> F2["production build"] --> F3["Playwright + axe (33)"]
+    B5 --> M{"All green?"}
+    F3 --> M
+    M -- yes --> Merge["Merge to main"]
+
+    classDef web fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF,stroke-width:1.5px
+    classDef api fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF,stroke-width:1.5px
+    classDef data fill:#0B4A38,stroke:#34D399,color:#ECFDF5,stroke-width:1.5px
+    classDef ext fill:#5A3A08,stroke:#FBBF24,color:#FFFBEB,stroke-width:1.5px
+    classDef actor fill:#5B1F3F,stroke:#F472B6,color:#FDF2F8,stroke-width:1.5px
+    classDef good fill:#14532D,stroke:#4ADE80,color:#F0FDF4,stroke-width:1.5px
+    classDef bad fill:#5B1A25,stroke:#FB7185,color:#FFF1F2,stroke-width:1.5px
+    linkStyle default stroke:#8B9BC4,stroke-width:1.6px
+    class PR actor
+    class CI,M ext
+    class BE,FE web
+    class B1,B2,B3,B4,B5,F1,F2,F3 api
+    class Merge good

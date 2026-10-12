@@ -1,0 +1,23 @@
+flowchart LR
+    A["New note"] --> B["Type title and content"]
+    B --> C["Autosave<br/>Saved dot"]
+    B --> D["Type [["] --> E{"Note exists?"}
+    E -- yes --> F["Pick from list<br/>[[SQL Joins]]"]
+    E -- no --> G["Finish with ]]<br/>Ctrl+click creates it"]
+    F --> H["Save syncs the link"]
+    G --> H
+    B --> I["Link button<br/>choose type + strength"]
+    H --> J["Link bar + graph updated"]
+    I --> J
+    B --> K["Add tag"]
+
+    classDef web fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF,stroke-width:1.5px
+    classDef api fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF,stroke-width:1.5px
+    classDef data fill:#0B4A38,stroke:#34D399,color:#ECFDF5,stroke-width:1.5px
+    classDef ext fill:#5A3A08,stroke:#FBBF24,color:#FFFBEB,stroke-width:1.5px
+    classDef actor fill:#5B1F3F,stroke:#F472B6,color:#FDF2F8,stroke-width:1.5px
+    classDef good fill:#14532D,stroke:#4ADE80,color:#F0FDF4,stroke-width:1.5px
+    linkStyle default stroke:#8B9BC4,stroke-width:1.6px
+    class A,B,C web
+    class D,E,F,G,I,K api
+    class H,J good

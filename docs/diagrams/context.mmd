@@ -1,0 +1,37 @@
+flowchart LR
+    User(["Student / learner"])
+    subgraph NeuroVault
+        Web["Web app<br/>Next.js on Vercel"]
+        API["REST API<br/>FastAPI on Render"]
+    end
+    subgraph Supabase["Supabase (managed)"]
+        Auth["Auth<br/>email, Google, GitHub"]
+        DB[("PostgreSQL")]
+        Storage["Storage<br/>avatars"]
+    end
+    Mail["Email<br/>confirm, reset"]
+
+    User -- "browser" --> Web
+    Web -- "JSON + Bearer JWT" --> API
+    Web -- "sign-in, token refresh" --> Auth
+    Web -- "avatar upload" --> Storage
+    API -- "SQL (asyncpg)" --> DB
+    API -. "verify JWT via JWKS" .-> Auth
+    Auth --> Mail
+
+    classDef web fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF,stroke-width:1.5px
+    classDef api fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF,stroke-width:1.5px
+    classDef data fill:#0B4A38,stroke:#34D399,color:#ECFDF5,stroke-width:1.5px
+    classDef ext fill:#5A3A08,stroke:#FBBF24,color:#FFFBEB,stroke-width:1.5px
+    classDef actor fill:#5B1F3F,stroke:#F472B6,color:#FDF2F8,stroke-width:1.5px
+    classDef good fill:#14532D,stroke:#4ADE80,color:#F0FDF4,stroke-width:1.5px
+    classDef bad fill:#5B1A25,stroke:#FB7185,color:#FFF1F2,stroke-width:1.5px
+    linkStyle default stroke:#8B9BC4,stroke-width:1.6px
+    class User actor
+    class Web web
+    class API api
+    class Auth,Storage ext
+    class DB data
+    class Mail ext
+    style NeuroVault fill:#12163A,stroke:#6366F1,stroke-width:1.5px,color:#E2E8F0
+    style Supabase fill:#0D2A24,stroke:#10B981,stroke-width:1.5px,color:#E2E8F0

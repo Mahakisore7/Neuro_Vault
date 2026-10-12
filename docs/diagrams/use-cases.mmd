@@ -1,0 +1,57 @@
+flowchart LR
+    Visitor(["Visitor"])
+    Student(["Signed-in user"])
+    Other(["Another user"])
+    DB(["Database<br/>triggers"])
+
+    subgraph System["NeuroVault"]
+        UC1(["Sign up / sign in"])
+        UC2(["Reset password"])
+        UC3(["Organise workspaces and notebooks"])
+        UC4(["Write and edit notes"])
+        UC5(["Restore a version"])
+        UC6(["Link notes"])
+        UC7(["Use wiki-links"])
+        UC8(["Explore graph and shortest path"])
+        UC9(["Search and command palette"])
+        UC10(["Tag and collect notes"])
+        UC11(["Review flashcards"])
+        UC12(["View dashboard and activity"])
+        UC13(["Export or delete account"])
+        UC14(["Read a public note"])
+        UC15(["Receive link notification"])
+    end
+
+    Visitor --> UC1
+    Visitor --> UC2
+    Student --> UC3
+    Student --> UC4
+    Student --> UC5
+    Student --> UC6
+    Student --> UC7
+    Student --> UC8
+    Student --> UC9
+    Student --> UC10
+    Student --> UC11
+    Student --> UC12
+    Student --> UC13
+    Other --> UC14
+    Other --> UC6
+    UC7 -. "includes" .-> UC6
+    UC6 -. "triggers" .-> UC15
+    DB --> UC15
+    Student --> UC15
+
+    classDef web fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF,stroke-width:1.5px
+    classDef api fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF,stroke-width:1.5px
+    classDef data fill:#0B4A38,stroke:#34D399,color:#ECFDF5,stroke-width:1.5px
+    classDef ext fill:#5A3A08,stroke:#FBBF24,color:#FFFBEB,stroke-width:1.5px
+    classDef actor fill:#5B1F3F,stroke:#F472B6,color:#FDF2F8,stroke-width:1.5px
+    classDef good fill:#14532D,stroke:#4ADE80,color:#F0FDF4,stroke-width:1.5px
+    linkStyle default stroke:#8B9BC4,stroke-width:1.6px
+    class Visitor,Student,Other,DB actor
+    class UC1,UC2,UC13 ext
+    class UC3,UC4,UC5,UC10,UC12 web
+    class UC6,UC7,UC8,UC9 api
+    class UC11,UC14,UC15 data
+    style System fill:#10172E,stroke:#3B4A78,stroke-width:1.5px,color:#E2E8F0

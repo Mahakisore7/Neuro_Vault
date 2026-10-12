@@ -1,0 +1,35 @@
+flowchart LR
+    subgraph Write path
+        U["UPDATE notes"] --> T1["trg_notes_create_version<br/>BEFORE UPDATE"]
+        T1 --> NV[("note_versions")]
+        U --> T2["trg_notes_activity_log<br/>AFTER"]
+        T2 --> AL[("activity_logs")]
+        L["INSERT knowledge_links"] --> T3["trg_knowledge_links_activity_log"]
+        T3 --> AL
+        L --> T4["trg_knowledge_links_notify"]
+        T4 --> NT[("notifications")]
+        A["INSERT auth.users"] --> T5["on_auth_user_created"]
+        T5 --> US[("users")]
+    end
+    subgraph Read path
+        V1["v_user_dashboard"]
+        V2["v_note_graph_stats"]
+        V3["v_orphan_notes"]
+        V4["v_note_search"]
+        F1["fn_note_distances<br/>BFS"]
+        F2["fn_shortest_path"]
+        F3["fn_max_graph_depth"]
+    end
+
+    classDef web fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF,stroke-width:1.5px
+    classDef api fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF,stroke-width:1.5px
+    classDef data fill:#0B4A38,stroke:#34D399,color:#ECFDF5,stroke-width:1.5px
+    classDef ext fill:#5A3A08,stroke:#FBBF24,color:#FFFBEB,stroke-width:1.5px
+    classDef actor fill:#5B1F3F,stroke:#F472B6,color:#FDF2F8,stroke-width:1.5px
+    classDef good fill:#14532D,stroke:#4ADE80,color:#F0FDF4,stroke-width:1.5px
+    classDef bad fill:#5B1A25,stroke:#FB7185,color:#FFF1F2,stroke-width:1.5px
+    linkStyle default stroke:#8B9BC4,stroke-width:1.6px
+    class U,L,A web
+    class T1,T2,T3,T4,T5 api
+    class NV,AL,NT,US data
+    class V1,V2,V3,V4,F1,F2,F3 ext

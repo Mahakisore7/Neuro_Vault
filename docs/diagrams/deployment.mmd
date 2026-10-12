@@ -1,0 +1,48 @@
+flowchart LR
+    subgraph Client
+        Br["Browser"]
+    end
+    subgraph Vercel
+        Next["Next.js production build<br/>CSP + security headers"]
+    end
+    subgraph Render
+        C["Docker container (non-root)<br/>alembic upgrade head<br/>uvicorn --workers 1"]
+    end
+    subgraph Supabase
+        PG[("PostgreSQL<br/>session pooler, IPv4")]
+        AU["Auth + JWKS"]
+        ST["Storage"]
+    end
+    subgraph GitHub
+        GH["Repository"]
+        CI["Actions CI<br/>backend + frontend jobs"]
+    end
+
+    Br -- HTTPS --> Next
+    Br -- "HTTPS + JWT" --> C
+    Br --> AU
+    Br --> ST
+    C -- "TLS, asyncpg" --> PG
+    C -. JWKS .-> AU
+    GH --> CI
+    GH -- "deploy on merge" --> Next
+    GH -- "deploy on merge" --> C
+
+    classDef web fill:#2E1F7A,stroke:#A5B4FC,color:#EEF2FF,stroke-width:1.5px
+    classDef api fill:#0B4A5C,stroke:#22D3EE,color:#ECFEFF,stroke-width:1.5px
+    classDef data fill:#0B4A38,stroke:#34D399,color:#ECFDF5,stroke-width:1.5px
+    classDef ext fill:#5A3A08,stroke:#FBBF24,color:#FFFBEB,stroke-width:1.5px
+    classDef actor fill:#5B1F3F,stroke:#F472B6,color:#FDF2F8,stroke-width:1.5px
+    classDef good fill:#14532D,stroke:#4ADE80,color:#F0FDF4,stroke-width:1.5px
+    classDef bad fill:#5B1A25,stroke:#FB7185,color:#FFF1F2,stroke-width:1.5px
+    linkStyle default stroke:#8B9BC4,stroke-width:1.6px
+    class Br actor
+    class Next web
+    class C api
+    class PG,AU,ST data
+    class GH,CI ext
+    style Client fill:#2A1020,stroke:#EC4899,stroke-width:1.5px,color:#E2E8F0
+    style Vercel fill:#12163A,stroke:#6366F1,stroke-width:1.5px,color:#E2E8F0
+    style Render fill:#08272F,stroke:#06B6D4,stroke-width:1.5px,color:#E2E8F0
+    style Supabase fill:#0D2A24,stroke:#10B981,stroke-width:1.5px,color:#E2E8F0
+    style GitHub fill:#2B1E06,stroke:#F59E0B,stroke-width:1.5px,color:#E2E8F0

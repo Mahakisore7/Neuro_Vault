@@ -1,6 +1,6 @@
 <div align="center">
 
-# NeuroVault
+<img src="docs/images/banner.svg" alt="NeuroVault: notes that form a graph" width="100%">
 
 **A knowledge base where notes form a graph — and PostgreSQL does the heavy lifting.**
 
@@ -48,8 +48,22 @@ defence.
   </tr>
 </table>
 
-<sub>Screenshots are the production build with sample DBMS notes, light theme. Every screen
-also has a dark theme.</sub>
+<table>
+  <tr>
+    <td width="50%"><img src="docs/screenshots/landing.png" alt="The landing page: an animated graph hero, a headline and two calls to action"><br><sub><b>Landing</b>: an animated graph, feature tiles with real product previews</sub></td>
+    <td width="50%"><img src="docs/screenshots/signin.png" alt="The sign-in page in the dark theme, with a brand panel"><br><sub><b>Sign in</b>: email, Google or GitHub, with a brand panel</sub></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%"><img src="docs/screenshots/phone-home.png" alt="Home on a phone" width="260"><br><sub><b>Home on a phone</b>: the sidebar becomes a drawer</sub></td>
+    <td align="center" width="50%"><img src="docs/screenshots/phone-note.png" alt="A note on a phone, with the editor toolbar wrapped to two rows" width="260"><br><sub><b>Note on a phone</b>: the toolbar wraps, nothing scrolls sideways</sub></td>
+  </tr>
+</table>
+
+<sub>Screenshots are the production build with sample DBMS notes. Every screen has a light and
+a dark theme.</sub>
 
 ## Contents
 
@@ -57,6 +71,7 @@ also has a dark theme.</sub>
 - [Database highlights](#database-highlights)
 - [Architecture](#architecture)
   - [Security and operations](#security-and-operations)
+- [Diagrams](#diagrams)
 - [Getting started](#getting-started)
 - [Testing](#testing)
 - [Deployment](#deployment)
@@ -146,126 +161,9 @@ row is migrated, tested, and explained in the design docs.
 `PK` primary key · `FK` foreign key · `UK` unique. Every relationship into `notes`,
 `notebooks`, `note_tags` and `collection_items` is a composite FK that carries the owner.
 
-```mermaid
-erDiagram
-    USERS {
-        uuid id PK "Supabase JWT sub claim"
-        citext email UK
-        varchar display_name
-        text avatar_url
-    }
-    WORKSPACES {
-        uuid id PK
-        uuid owner_id FK
-        varchar name
-        varchar slug UK "unique per owner"
-    }
-    NOTEBOOKS {
-        uuid id PK
-        uuid workspace_id FK "composite w/ owner_id"
-        uuid owner_id FK
-        varchar name
-        varchar color
-    }
-    NOTES {
-        uuid id PK
-        uuid creator_id FK
-        uuid notebook_id FK "nullable; composite w/ creator_id"
-        varchar title
-        text content
-        boolean is_public
-        boolean pinned
-        boolean archived "Trash"
-        integer word_count "GENERATED"
-        tsvector search_vector "GENERATED, GIN"
-    }
-    NOTE_VERSIONS {
-        uuid id PK
-        uuid note_id FK
-        integer version_num "UNIQUE with note_id"
-        varchar title
-        text content
-    }
-    RELATIONSHIP_TYPES {
-        smallint id PK
-        varchar name UK "seeded vocabulary"
-        boolean is_symmetric
-    }
-    KNOWLEDGE_LINKS {
-        uuid id PK
-        uuid source_note_id FK "composite w/ created_by"
-        uuid target_note_id FK "plain FK"
-        smallint rel_type_id FK
-        uuid created_by FK
-        smallint strength "CHECK 1-10"
-        varchar origin "manual | wiki | ai"
-    }
-    TAGS {
-        integer id PK
-        uuid user_id FK
-        varchar slug UK "unique per user"
-    }
-    NOTE_TAGS {
-        uuid note_id PK
-        integer tag_id PK
-        uuid owner_id FK "checked on both sides"
-    }
-    COLLECTIONS {
-        uuid id PK
-        uuid user_id FK
-        varchar name UK "unique per user"
-    }
-    COLLECTION_ITEMS {
-        uuid collection_id PK
-        uuid note_id PK
-        uuid owner_id FK
-        integer position
-    }
-    FLASHCARDS {
-        uuid id PK
-        uuid note_id FK "composite w/ owner_id"
-        numeric ease_factor "CHECK 1.30-2.50"
-        integer interval_days
-        timestamptz due_at
-    }
-    RESOURCES {
-        uuid id PK
-        uuid note_id FK "composite w/ owner_id"
-        varchar resource_type
-        text url
-    }
-    ACTIVITY_LOGS {
-        bigint id PK "append-only"
-        uuid user_id FK "SET NULL"
-        varchar action_type
-        jsonb metadata
-    }
-    NOTIFICATIONS {
-        bigint id PK
-        uuid user_id FK
-        varchar type
-        boolean is_read
-    }
+<p align="center"><img src="docs/diagrams/er.svg" alt="Entity-relationship diagram of the 15 tables"></p>
 
-    USERS ||--o{ WORKSPACES : owns
-    USERS ||--o{ NOTES : creates
-    USERS ||--o{ TAGS : owns
-    USERS ||--o{ COLLECTIONS : owns
-    USERS ||--o{ ACTIVITY_LOGS : "acted (SET NULL)"
-    USERS ||--o{ NOTIFICATIONS : receives
-    WORKSPACES ||--o{ NOTEBOOKS : contains
-    NOTEBOOKS |o--o{ NOTES : files
-    NOTES ||--o{ NOTE_VERSIONS : "history of"
-    NOTES ||--o{ FLASHCARDS : has
-    NOTES ||--o{ RESOURCES : attaches
-    NOTES ||--o{ KNOWLEDGE_LINKS : "source of"
-    NOTES ||--o{ KNOWLEDGE_LINKS : "target of"
-    RELATIONSHIP_TYPES ||--o{ KNOWLEDGE_LINKS : classifies
-    NOTES ||--o{ NOTE_TAGS : "tagged via"
-    TAGS ||--o{ NOTE_TAGS : "labels via"
-    NOTES ||--o{ COLLECTION_ITEMS : "grouped via"
-    COLLECTIONS ||--o{ COLLECTION_ITEMS : contains
-```
+Source: [`docs/diagrams/er.mmd`](docs/diagrams/er.mmd). Open the image on its own to zoom.
 
 The two `NOTES → KNOWLEDGE_LINKS` relationships are the graph: a self-referencing
 many-to-many on `notes`, deliberately asymmetric. The source side requires that you own
@@ -276,28 +174,9 @@ the note; the target side lets you point at any note you can read
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    subgraph Browser["Browser · Next.js 16 / React 19"]
-        UI["TanStack Query · Tiptap<br/>shadcn/ui · Tailwind v4"]
-    end
-    subgraph Supabase
-        Auth["Auth<br/>email + OAuth, ES256 JWTs"]
-        Storage["Storage<br/>avatars"]
-        REST["REST API<br/>(guarded by RLS)"]
-    end
-    subgraph API["FastAPI · Python 3.12"]
-        Route["endpoints"] --> Service["services<br/>authorization, rules"] --> Repo["repositories<br/>SQLAlchemy async"]
-    end
-    PG[("PostgreSQL<br/>triggers · views · functions<br/>RLS · Alembic")]
+<p align="center"><img src="docs/diagrams/containers.svg" alt="Architecture: the browser, the FastAPI layers and PostgreSQL's triggers, views, functions and row level security"></p>
 
-    UI -- "sign-in, refresh, upload" --> Auth
-    UI --> Storage
-    UI -- "Bearer JWT" --> Route
-    Service -. "verify via JWKS" .-> Auth
-    Repo -- asyncpg --> PG
-    REST -. "anon key path" .-> PG
-```
+<p align="center"><img src="docs/diagrams/stack.svg" alt="Technology stack by layer: frontend, backend, database, auth, quality and hosting"></p>
 
 - **Supabase owns identity, FastAPI owns the domain.** Password hashing, OAuth and token
   refresh stay with Supabase Auth. Authorization rules and every query go through
@@ -335,6 +214,60 @@ Beyond row level security and tenancy enforced by the schema:
   clock skew between Supabase and the server.
 - **Production container**: non-root, no dev dependencies or `.env` inside, applies
   migrations on start, and hides `/docs` outside development.
+
+## Diagrams
+
+Every diagram is a text file under [`docs/diagrams/`](docs/diagrams) (Mermaid, so it diffs
+and reviews like code), rendered to a themed SVG. The architecture and stack views are
+above; the database and user-flow views are in their own sections. The rest:
+
+**Class diagram (domain model).** Colours group the classes: pink identity, cyan
+structure, indigo content, green study, amber system records.
+
+<p align="center"><img src="docs/diagrams/class.svg" alt="UML class diagram of the domain model"></p>
+
+**Saving a note.** Autosave, version history, the audit log and wiki-link
+reconciliation, in one transaction.
+
+<p align="center"><img src="docs/diagrams/seq-save.svg" alt="Sequence diagram: the editor's save queue, FastAPI, the service and PostgreSQL triggers"></p>
+
+**What the database computes.** Triggers on the write path, views and functions on the
+read path.
+
+<p align="center"><img src="docs/diagrams/db-computes.svg" alt="Diagram of the database triggers, views and graph functions"></p>
+
+**Defence in depth.** A request passes six checks; the browser's anon key has its own.
+
+<p align="center"><img src="docs/diagrams/security.svg" alt="Six layers of security from rate limiting to row level security" width="420"></p>
+
+**Deployment and delivery.** Where each piece runs, and what CI gates a merge.
+
+<p align="center"><img src="docs/diagrams/deployment.svg" alt="Deployment diagram: Vercel, Render, Supabase and GitHub"></p>
+
+<p align="center"><img src="docs/diagrams/testing.svg" alt="CI pipeline: backend and frontend jobs that must both pass before merge"></p>
+
+<details>
+<summary><b>More diagrams</b></summary>
+
+| Diagram | File |
+|---|---|
+| System context | [`context`](docs/diagrams/context.svg) |
+| Use cases | [`use-cases`](docs/diagrams/use-cases.svg) |
+| Sign-in and calling the API | [`seq-auth`](docs/diagrams/seq-auth.svg) |
+| Linking to someone's public note | [`seq-link`](docs/diagrams/seq-link.svg) |
+| Shortest path between two notes | [`seq-path`](docs/diagrams/seq-path.svg) |
+| Reviewing a flashcard (SM-2) | [`seq-review`](docs/diagrams/seq-review.svg) |
+| A note's lifecycle | [`state-note`](docs/diagrams/state-note.svg) |
+| The editor's save indicator | [`state-save`](docs/diagrams/state-save.svg) |
+| Wiki-link reconciliation | [`wikilink-activity`](docs/diagrams/wikilink-activity.svg) |
+| Writing and connecting a note | [`flow-write`](docs/diagrams/flow-write.svg) |
+| Studying | [`flow-study`](docs/diagrams/flow-study.svg) |
+
+Each has a `.mmd` source beside it; the walkthrough around them is in the
+[project overview](docs/PROJECT-OVERVIEW.md). To change one, edit the `.mmd` and re-render
+(see [`docs/diagrams/tools/README.md`](docs/diagrams/tools/README.md)).
+
+</details>
 
 ## Getting started
 
@@ -488,6 +421,8 @@ endpoint list and error conventions: **[`docs/api-reference.md`](docs/api-refere
 │   ├── src/hooks/              one TanStack Query hook module per resource
 │   └── e2e/                    Playwright + axe tests, with an in-memory fake backend
 ├── docs/                       design docs, ADRs, API reference, deployment guide
+│   ├── diagrams/               Mermaid sources and rendered SVGs, plus the render tools
+│   └── images/                 the README banner
 ├── .github/workflows/ci.yml    backend and frontend jobs on every pull request
 ├── render.yaml                 Render blueprint for the API
 └── docker-compose.yml          local Postgres + migrations + backend
@@ -496,22 +431,9 @@ endpoint list and error conventions: **[`docs/api-reference.md`](docs/api-refere
 <details>
 <summary><b>User flow</b></summary>
 
-```mermaid
-flowchart TD
-    Start(["Visitor"]) --> Signed{"Signed in?"}
-    Signed -- No --> Auth["/login · /signup<br/>email or Google/GitHub"]
-    Auth --> Home
-    Signed -- Yes --> Home["/dashboard"]
-    Home --> Workspaces["/workspaces"] --> Notebook["notebook"] --> Editor["editor<br/>autosave → versioned"]
-    Editor --> Links["link notes<br/>by hand or [[wiki-links]]"] --> Graph["graph · shortest path"]
-    Links -. "their public note" .-> Bell["owner notified"]
-    Editor --> Cards["flashcards"] --> Review["/review · SM-2"]
-    Editor -- delete --> Trash["/trash"]
-    Home -.-> Search["Ctrl/⌘+K search"]
-    Home -.-> Collections["/collections"]
-    Home -.-> Activity["/activity"]
-    Home -.-> Profile["/profile<br/>export · delete account"]
-```
+<p align="center"><img src="docs/diagrams/user-flow.svg" alt="User flow: from the landing page through sign-in to notes, graph, review and trash"></p>
+
+Source: [`docs/diagrams/user-flow.mmd`](docs/diagrams/user-flow.mmd). Four more flows (first-time user, writing and connecting, studying) are in the [project overview](docs/PROJECT-OVERVIEW.md#8-user-flows).
 
 </details>
 

@@ -1,0 +1,17 @@
+sequenceDiagram
+    autonumber
+    actor U as User A
+    participant API as FastAPI
+    participant DB as PostgreSQL
+    actor B as User B
+
+    U->>API: POST /notes/{mine}/links { target: B's public note, type, strength }
+    API->>API: service checks: source is A's, target is readable
+    API->>DB: INSERT INTO knowledge_links …
+    DB->>DB: composite FK: source belongs to A
+    DB->>DB: CHECK strength 1–10, UNIQUE (source, target, type)
+    DB->>DB: trg_knowledge_links_notify<br/>INSERT notification for B
+    DB-->>API: link row
+    API-->>U: 201 Created
+    B->>API: GET /notifications/unread-count
+    API-->>B: { count: 1 }
